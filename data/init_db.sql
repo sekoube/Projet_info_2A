@@ -29,4 +29,16 @@ CREATE TABLE projet.evenement (
     created_by              INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE CASCADE,
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tarif                   NUMERIC(10,2) CHECK (tarif >= 0)
-                                );
+);
+
+-- Création de la table bus
+CREATE TABLE projet.bus (
+    id_bus                  SERIAL PRIMARY KEY,
+    date_evenement          DATE NOT NULL,
+    sens                    VARCHAR(6),
+    arrets                  VARCHAR(50),
+    capacite_max            INT NOT NULL,
+    evenement               INT NOT NULL REFERENCES projet.evenement(id_event) ON DELETE CASCADE,
+    created_by              INT NOT NULL REFERENCES projet.administrateur(id_admin),
+-- participants est elle même une liste, faire une table d'association ?
+)
