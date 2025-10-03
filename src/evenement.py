@@ -1,11 +1,14 @@
+from datetime import datetime
+
 class Evenement:
-    def __init__(self, id_evenement, date, titre, description, capacite_max, createur):
-        self.id_evenement = id_evenement
-        self.date = date
+    def __init__(self, id_event, date_event, titre, description_event, lieu, date_evenement, capacite_max, created_by, ):
+        self.id_event = id_event
+        self.date_event = date_event
         self.titre = titre
-        self.description = description
+        self.description_event = description_event
+        self.lieu = lieu
         self.capacite_max = capacite_max
-        self.createur = createur
+        
         self.participants = []
 
     def inscrire(self, utilisateur):
