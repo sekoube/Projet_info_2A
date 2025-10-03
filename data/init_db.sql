@@ -30,3 +30,12 @@ CREATE TABLE projet.evenement (
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tarif                   NUMERIC(10,2) CHECK (tarif >= 0)
                                 );
+
+-- Création de la table bus
+CREATE TABLE projet.bus (
+
+)
+-- Création de la table inscription
+CREATE TABLE projet.inscription(
+    
+)
