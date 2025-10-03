@@ -31,40 +31,16 @@ CREATE TABLE projet.evenement (
     created_by              INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE CASCADE,
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tarif                   NUMERIC(10,2) CHECK (tarif >= 0)
-                                );
+);
 
 -- Création de la table bus
 CREATE TABLE projet.bus (
     id_bus                  SERIAL PRIMARY KEY,
-    id_event                INT NOT NULL UNIQUE,
-    sens                    BOOLEAN NOT NULL,
-    description_bus         TEXT,
-    heure_depart            TIMESTAMP NOT NULL,
-    FOREIGN KEY (id_event) 
-        REFERENCES projet.evenement(id_event) 
-        ON DELETE CASCADE
-);
--- Création de la table inscription
-CREATE TABLE projet.inscription (
-    code_reservation SERIAL PRIMARY KEY,
-    date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    boit             BOOLEAN NOT NULL, 
-    mode_paiement    VARCHAR(50) NOT NULL,
-    id_utilisateur   INT NOT NULL,
-    id_event         INT NOT NULL,
-    id_bus_aller     INT,
-    id_bus_retour    INT,
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_utilisateur) 
-        REFERENCES projet.utilisateur(id_utilisateur) 
-        ON DELETE CASCADE,
-    FOREIGN KEY (id_event) 
-        REFERENCES projet.evenement(id_event) 
-        ON DELETE CASCADE,
-    FOREIGN KEY (id_bus_aller) 
-        REFERENCES projet.bus(id_bus) 
-        ON DELETE SET NULL,
-    FOREIGN KEY (id_bus_retour) 
-        REFERENCES projet.bus(id_bus) 
-        ON DELETE SET NULL
-);
+    date_evenement          DATE NOT NULL,
+    sens                    VARCHAR(6),
+    arrets                  VARCHAR(50),
+    capacite_max            INT NOT NULL,
+    evenement               INT NOT NULL REFERENCES projet.evenement(id_event) ON DELETE CASCADE,
+    created_by              INT NOT NULL REFERENCES projet.administrateur(id_admin),
+-- participants est elle même une liste, faire une table d'association ?
+)
