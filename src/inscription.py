@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 
+
 class Inscription:
     _compteurs = {}
 
