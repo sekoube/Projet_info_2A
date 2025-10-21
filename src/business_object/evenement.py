@@ -62,8 +62,16 @@ class Evenement:
         if not isinstance(created_by, int) or created_by <= 0:
             raise ValueError("L'ID du créateur doit être un entier positif")
 
-        if tarif < 0:
+        if isinstance(tarif, Decimal):
+            self.tarif = tarif
+        else:
+        # Convertir en string d'abord pour éviter les problèmes de précision float
+            self.tarif = Decimal(str(tarif))
+        # Validation du tarif
+        if self.tarif < 0:
             raise ValueError("Le tarif ne peut pas être négatif")
+        # Arrondir à 2 décimales pour garantir le format monétaire
+        self.tarif = self.tarif.quantize(Decimal('0.01'))
         # =================================================================
 
         self.id_event = id_event
@@ -202,6 +210,9 @@ class Evenement:
             if hasattr(insc, "utilisateur")
         ]
 
+
+# optionnel
+
     def taux_remplissage(self) -> float:
         """
         Calcule le taux de remplissage de l'événement en pourcentage.
@@ -209,6 +220,7 @@ class Evenement:
         return: Pourcentage de places occupées (0.0 à 100.0)
         ------
         """
+
         if self.capacite_max == 0:
             return 0.0
         return (len(self.inscriptions) / self.capacite_max) * 100
@@ -232,7 +244,7 @@ class Evenement:
         """
         return (
             f"{self.titre} - {self.date_evenement} à {self.lieu} "
-            f"({len(self.inscriptions)}/{self.capacite_max} participants) - {self.tarif}€"
+            f"({len(self.inscriptions)}/{self.capacite_max} participants) - {self.tarif:.2f}€"
         )
 
     def __repr__(self):
@@ -263,7 +275,7 @@ class Evenement:
             "capacite_max": self.capacite_max,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "tarif": str(self.tarif),
+            "tarif": f"{self.tarif:.2f}",
             "places_disponibles": self.places_disponibles(),
             "est_complet": self.est_complet(),
             "taux_remplissage": self.taux_remplissage(),
