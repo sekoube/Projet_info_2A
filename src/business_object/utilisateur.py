@@ -33,6 +33,15 @@ class Utilisateur:
         date_creation: Date de création du compte
         """
 
+        self.id_utilisateur = id_utilisateur
+        self.pseudo = pseudo
+        self.nom = nom
+        self.prenom = prenom
+        self.email = email
+        self.mot_de_passe = mot_de_passe
+        self.role = role
+        self.date_creation = date_creation or datetime.now()
+
         # ========================== VALIDATIONS ==========================
         if not pseudo or pseudo.strip() == "":
             raise ValueError("Le pseudo ne peut pas être vide")
@@ -49,15 +58,6 @@ class Utilisateur:
         if not mot_de_passe or mot_de_passe.strip() == "":
             raise ValueError("Le mot de passe ne peut pas être vide")
         # =================================================================
-
-        self.id_utilisateur = id_utilisateur
-        self.pseudo = pseudo
-        self.nom = nom
-        self.prenom = prenom
-        self.email = email
-        self.mot_de_passe = mot_de_passe
-        self.role = role
-        self.date_creation = date_creation or datetime.now()
 
     # ************************ Méthodes ***********************************************
 
