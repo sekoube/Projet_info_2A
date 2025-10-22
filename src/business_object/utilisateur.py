@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional  # indiquer les types attendus pour les arguments, les attributs
 import re  # pour vérifier la validité de l'adresse e-mail
+from utils.mdp import hash_password, verify_password
 
 
 class Utilisateur:
@@ -50,13 +51,14 @@ class Utilisateur:
         if not prenom or prenom.strip() == "":
             raise ValueError("Le prénom ne peut pas être vide")
 
-        # Validation améliorée de l'email (via expression régulière)
-        # Format attendu : texte@texte.domaine
+        # Validation de l'email - Format attendu : texte@texte.domaine
         if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
             raise ValueError("L'adresse e-mail n'est pas valide")
 
         if not mot_de_passe or mot_de_passe.strip() == "":
             raise ValueError("Le mot de passe ne peut pas être vide")
+
+
         # =================================================================
 
     # ************************ Méthodes ***********************************************
@@ -79,7 +81,17 @@ class Utilisateur:
         ------
         """
         return "@" in self.email and "." in self.email
-       
+
+    def set_password(self, plain_password: str) -> None:
+        """Hache et stocke un mot de passe sécurisé."""
+        if not plain_password or plain_password.strip() == "":
+            raise ValueError("Le mot de passe ne peut pas être vide")
+        self.mot_de_passe = hash_password(plain_password)
+
+    def verify_password(self, plain_password: str) -> bool:
+        """Vérifie qu'un mot de passe correspond au hash stocké."""
+        return verify_password(plain_password, self.mot_de_passe)
+      
     def __repr__(self):
         """Représentation texte"""
         role_str = "Admin" if self.role else "Participant"
