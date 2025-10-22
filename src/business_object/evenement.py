@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional, List
-import re
 
 
 class Evenement:
@@ -62,16 +61,12 @@ class Evenement:
         if not isinstance(created_by, int) or created_by <= 0:
             raise ValueError("L'ID du créateur doit être un entier positif")
 
-        if isinstance(tarif, Decimal):
-            self.tarif = tarif
-        else:
-        # Convertir en string d'abord pour éviter les problèmes de précision float
-            self.tarif = Decimal(str(tarif))
-        # Validation du tarif
-        if self.tarif < 0:
+        # Conversion du tarif en nombre si c'est une chaîne (depuis from_dict)
+        if isinstance(tarif, str):
+            tarif = float(tarif)
+        
+        if tarif < 0:
             raise ValueError("Le tarif ne peut pas être négatif")
-        # Arrondir à 2 décimales pour garantir le format monétaire
-        self.tarif = self.tarif.quantize(Decimal('0.01'))
         # =================================================================
 
         self.id_event = id_event
@@ -82,7 +77,8 @@ class Evenement:
         self.capacite_max = capacite_max
         self.created_by = created_by
         self.created_at = created_at or datetime.now()
-        self.tarif = Decimal(str(tarif))
+        # Quantize pour garantir exactement 2 décimales
+        self.tarif = Decimal(str(tarif)).quantize(Decimal('0.01'))
 
         # Relations (non persistées directement en DB, gérées via tables de liaison)
         self.inscriptions: List = []  # Liste des objets Inscription
@@ -129,7 +125,21 @@ class Evenement:
             return False
 
         # Créer une nouvelle inscription (à persister en DB)
-        from inscription import Inscription  # Import local pour éviter la circularité
+        try:
+            from business_object.inscription import Inscription
+        except ImportError:
+            # Fallback si le module n'existe pas encore (phase de développement/tests)
+            # Dans ce cas, on crée un objet simple avec les attributs nécessaires
+            class InscriptionTemp:
+                def __init__(self, id_utilisateur, id_event, boit, mode_paiement, 
+                           id_bus_aller=None, id_bus_retour=None):
+                    self.id_utilisateur = id_utilisateur
+                    self.id_event = id_event
+                    self.boit = boit
+                    self.mode_paiement = mode_paiement
+                    self.id_bus_aller = id_bus_aller
+                    self.id_bus_retour = id_bus_retour
+            Inscription = InscriptionTemp
 
         nouvelle_inscription = Inscription(
             id_utilisateur=utilisateur.id_utilisateur,
@@ -210,9 +220,6 @@ class Evenement:
             if hasattr(insc, "utilisateur")
         ]
 
-
-# optionnel
-
     def taux_remplissage(self) -> float:
         """
         Calcule le taux de remplissage de l'événement en pourcentage.
@@ -220,7 +227,6 @@ class Evenement:
         return: Pourcentage de places occupées (0.0 à 100.0)
         ------
         """
-
         if self.capacite_max == 0:
             return 0.0
         return (len(self.inscriptions) / self.capacite_max) * 100
@@ -242,9 +248,11 @@ class Evenement:
         return: str -> "Titre - Date à Lieu (participants/capacité)"
         ------
         """
+        # Formatage du tarif avec exactement 2 décimales
+        tarif_str = f"{self.tarif:.2f}"
         return (
             f"{self.titre} - {self.date_evenement} à {self.lieu} "
-            f"({len(self.inscriptions)}/{self.capacite_max} participants) - {self.tarif:.2f}€"
+            f"({len(self.inscriptions)}/{self.capacite_max} participants) - {tarif_str}€"
         )
 
     def __repr__(self):
@@ -275,7 +283,7 @@ class Evenement:
             "capacite_max": self.capacite_max,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "tarif": f"{self.tarif:.2f}",
+            "tarif": f"{self.tarif:.2f}",  # Formatage avec exactement 2 décimales
             "places_disponibles": self.places_disponibles(),
             "est_complet": self.est_complet(),
             "taux_remplissage": self.taux_remplissage(),

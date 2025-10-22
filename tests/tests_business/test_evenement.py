@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime, date, timedelta
 from decimal import Decimal
+from unittest.mock import Mock
 import sys
 import os
 
@@ -43,6 +44,34 @@ def evenement_valide_data(date_future):
 def evenement(evenement_valide_data):
     """Instance d'événement valide pour les tests."""
     return Evenement(**evenement_valide_data)
+
+
+@pytest.fixture
+def evenement_avec_id(evenement_valide_data):
+    """Événement avec un ID pour les inscriptions."""
+    evenement = Evenement(**evenement_valide_data)
+    evenement.id_event = 1
+    return evenement
+
+
+@pytest.fixture
+def mock_utilisateur():
+    """Mock simple d'un utilisateur."""
+    user = Mock()
+    user.id_utilisateur = 1
+    user.nom = "Dupont"
+    user.prenom = "Jean"
+    return user
+
+
+@pytest.fixture
+def mock_utilisateur2():
+    """Mock d'un second utilisateur."""
+    user = Mock()
+    user.id_utilisateur = 2
+    user.nom = "Martin"
+    user.prenom = "Sophie"
+    return user
 
 
 # ==================== TESTS DE VALIDATION ====================
@@ -146,6 +175,15 @@ class TestValidation:
         evenement = Evenement(**evenement_valide_data)
         assert evenement.tarif == Decimal("0.00")
 
+    def test_tarif_deja_decimal(self, evenement_valide_data):
+        """Test : tarif déjà en Decimal est accepté directement."""
+        evenement_valide_data["tarif"] = Decimal("30.00")
+        
+        evenement = Evenement(**evenement_valide_data)
+        
+        assert evenement.tarif == Decimal("30.00")
+        assert isinstance(evenement.tarif, Decimal)
+
 
 # ==================== TESTS DES MÉTHODES MÉTIER ====================
 
@@ -196,18 +234,16 @@ class TestBus:
     @pytest.fixture
     def bus_aller(self):
         """Mock d'un bus aller."""
-        class BusMock:
-            def __init__(self):
-                self.sens = True
-        return BusMock()
+        bus = Mock()
+        bus.sens = True
+        return bus
 
     @pytest.fixture
     def bus_retour(self):
         """Mock d'un bus retour."""
-        class BusMock:
-            def __init__(self):
-                self.sens = False
-        return BusMock()
+        bus = Mock()
+        bus.sens = False
+        return bus
 
     def test_ajouter_bus_aller(self, evenement, bus_aller):
         """Test : ajout d'un bus aller."""
@@ -361,3 +397,77 @@ class TestRelations:
         """Test : get_participants retourne liste vide si pas d'inscriptions."""
         participants = evenement.get_participants()
         assert participants == []
+
+
+# ==================== TESTS DES INSCRIPTIONS ====================
+
+class TestInscriptions:
+    """Tests des méthodes d'inscription et désinscription."""
+
+    def test_inscrire_utilisateur_succes(self, evenement_avec_id, mock_utilisateur, capsys):
+        """Test : inscription réussie d'un utilisateur."""
+        resultat = evenement_avec_id.inscrire(
+            utilisateur=mock_utilisateur,
+            boit=True,
+            mode_paiement="CB"
+        )
+        
+        assert resultat is True
+        assert len(evenement_avec_id.inscriptions) == 1
+        captured = capsys.readouterr()
+        assert "inscrit à Festival Rock" in captured.out
+
+    def test_inscrire_utilisateur_deja_inscrit(self, evenement_avec_id, mock_utilisateur, capsys):
+        """Test : impossible d'inscrire un utilisateur déjà inscrit."""
+        evenement_avec_id.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
+        resultat = evenement_avec_id.inscrire(mock_utilisateur, boit=True, mode_paiement="CB")
+        
+        assert resultat is False
+        assert len(evenement_avec_id.inscriptions) == 1
+        captured = capsys.readouterr()
+        assert "déjà inscrit" in captured.out
+
+    def test_inscrire_evenement_complet(self, evenement_valide_data, mock_utilisateur, mock_utilisateur2, capsys):
+        """Test : impossible d'inscrire si événement complet."""
+        evenement_valide_data["capacite_max"] = 1
+        evenement = Evenement(**evenement_valide_data)
+        evenement.id_event = 1
+        
+        evenement.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
+        resultat = evenement.inscrire(mock_utilisateur2, boit=False, mode_paiement="CB")
+        
+        assert resultat is False
+        assert len(evenement.inscriptions) == 1
+        captured = capsys.readouterr()
+        assert "Capacité maximale" in captured.out
+
+    def test_desinscrire_utilisateur_succes(self, evenement_avec_id, mock_utilisateur, capsys):
+        """Test : désinscription réussie d'un utilisateur."""
+        evenement_avec_id.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
+        resultat = evenement_avec_id.desinscrire(mock_utilisateur)
+        
+        assert resultat is True
+        assert len(evenement_avec_id.inscriptions) == 0
+        captured = capsys.readouterr()
+        assert "désinscrit" in captured.out
+
+    def test_desinscrire_utilisateur_non_inscrit(self, evenement_avec_id, mock_utilisateur, capsys):
+        """Test : impossible de désinscrire un utilisateur non inscrit."""
+        resultat = evenement_avec_id.desinscrire(mock_utilisateur)
+        
+        assert resultat is False
+        captured = capsys.readouterr()
+        assert "n'est pas inscrit" in captured.out
+
+    def test_inscrire_avec_bus(self, evenement_avec_id, mock_utilisateur):
+        """Test : inscription avec bus aller et retour."""
+        resultat = evenement_avec_id.inscrire(
+            mock_utilisateur, 
+            boit=True, 
+            mode_paiement="CB",
+            id_bus_aller=1,
+            id_bus_retour=2
+        )
+        
+        assert resultat is True
+        assert len(evenement_avec_id.inscriptions) == 1
