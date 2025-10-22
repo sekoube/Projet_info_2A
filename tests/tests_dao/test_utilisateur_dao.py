@@ -1,8 +1,15 @@
 import pytest
 from datetime import datetime
-from business_objet.utilisateur import Utilisateur
-from dao.utilisateur_dao import UtilisateurDAO
-from dao.db_connection import DBConnection
+import sys
+import os
+
+# Chemin du projet racine (2 niveaux au-dessus du fichier test)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(project_root)
+from src.business_object.utilisateur import Utilisateur
+from src.dao.utilisateur_dao import UtilisateurDAO
+from src.dao.db_connection import DBConnection
+
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_database():
