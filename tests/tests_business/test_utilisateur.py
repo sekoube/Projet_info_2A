@@ -1,6 +1,11 @@
 import re
 import pytest
 from datetime import datetime
+import sys
+import os
+# Chemin du projet racine (2 niveaux au-dessus du fichier test)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(project_root)
 from src.business_object.utilisateur import Utilisateur
 
 
