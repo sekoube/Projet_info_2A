@@ -1,16 +1,21 @@
-class Admin(Utilisateur):
-    def __init__(self, id, nom, prenom, email, mdp):
-        super().__init__(id, nom, prenom, email, mdp)
+from utilisateur import Utilisateur
+from evenement import Evenement
 
-    def creer_evenement(self, id_evenement, date, titre, description, capacite_max):
-        return Evenement(id_evenement, date, titre, description, capacite_max, self)
+class Admin(Utilisateur):
+    def __init__(self, id_utilisateur, pseudo, nom, prenom, email, mot_de_passe):
+        super().__init__(id_utilisateur=id_utilisateur, pseudo=pseudo, nom=nom, prenom=prenom, email=email, mot_de_passe=mot_de_passe, role=True)
+
+    def creer_evenement(self, titre, lieu, date_evenement, capacite_max, tarif, id_event):
+        return Evenement(
+            id_event=id_event,
+            titre=titre,
+            lieu=lieu,
+            date_evenement=date_evenement,
+            capacite_max=capacite_max,
+            tarif=tarif,
+            created_by=self.id_utilisateur
+        )
     
-    def supp_participant(self, evenement, participant_a_retirer):
-        if participant_a_retirer in evenement.participants:
-            evenement.participants.remove(participant_a_retirer)
-            print(f"{participant_a_retirer.prenom} {participant_a_retirer.nom} a bien été désinscrit de l'évènement")
-            return True
-        else:
-            print(f"{participant_a_retirer.prenom} {participant_a_retirer.nom} n'est pas inscrit à l'évènement")
-            return False
+    def supp_participant(self, evenement: Evenement, participant_a_retirer):
+        return evenement.desinscrire(participant_a_retirer)
 
