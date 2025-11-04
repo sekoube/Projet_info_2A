@@ -27,6 +27,8 @@ class Bus:
 
         if not heure_depart :
             raise valueError("L'heure de départ du bus est obligatoire")
+        # =================================================================
+
         
         self.id_bus = id_bus
         self.id_event = id_event
