@@ -114,21 +114,21 @@ class TestValidation:
     def test_lieu_trop_long(self, evenement_valide_data):
         """Test : lieu trop long doit lever une ValueError."""
         evenement_valide_data["lieu"] = "B" * 101
-        
+
         with pytest.raises(ValueError, match="100 caractères"):
             Evenement(**evenement_valide_data)
 
     def test_date_evenement_none(self, evenement_valide_data):
         """Test : date None doit lever une ValueError."""
         evenement_valide_data["date_evenement"] = None
-        
+
         with pytest.raises(ValueError, match="date de l'événement est obligatoire"):
             Evenement(**evenement_valide_data)
 
     def test_date_evenement_mauvais_type(self, evenement_valide_data):
         """Test : date avec mauvais type doit lever une ValueError."""
         evenement_valide_data["date_evenement"] = "2025-12-25"
-        
+
         with pytest.raises(ValueError, match="objet date"):
             Evenement(**evenement_valide_data)
 
@@ -136,51 +136,51 @@ class TestValidation:
     def test_capacite_max_invalide(self, evenement_valide_data, capacite):
         """Test : capacité max invalide (0 ou négative) doit lever une ValueError."""
         evenement_valide_data["capacite_max"] = capacite
-        
+
         with pytest.raises(ValueError, match="supérieure à 0"):
             Evenement(**evenement_valide_data)
 
     def test_capacite_max_non_entier(self, evenement_valide_data):
         """Test : capacité max non entière doit lever une ValueError."""
         evenement_valide_data["capacite_max"] = 50.5
-        
+
         with pytest.raises(ValueError, match="entier"):
             Evenement(**evenement_valide_data)
 
     def test_created_by_none(self, evenement_valide_data):
         """Test : created_by None doit lever une ValueError."""
         evenement_valide_data["created_by"] = None
-        
+
         with pytest.raises(ValueError, match="créateur est obligatoire"):
             Evenement(**evenement_valide_data)
 
     def test_created_by_negatif(self, evenement_valide_data):
         """Test : created_by négatif doit lever une ValueError."""
         evenement_valide_data["created_by"] = -1
-        
+
         with pytest.raises(ValueError, match="entier positif"):
             Evenement(**evenement_valide_data)
 
     def test_tarif_negatif(self, evenement_valide_data):
         """Test : tarif négatif doit lever une ValueError."""
         evenement_valide_data["tarif"] = -10.0
-        
+
         with pytest.raises(ValueError, match="tarif ne peut pas être négatif"):
             Evenement(**evenement_valide_data)
 
     def test_tarif_zero_valide(self, evenement_valide_data):
         """Test : tarif à 0 (gratuit) est valide."""
         evenement_valide_data["tarif"] = 0.0
-        
+
         evenement = Evenement(**evenement_valide_data)
         assert evenement.tarif == Decimal("0.00")
 
     def test_tarif_deja_decimal(self, evenement_valide_data):
         """Test : tarif déjà en Decimal est accepté directement."""
         evenement_valide_data["tarif"] = Decimal("30.00")
-        
+
         evenement = Evenement(**evenement_valide_data)
-        
+
         assert evenement.tarif == Decimal("30.00")
         assert isinstance(evenement.tarif, Decimal)
 
@@ -215,14 +215,14 @@ class TestMethodesMetier:
         """Test : événement passé est bien détecté."""
         evenement_valide_data["date_evenement"] = date_passee
         evenement = Evenement(**evenement_valide_data)
-        
+
         assert evenement.est_passe()
 
     def test_est_passe_evenement_aujourdhui(self, evenement_valide_data):
         """Test : événement aujourd'hui n'est pas passé."""
         evenement_valide_data["date_evenement"] = date.today()
         evenement = Evenement(**evenement_valide_data)
-        
+
         assert not evenement.est_passe()
 
 
@@ -248,14 +248,14 @@ class TestBus:
     def test_ajouter_bus_aller(self, evenement, bus_aller):
         """Test : ajout d'un bus aller."""
         evenement.ajouter_bus(bus_aller)
-        
+
         assert evenement.bus_aller == bus_aller
         assert evenement.bus_retour is None
 
     def test_ajouter_bus_retour(self, evenement, bus_retour):
         """Test : ajout d'un bus retour."""
         evenement.ajouter_bus(bus_retour)
-        
+
         assert evenement.bus_aller is None
         assert evenement.bus_retour == bus_retour
 
@@ -268,7 +268,7 @@ class TestRepresentation:
     def test_resume(self, evenement):
         """Test : méthode resume retourne le format attendu."""
         resume = evenement.resume()
-        
+
         assert "Festival Rock" in resume
         assert "Rennes" in resume
         assert "0/100" in resume
@@ -282,7 +282,7 @@ class TestRepresentation:
         """Test : __repr__ contient les infos essentielles."""
         evenement_valide_data["id_event"] = 42
         evenement = Evenement(**evenement_valide_data)
-        
+
         repr_str = repr(evenement)
         assert "Evenement #42" in repr_str
         assert "Festival Rock" in repr_str
@@ -297,7 +297,7 @@ class TestSerialisation:
         """Test : conversion complète en dictionnaire."""
         evenement.id_event = 1
         data = evenement.to_dict()
-        
+
         assert data["id_event"] == 1
         assert data["titre"] == "Festival Rock"
         assert data["lieu"] == "Rennes"
@@ -313,11 +313,11 @@ class TestSerialisation:
     def test_to_dict_date_format(self, evenement):
         """Test : les dates sont au format ISO dans to_dict."""
         data = evenement.to_dict()
-        
+
         # Vérification du format ISO (YYYY-MM-DD)
         assert len(data["date_evenement"]) == 10
         assert data["date_evenement"].count("-") == 2
-        
+
         # Format datetime ISO
         assert "T" in data["created_at"]
         assert ":" in data["created_at"]
@@ -335,9 +335,9 @@ class TestSerialisation:
             "created_at": "2025-10-21T10:00:00",
             "tarif": 15.00
         }
-        
+
         evenement = Evenement.from_dict(data)
-        
+
         assert evenement.id_event == 5
         assert evenement.titre == "Concert Jazz"
         assert evenement.lieu == "Paris"
@@ -358,7 +358,7 @@ class TestSerialisation:
             "created_at": datetime.now(),
             "tarif": 10.00
         }
-        
+
         evenement = Evenement.from_dict(data)
         assert isinstance(evenement.date_evenement, date)
         assert isinstance(evenement.created_at, datetime)
@@ -366,13 +366,13 @@ class TestSerialisation:
     def test_cycle_complet_dict(self, evenement):
         """Test : conversion objet → dict → objet préserve les données."""
         evenement.id_event = 10
-        
+
         # Objet → Dict
         data = evenement.to_dict()
-        
+
         # Dict → Objet
         evenement_reconstruit = Evenement.from_dict(data)
-        
+
         # Vérifications
         assert evenement.id_event == evenement_reconstruit.id_event
         assert evenement.titre == evenement_reconstruit.titre
@@ -411,7 +411,7 @@ class TestInscriptions:
             boit=True,
             mode_paiement="CB"
         )
-        
+
         assert resultat is True
         assert len(evenement_avec_id.inscriptions) == 1
         captured = capsys.readouterr()
@@ -421,7 +421,7 @@ class TestInscriptions:
         """Test : impossible d'inscrire un utilisateur déjà inscrit."""
         evenement_avec_id.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
         resultat = evenement_avec_id.inscrire(mock_utilisateur, boit=True, mode_paiement="CB")
-        
+
         assert resultat is False
         assert len(evenement_avec_id.inscriptions) == 1
         captured = capsys.readouterr()
@@ -432,10 +432,10 @@ class TestInscriptions:
         evenement_valide_data["capacite_max"] = 1
         evenement = Evenement(**evenement_valide_data)
         evenement.id_event = 1
-        
+
         evenement.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
         resultat = evenement.inscrire(mock_utilisateur2, boit=False, mode_paiement="CB")
-        
+
         assert resultat is False
         assert len(evenement.inscriptions) == 1
         captured = capsys.readouterr()
@@ -445,7 +445,7 @@ class TestInscriptions:
         """Test : désinscription réussie d'un utilisateur."""
         evenement_avec_id.inscrire(mock_utilisateur, boit=False, mode_paiement="CB")
         resultat = evenement_avec_id.desinscrire(mock_utilisateur)
-        
+
         assert resultat is True
         assert len(evenement_avec_id.inscriptions) == 0
         captured = capsys.readouterr()
@@ -454,7 +454,7 @@ class TestInscriptions:
     def test_desinscrire_utilisateur_non_inscrit(self, evenement_avec_id, mock_utilisateur, capsys):
         """Test : impossible de désinscrire un utilisateur non inscrit."""
         resultat = evenement_avec_id.desinscrire(mock_utilisateur)
-        
+
         assert resultat is False
         captured = capsys.readouterr()
         assert "n'est pas inscrit" in captured.out
@@ -468,6 +468,6 @@ class TestInscriptions:
             id_bus_aller=1,
             id_bus_retour=2
         )
-        
+
         assert resultat is True
         assert len(evenement_avec_id.inscriptions) == 1
