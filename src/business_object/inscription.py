@@ -48,10 +48,71 @@ class Inscription:
         self.id_bus_retour = id_bus_retour
         self.date_creation = datetime.now()
         # ========================== VALIDATIONS ==========================
-        pass
+        # Code de réservation : doit être un entier positif
+        if not isinstance(code_reservation, int) or code_reservation <= 0:
+            raise ValueError("Le code de réservation doit être un entier positif.")
+
+        # Boit : doit être un booléen
+        if not isinstance(boit, bool):
+            raise TypeError("Le champ 'boit' doit être de type bool.")
+
+        # created_by : ID utilisateur obligatoire
+        if created_by is None:
+            raise ValueError("L'attribut 'created_by' (ID utilisateur) est obligatoire.")
+        if not isinstance(created_by, int) or created_by <= 0:
+            raise ValueError("L'ID utilisateur doit être un entier positif.")
+
+        # Mode de paiement : doit être soit 'espèce' soit 'en ligne'
+        if mode_paiement not in ("espèce", "en ligne", ""):
+            raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
+
+        # ID événement et nom événement : obligatoires
+        if not id_event or not isinstance(id_event, str):
+            raise ValueError("L'ID de l'événement est obligatoire et doit être une chaîne.")
+        if not nom_event or not isinstance(nom_event, str):
+            raise ValueError("Le nom de l'événement est obligatoire et doit être une chaîne.")
+
+        # Bus aller/retour : doivent être des chaînes (même vides)
+        if not isinstance(id_bus_aller, str):
+            raise TypeError("L'identifiant du bus aller doit être une chaîne de caractères.")
+        if not isinstance(id_bus_retour, str):
+            raise TypeError("L'identifiant du bus retour doit être une chaîne de caractères.")
         # =================================================================
 
     # ************************ Méthodes ***********************************************
+        def inscrire(self, evenement, utilisateur):
+        """
+        Inscrire un utilisateur à un événement.
+        - Ajoute l'utilisateur à l'événement via evenement.inscrire()
+        - Met à jour le compteur d'inscriptions
+        """
+        if evenement is None or utilisateur is None:
+            raise ValueError("L'événement et l'utilisateur doivent être fournis.")
+
+        if utilisateur.id_utilisateur in evenement.liste_inscrits:
+            print(f"{utilisateur.nom} est déjà inscrit à {evenement.nom}.")
+            return False
+
+        evenement.inscrire(utilisateur)
+        print(f"{utilisateur.nom} a été inscrit à l'événement {evenement.nom}.")
+        return True
+
+    def desinscrire(self, evenement, utilisateur):
+        """
+        Désinscrire un utilisateur d'un événement.
+        - Retire l'utilisateur via evenement.desinscrire()
+        - Met à jour le compteur
+        """
+        if evenement is None or utilisateur is None:
+            raise ValueError("L'événement et l'utilisateur doivent être fournis.")
+
+        if utilisateur.id_utilisateur not in evenement.liste_inscrits:
+            print(f"{utilisateur.nom} n'est pas inscrit à {evenement.nom}.")
+            return False
+
+        evenement.desinscrire(utilisateur)
+        print(f"{utilisateur.nom} a été désinscrit de l'événement {evenement.nom}.")
+        return True
 
     def __repr__(self):
         """Représentation texte"""
