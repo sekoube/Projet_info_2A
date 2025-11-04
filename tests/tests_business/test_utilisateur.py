@@ -62,9 +62,10 @@ def test_identite(pseudo, nom, prenom, resultat_attendu):
     assert user.identite() == resultat_attendu
 
 
+
 # ========================== Test de la méthode email_valide ==========================
 @pytest.mark.parametrize(
-    'email, resultat_attendu',
+    'email, doit_reussir',
     [
         ('france@example.com', True),
         ('france.bernard@mail.com', True),
@@ -72,14 +73,31 @@ def test_identite(pseudo, nom, prenom, resultat_attendu):
         ('', False),
     ]
 )
-def test_email_valide(email, resultat_attendu):
-    """Vérifie que email_valide() retourne True pour un email correct et False sinon"""
-    user = Utilisateur(pseudo='x', nom='Y', prenom='Z', email='valid@mail.com', mot_de_passe='1234')
-    user.email = email
-    assert user.email_valide() == resultat_attendu
-
-
+def test_email_valide(email, doit_reussir):
+    """Teste que la création d'un Utilisateur lève une erreur pour un email invalide"""
+    if doit_reussir:
+        # Ne doit PAS lever d'erreur
+        user = Utilisateur(
+            pseudo='x',
+            nom='Y',
+            prenom='Z',
+            email=email,
+            mot_de_passe='1234'
+        )
+        assert user.email == email
+    else:
+        # Doit lever une ValueError
+        with pytest.raises(ValueError, match="L'adresse e-mail n'est pas valide"):
+            Utilisateur(
+                pseudo='x',
+                nom='Y',
+                prenom='Z',
+                email=email,
+                mot_de_passe='1234'
+            )
 # ========================== Test to_dict et from_dict ==========================
+
+
 def test_to_dict_from_dict():
     """Vérifie la conversion d'un objet vers dict puis la recréation via from_dict"""
     user = Utilisateur(pseudo='franceber', nom='BERNARD', prenom='France', email='france@gmail.com', mot_de_passe='1234', role=True)
