@@ -1,36 +1,91 @@
-from dao_evenement import DAOEvenement
-from dao_inscription import DAOInscription
-from admin_business import Admin
+from utils.log_decorator import log
+from business_object.evenement import Evenement
+from dao.admin_dao import AdminDAO
 
 
 class AdminService:
-    """Couche service pour les actions d'administration """
+    """Classe contenant les méthodes de service pour gérer les événements par un administrateur"""
 
-    def __init__(self, dao_evenement: DAOEvenement, dao_inscription: DAOInscription):
-        self.dao_evenement = dao_evenement
-        self.dao_inscription = dao_inscription
+    @log
+    def creer(self, admin_pseudo, titre, description, lieu, date, capacite_max, tarif) -> Evenement:
+        """Création d'un événement à partir des informations fournies
 
-    def creer_evenement(self, admin: Admin, **infos_evenement):
-        """Crée et enregistre un événement en base."""
-        evenement = admin.creer_evenement(**infos_evenement)
-        self.dao_evenement.insert(evenement)
-        print(f"[SERVICE] Événement '{evenement.titre}' enregistré en base.")
-        return evenement
+        Parameters
+        ----------
+        admin_pseudo : str
+            Pseudo de l'administrateur qui crée l'événement
+        titre : str
+            Titre de l'événement
+        description : str
+            Description de l'événement
+        lieu : str
+            Lieu de l'événement
+        date : datetime
+            Date de l'événement
+        capacite_max : int
+            Capacité maximale de l'événement
+        tarif : float
+            Tarif de l'événement
 
-    def supprimer_evenement(self, id_event: int):
-        """Supprime un événement via la DAO."""
-        self.dao_evenement.delete(id_event)
-        print(f"[SERVICE] Événement id={id_event} supprimé de la base.")
+        Returns
+        -------
+        evenement : Evenement
+            L'événement créé si la création est réussie
+        """
+        evenement = Evenement(
+            titre=titre,
+            description=description,
+            lieu=lieu,
+            date=date,
+            capacite_max=capacite_max,
+            tarif=tarif,
+            pseudo_createur=admin_pseudo,
+        )
 
-    def consulter_evenements(self):
-        """Retourne tous les événements disponibles."""
-        return self.dao_evenement.get_all()
+        # Appeler le DAO pour persister l'événement dans la base de données
+        if AdminDAO().creer(evenement):
+            return evenement
+        return None
 
-    def supprimer_participant(self, id_utilisateur: int, id_event: int):
-        """Supprime une inscription."""
-        inscription = self.dao_inscription.get_by_user_and_event(id_utilisateur, id_event)
-        if inscription:
-            self.dao_inscription.delete(inscription.code_reservation)
-            print(f"[SERVICE] Participant {id_utilisateur} supprimé de l'événement {id_event}.")
-        else:
-            print("[SERVICE] Aucune inscription trouvée.")
+    @log
+    def lister_tous(self) -> list[Evenement]:
+        """Lister tous les événements
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        list[Evenement] : Liste des événements existants
+        """
+        return AdminDAO().lister_tous()
+
+    @log
+    def trouver_par_id(self, id_event: int) -> Evenement:
+        """Trouver un événement à partir de son ID
+
+        Parameters
+        ----------
+        id_event : int
+            Identifiant de l'événement à rechercher
+
+        Returns
+        -------
+        Evenement : L'événement trouvé, ou None si inexistant
+        """
+        return AdminDAO().trouver_par_id(id_event)
+
+    @log
+    def supprimer(self, evenement: Evenement) -> bool:
+        """Supprimer un événement
+
+        Parameters
+        ----------
+        evenement : Evenement
+
+        Returns
+        -------
+        bool : True si la suppression a réussi, False sinon
+        """
+        return AdminDAO().supprimer(evenement)

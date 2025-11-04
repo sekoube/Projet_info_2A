@@ -1,5 +1,6 @@
+import re
 import pytest
-from bus import Bus
+from src.business_object.bus import Bus
 
 
 @pytest.fixture
