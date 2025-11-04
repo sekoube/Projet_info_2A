@@ -58,7 +58,6 @@ class Utilisateur:
         if not mot_de_passe or mot_de_passe.strip() == "":
             raise ValueError("Le mot de passe ne peut pas être vide")
 
-
         # =================================================================
 
     # ************************ Méthodes ***********************************************
@@ -73,17 +72,9 @@ class Utilisateur:
         """
         return f"{self.prenom} {self.nom} ({self.pseudo})"
 
-    def email_valide(self) -> bool:
-        """
-        Vérifie la validité de l'adresse e-mail.
-
-        return: True si l'e-mail semble valide
-        ------
-        """
-        return "@" in self.email and "." in self.email
-
     def set_password(self, plain_password: str) -> None:
         """Hache et stocke un mot de passe sécurisé."""
+        # Déplacer la vérification dans validation
         if not plain_password or plain_password.strip() == "":
             raise ValueError("Le mot de passe ne peut pas être vide")
         self.mot_de_passe = hash_password(plain_password)
@@ -91,7 +82,7 @@ class Utilisateur:
     def verify_password(self, plain_password: str) -> bool:
         """Vérifie qu'un mot de passe correspond au hash stocké."""
         return verify_password(plain_password, self.mot_de_passe)
-      
+     
     def __repr__(self):
         """Représentation texte"""
         role_str = "Admin" if self.role else "Participant"
@@ -114,13 +105,16 @@ class Utilisateur:
 
     @staticmethod
     def from_dict(data: dict) -> "Utilisateur":
-        """
-        Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier.
-        data: Dictionnaire contenant les champs d'un utilisateur
-
-        return: Instance de Utilisateur
-        ------
-        """
+        """Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier."""
+        date_value = data.get("date_creation", datetime.now())
+        
+        # Si la date est une chaîne ISO, on la retransforme en datetime
+        if isinstance(date_value, str):
+            try:
+                date_value = datetime.fromisoformat(date_value)
+            except ValueError:
+                date_value = datetime.now()
+        
         return Utilisateur(
             id_utilisateur=data.get("id_utilisateur"),
             pseudo=data.get("pseudo", ""),
@@ -129,5 +123,5 @@ class Utilisateur:
             email=data.get("email", ""),
             mot_de_passe=data.get("mot_de_passe", ""),
             role=data.get("role", False),
-            date_creation=data.get("date_creation", datetime.now()),
+            date_creation=date_value,
         )
