@@ -5,7 +5,7 @@ import sys
 import os
 from bus import Bus
 # Chemin du projet racine (2 niveaux au-dessus du fichet test)
-
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 @pytest.fixture
 def bus_instance():
