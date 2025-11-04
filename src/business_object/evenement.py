@@ -7,6 +7,7 @@ class Evenement:
     """
     Classe métier représentant un événement de l'application.
     Cette classe contient uniquement la logique métier et les attributs de l'entité.
+    Les opérations de persistance et d'orchestration sont gérées par la couche service.
     """
 
     def __init__(
@@ -88,94 +89,6 @@ class Evenement:
 
     # ************************ Méthodes ***********************************************
 
-    def inscrire(
-        self,
-        utilisateur,
-        boit: bool,
-        mode_paiement: str,
-        id_bus_aller: Optional[int] = None,
-        id_bus_retour: Optional[int] = None
-    ) -> bool:
-        """
-        Inscrit un utilisateur à l'événement.
-        Crée un objet Inscription avec les informations nécessaires.
-
-        utilisateur: Objet Utilisateur à inscrire
-        boit: Si l'utilisateur consomme de l'alcool
-        mode_paiement: Mode de paiement choisi
-        id_bus_aller: ID du bus aller (optionnel)
-        id_bus_retour: ID du bus retour (optionnel)
-
-        return: True si inscription réussie, False sinon
-        ------
-        """
-        if self.est_complet():
-            print(
-                f"Impossible d'inscrire {utilisateur.nom} {utilisateur.prenom}. "
-                f"Capacité maximale atteinte ({self.capacite_max})."
-            )
-            return False
-
-        # Vérifier si l'utilisateur n'est pas déjà inscrit
-        if any(
-            insc.id_utilisateur == utilisateur.id_utilisateur
-            for insc in self.inscriptions
-        ):
-            print(f"{utilisateur.nom} {utilisateur.prenom} est déjà inscrit.")
-            return False
-
-        # Créer une nouvelle inscription (à persister en DB)
-        try:
-            from business_object.inscription import Inscription
-        except ImportError:
-            # Fallback si le module n'existe pas encore (phase de développement/tests)
-            # Dans ce cas, on crée un objet simple avec les attributs nécessaires
-            class InscriptionTemp:
-                def __init__(self, id_utilisateur, id_event, boit, mode_paiement, 
-                           id_bus_aller=None, id_bus_retour=None):
-                    self.id_utilisateur = id_utilisateur
-                    self.id_event = id_event
-                    self.boit = boit
-                    self.mode_paiement = mode_paiement
-                    self.id_bus_aller = id_bus_aller
-                    self.id_bus_retour = id_bus_retour
-            Inscription = InscriptionTemp
-
-        nouvelle_inscription = Inscription(
-            id_utilisateur=utilisateur.id_utilisateur,
-            id_event=self.id_event,
-            boit=boit,
-            mode_paiement=mode_paiement,
-            id_bus_aller=id_bus_aller,
-            id_bus_retour=id_bus_retour,
-        )
-
-        self.inscriptions.append(nouvelle_inscription)
-        print(f"{utilisateur.nom} {utilisateur.prenom} est inscrit à {self.titre}.")
-        return True
-
-    def desinscrire(self, utilisateur) -> bool:
-        """
-        Désinscrit un utilisateur de l'événement.
-
-        utilisateur: Objet Utilisateur à désinscrire
-
-        return: True si désinscription réussie, False sinon
-        ------
-        """
-        for insc in self.inscriptions:
-            if insc.id_utilisateur == utilisateur.id_utilisateur:
-                self.inscriptions.remove(insc)
-                print(
-                    f"{utilisateur.nom} {utilisateur.prenom} est désinscrit de {self.titre}."
-                )
-                return True
-
-        print(
-            f"{utilisateur.nom} {utilisateur.prenom} n'est pas inscrit à cet événement."
-        )
-        return False
-
     def places_disponibles(self) -> int:
         """
         Retourne le nombre de places disponibles.
@@ -193,32 +106,6 @@ class Evenement:
         ------
         """
         return len(self.inscriptions) >= self.capacite_max
-
-    def ajouter_bus(self, bus) -> None:
-        """
-        Ajoute un bus à l'événement (aller ou retour selon le sens).
-
-        bus: Objet Bus à associer à l'événement
-        ------
-        """
-        if bus.sens:  # True = aller
-            self.bus_aller = bus
-        else:  # False = retour
-            self.bus_retour = bus
-
-    def get_participants(self) -> List:
-        """
-        Retourne la liste des utilisateurs inscrits.
-        Note: Nécessite de charger les objets Utilisateur depuis la DB.
-
-        return: Liste des objets Utilisateur inscrits
-        ------
-        """
-        return [
-            insc.utilisateur
-            for insc in self.inscriptions
-            if hasattr(insc, "utilisateur")
-        ]
 
     def taux_remplissage(self) -> float:
         """
