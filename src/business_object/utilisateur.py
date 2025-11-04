@@ -72,6 +72,10 @@ class Utilisateur:
         """
         return f"{self.prenom} {self.nom} ({self.pseudo})"
 
+    @staticmethod
+    def is_admin(self):
+        return self.role is True
+
     def set_password(self, plain_password: str) -> None:
         """Hache et stocke un mot de passe sécurisé."""
         # Déplacer la vérification dans validation
