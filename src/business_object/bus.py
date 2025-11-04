@@ -22,11 +22,11 @@ class Bus:
         if sens != "Aller" and sens != "Retour" :
             raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
 
-        if not description or description.strip() == "" :
-            raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire 'direct'")
+        if not description or description == [] or description == [''] :
+            raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire ['direct']")
 
-        if not heure_depart :
-            raise valueError("L'heure de départ du bus est obligatoire")
+        if not heure_depart:
+            raise ValueError("L'heure de départ du bus est obligatoire")
         # =================================================================
 
         
