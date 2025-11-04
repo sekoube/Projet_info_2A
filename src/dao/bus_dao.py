@@ -28,12 +28,23 @@ class BusDAO:
         return bus
     
     @staticmethod
-    def trouver_par_event(id_event: int) -> Bus | None:
+    def get_by_event(id_event: int) -> Bus | None:
         """Recherche les bus affectés à un évènement."""
         query = "SELECT * FROM bus WHERE id_event = %s"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute(query, (id_event,))
+                row = cursor.fetchone()
+                if row:
+                    return Bus.from_dict(row)
+                return None
+
+    def get_by_id(id_bus: int) -> Bus | None:
+        """Recheche un bus d'après son identifiant"""
+        query = "SELECT * FROM bus WHERE id_bus = %s"
+        with DBConnection().connection as connection:
+            with connection.cursor as cursor:
+                cursor.execute(query, (id_bus,))
                 row = cursor.fetchone()
                 if row:
                     return Bus.from_dict(row)

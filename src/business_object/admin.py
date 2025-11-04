@@ -2,6 +2,7 @@ from utilisateur import Utilisateur
 from evenement import Evenement
 
 class Admin(Utilisateur):
+    
     def __init__(self, id_utilisateur, pseudo, nom, prenom, email, mot_de_passe):
         super().__init__(id_utilisateur=id_utilisateur, pseudo=pseudo, nom=nom, prenom=prenom, email=email, mot_de_passe=mot_de_passe, role=True)
 
