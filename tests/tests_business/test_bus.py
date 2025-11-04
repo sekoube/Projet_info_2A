@@ -1,7 +1,16 @@
 import re
 import pytest
+<<<<<<< HEAD
 from src.business_object.bus import Bus
 
+=======
+from datetime import datetime
+import sys
+import os
+from bus import Bus
+# Chemin du projet racine (2 niveaux au-dessus du fichet test)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+>>>>>>> c2d0c7103bf2fc7034771d4b469934209f132e65
 
 @pytest.fixture
 def bus_instance():
