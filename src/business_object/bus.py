@@ -8,7 +8,7 @@ class Bus:
         
             id_bus : Identifiant unique du bus (auto-incrémenté de base)
             id_event : Identifiant de l'évènement auquel le bus est attribué
-            sens : aller ou retour de l'évènement ("aller" ou "retour")
+            sens : aller ou retour de l'évènement ("Aller" ou "Retour")
             description : liste des arrêts intermédiaires (max 100 caractères)
             heure_depart : heure de départ du bus
         """
@@ -19,8 +19,8 @@ class Bus:
 
         if not sens or sens.strip() == "":
             raise ValueError("Le sens ne peut pas être vide")
-        if sens != "aller" and sens != "retour" :
-            raise ValueError("Le sens doit être 'aller' ou 'retour'")
+        if sens != "Aller" and sens != "Retour" :
+            raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
 
         if not description or description.strip() == "" :
             raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire 'direct'")
