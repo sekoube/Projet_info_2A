@@ -41,7 +41,7 @@ class UtilisateurDAO:
         return utilisateur
 
     @staticmethod
-    def trouver_par_id(id_utilisateur: int) -> Optional[Utilisateur]:
+    def get_by_id(id_utilisateur: int) -> Optional[Utilisateur]:
         """
         Recherche un utilisateur par son ID.
         
