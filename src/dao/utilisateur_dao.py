@@ -4,7 +4,7 @@ from dao.db_connection import DBConnection
 
 
 class UtilisateurDAO:
-    """Accès aux données pour les utilisateurs (CRUD)."""
+    """Accès aux données pour les utilisateurs"""
 
     @staticmethod
     def creer(utilisateur: Utilisateur) -> Utilisateur:
