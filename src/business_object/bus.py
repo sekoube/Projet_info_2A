@@ -8,7 +8,7 @@ class Bus:
         
             id_bus : Identifiant unique du bus (auto-incrémenté de base)
             id_event : Identifiant de l'évènement auquel le bus est attribué
-            sens : aller ou retour de l'évènement ("aller" ou "retour")
+            sens : aller ou retour de l'évènement ("Aller" ou "Retour")
             description : liste des arrêts intermédiaires (max 100 caractères)
             heure_depart : heure de départ du bus
         """
