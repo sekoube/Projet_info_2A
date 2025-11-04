@@ -19,8 +19,8 @@ class Bus:
 
         if not sens or sens.strip() == "":
             raise ValueError("Le sens ne peut pas être vide")
-        if sens != "aller" and sens != "retour" :
-            raise ValueError("Le sens doit être 'aller' ou 'retour'")
+        if sens != "Aller" and sens != "Retour" :
+            raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
 
         if not description or description.strip() == "" :
             raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire 'direct'")
