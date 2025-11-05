@@ -1,7 +1,7 @@
 # dao/utilisateur_dao.py
 from typing import Optional, List
-from Projet_info_2A.src.business_object.utilisateur import Utilisateur
-from Projet_info_2A.src.dao.db_connection import DBConnection
+from src.business_object.utilisateur import Utilisateur
+from src.dao.db_connection import DBConnection
 
 
 class UtilisateurDAO:
