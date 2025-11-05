@@ -1,7 +1,7 @@
+# tests/conftest.py
 import sys
-import os
+from pathlib import Path
 
-# Ajouter le répertoire racine du projet au PYTHONPATH
-# Ce fichier est dans tests/ donc on remonte d'un niveau pour atteindre Projet_info_2A/
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
+# Ajouter le dossier src au PYTHONPATH
+src_path = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(src_path))
