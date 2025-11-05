@@ -82,7 +82,7 @@ class InscriptionDAO:
             print(f"Erreur lors de la recherche de l'inscription : {e}")
             return None
 
-    def trouver_par_id_evenement(self, id_evenement: int) -> List[Inscription]:
+    def get_by_event(self, id_event: int) -> List[Inscription]:
         """
         Trouve toutes les inscriptions pour un événement donné.
         
