@@ -136,7 +136,7 @@ class EvenementService:
         )
 
         # Persister l'inscription en base de données
-        inscription_creee = self.inscription_dao.create(nouvelle_inscription)
+        inscription_creee = self.inscription_dao.creer(nouvelle_inscription)
         if inscription_creee:
             print(f"{utilisateur.nom} {utilisateur.prenom} est inscrit à {evenement.titre}.")
             return True
