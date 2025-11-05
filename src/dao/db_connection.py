@@ -3,7 +3,7 @@ import os
 import dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from utils.singleton import Singleton
+from Projet_info_2A.utils.singleton import Singleton
 
 
 class DBConnection(metaclass=Singleton):
@@ -25,6 +25,8 @@ class DBConnection(metaclass=Singleton):
             options=f"-c search_path={os.environ['POSTGRES_SCHEMA']}",
             cursor_factory=RealDictCursor,
         )
+
+        self.__connection.autocommit = True
 
     @property
     def connection(self):

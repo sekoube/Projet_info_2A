@@ -12,6 +12,7 @@ CREATE TABLE projet.utilisateur (
                                 );
 
 -- Création de la table admin
+<<<<<<< HEAD
 CREATE TABLE projet.administrateur (
     id_admin      SERIAL PRIMARY KEY,
     id_utilisateur INT NOT NULL UNIQUE,
@@ -19,6 +20,17 @@ CREATE TABLE projet.administrateur (
             REFERENCES projet.utilisateur(id_utilisateur) 
             ON DELETE CASCADE
 );  -- si on supprimes un utilisateur dans utilisateur, alors la ligne correspondante est automatiquement supprimée dans admin
+=======
+-- CREATE TABLE projet.administrateur (
+--     id_admin      SERIAL PRIMARY KEY,
+--     id_utilisateur INT NOT NULL UNIQUE,
+--     FOREIGN KEY (id_utilisateur) 
+--         REFERENCES projet.utilisateur(id_utilisateur) 
+--         ON DELETE CASCADE
+-- );  -- si on supprimes un utilisateur dans utilisateur, alors la ligne correspondante est automatiquement supprimée dans admin
+DROP TABLE projet.administrateur;
+
+>>>>>>> da2aca4dd7bb4d199bc77f8d1b5b9b4dae0cadd7
 
 -- Création de la table evenement
 CREATE TABLE projet.evenement (

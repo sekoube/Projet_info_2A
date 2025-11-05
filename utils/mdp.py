@@ -1,5 +1,4 @@
 "Gère le hachage et la vérification des mots de passe"
-
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHash
 

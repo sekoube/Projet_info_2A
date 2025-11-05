@@ -41,7 +41,7 @@ class UtilisateurDAO:
         return utilisateur
 
     @staticmethod
-    def trouver_par_id(id_utilisateur: int) -> Optional[Utilisateur]:
+    def get_by_id(id_utilisateur: int) -> Optional[Utilisateur]:
         """
         Recherche un utilisateur par son ID.
         
@@ -55,46 +55,6 @@ class UtilisateurDAO:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute(query, (id_utilisateur,))
-                row = cursor.fetchone()
-                if row:
-                    return Utilisateur.from_dict(row)
-                return None
-
-    @staticmethod
-    def trouver_par_email(email: str) -> Optional[Utilisateur]:
-        """
-        Recherche un utilisateur par son e-mail.
-        
-        Args:
-            email: Email de l'utilisateur recherché
-            
-        Returns:
-            Utilisateur trouvé ou None
-        """
-        query = "SELECT * FROM utilisateur WHERE email = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (email,))
-                row = cursor.fetchone()
-                if row:
-                    return Utilisateur.from_dict(row)
-                return None
-
-    @staticmethod
-    def trouver_par_pseudo(pseudo: str) -> Optional[Utilisateur]:
-        """
-        Recherche un utilisateur par son pseudo.
-        
-        Args:
-            pseudo: Pseudo de l'utilisateur recherché
-            
-        Returns:
-            Utilisateur trouvé ou None
-        """
-        query = "SELECT * FROM utilisateur WHERE pseudo = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (pseudo,))
                 row = cursor.fetchone()
                 if row:
                     return Utilisateur.from_dict(row)
@@ -115,24 +75,7 @@ class UtilisateurDAO:
                 rows = cursor.fetchall()
                 return [Utilisateur.from_dict(row) for row in rows]
 
-    @staticmethod
-    def trouver_par_role(role: str) -> List[Utilisateur]:
-        """
-        Recherche tous les utilisateurs ayant un rôle spécifique.
-        
-        Args:
-            role: Rôle recherché (ex: 'admin', 'user')
-            
-        Returns:
-            Liste des utilisateurs avec ce rôle
-        """
-        query = "SELECT * FROM utilisateur WHERE role = %s ORDER BY id_utilisateur"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (role,))
-                rows = cursor.fetchall()
-                return [Utilisateur.from_dict(row) for row in rows]
-
+ 
     @staticmethod
     def modifier(utilisateur: Utilisateur) -> bool:
         """
@@ -222,3 +165,14 @@ class UtilisateurDAO:
                 cursor.execute(query, (pseudo,))
                 result = cursor.fetchone()
                 return result["count"] > 0
+
+    @staticmethod
+def trouver_par_email(email: str) -> Optional[Utilisateur]:
+    query = "SELECT * FROM utilisateur WHERE email = %s"
+    with DBConnection().connection as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(query, (email,))
+            row = cursor.fetchone()
+            if row:
+                return Utilisateur.from_dict(row)
+            return None

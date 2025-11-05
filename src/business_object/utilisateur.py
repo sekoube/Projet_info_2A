@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional  # indiquer les types attendus pour les arguments, les attributs
 import re  # pour vérifier la validité de l'adresse e-mail
-from utils.mdp import hash_password, verify_password
+from Projet_info_2A.utils.mdp import hash_password, verify_password
 
 
 class Utilisateur:
@@ -71,6 +71,9 @@ class Utilisateur:
         ------
         """
         return f"{self.prenom} {self.nom} ({self.pseudo})"
+
+    def is_admin(self):
+        return self.role is True
 
     def set_password(self, plain_password: str) -> None:
         """Hache et stocke un mot de passe sécurisé."""
