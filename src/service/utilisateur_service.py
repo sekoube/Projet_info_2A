@@ -25,6 +25,10 @@ class UtilisateurService:
 
         return: Objet Utilisateur créé ou None si erreur
         """
+        
+    # vérification si admin 
+    def is_admin(self):
+        return self.role is True
 
         # Vérifier unicité e-mail et pseudo
         if self.utilisateur_dao.email_existe(email):

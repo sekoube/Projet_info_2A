@@ -1,31 +1,26 @@
 import os
 import logging
 import dotenv
-
 from unittest import mock
 
-<<<<<<< HEAD
-from log_decorator import log
-from singleton import Singleton
-from src.dao.db_connection import DBConnection
-=======
-from Projet_info_2A.utils.log_decorator import log
-from Projet_info_2A.utils.singleton import Singleton
-from Projet_info_2A.src.dao.db_connection import DBConnection
->>>>>>> 9cc3c7672e58f9ad95a2c5fe2a11657d41d1f70c
+# Imports corrigés, selon la structure actuelle de ton projet
+from utils.log_decorator import log
+from utils.singleton import Singleton
+from dao.db_connection import DBConnection
 
 from service.joueur_service import JoueurService
 
 
 class ResetDatabase(metaclass=Singleton):
     """
-    Reinitialisation de la base de données
+    Réinitialisation de la base de données
     """
 
     @log
     def lancer(self, test_dao=False):
-        """Lancement de la réinitialisation des données
-        Si test_dao = True : réinitialisation des données de test"""
+        """Lancement de la réinitialisation des données.
+        Si test_dao = True : réinitialisation des données de test
+        """
         if test_dao:
             mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": "projet_test_dao"}).start()
             pop_data_path = "data/pop_db_test.sql"
@@ -36,16 +31,17 @@ class ResetDatabase(metaclass=Singleton):
 
         schema = os.environ["POSTGRES_SCHEMA"]
 
+        # Création du schema
         create_schema = f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
 
-        init_db = open("data/init_db.sql", encoding="utf-8")
-        init_db_as_string = init_db.read()
-        init_db.close()
+        # Lecture des fichiers SQL
+        with open("data/init_db.sql", encoding="utf-8") as f:
+            init_db_as_string = f.read()
 
-        pop_db = open(pop_data_path, encoding="utf-8")
-        pop_db_as_string = pop_db.read()
-        pop_db.close()
+        with open(pop_data_path, encoding="utf-8") as f:
+            pop_db_as_string = f.read()
 
+        # Exécution SQL
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
