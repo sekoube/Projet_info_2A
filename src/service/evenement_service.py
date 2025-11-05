@@ -1,6 +1,7 @@
 from typing import Optional, List
 from Projet_info_2A.src.business_object.evenement import Evenement
 from Projet_info_2A.src.business_object.inscription import Inscription
+import random
 
 
 class EvenementService:
@@ -128,11 +129,13 @@ class EvenementService:
         # Créer la nouvelle inscription
         nouvelle_inscription = Inscription(
             id_utilisateur=id_utilisateur,
-            id_event=id_event,
+            id_event=str(id_event),
+            nom_event=evenement.titre,
             boit=boit,
             mode_paiement=mode_paiement,
-            id_bus_aller=id_bus_aller,
-            id_bus_retour=id_bus_retour,
+            id_bus_aller=str(id_bus_aller),
+            id_bus_retour=str(id_bus_retour),
+            code_reservation=random.randint(100000, 999999),  # 6 chiffres aléatoires
         )
 
         # Persister l'inscription en base de données

@@ -7,3 +7,4 @@ InquirerPy
 regex
 psycopg2-binary
 argon2
+uuid
