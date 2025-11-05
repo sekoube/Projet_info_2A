@@ -18,7 +18,7 @@ class Inscription:
         self,
         code_reservation: int,
         boit: bool = False,
-        created_by: int = None,
+        id_utilisateur: int = None,
         mode_paiement: str = "",
         id_event: str = "",
         nom_event: str = "",
@@ -35,10 +35,10 @@ class Inscription:
         if not isinstance(boit, bool):
             raise TypeError("Le champ 'boit' doit être de type bool.")
 
-        if created_by is None:
-            raise ValueError("L'attribut 'created_by' (ID utilisateur) est obligatoire.")
-        if not isinstance(created_by, int):
-            raise TypeError("L'attribut 'created_by' doit être un entier.")
+        if id_utilisateur is None:
+            raise ValueError("L'attribut 'id_utilisateur' (ID utilisateur) est obligatoire.")
+        if not isinstance(id_utilisateur, int):
+            raise TypeError("L'attribut 'id_utilisateur' doit être un entier.")
 
         if mode_paiement not in ("espèce", "en ligne", ""):
             raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
@@ -61,7 +61,7 @@ class Inscription:
 
         self.code_reservation = code_reservation
         self.boit = boit
-        self.created_by = created_by
+        self.id_utilisateur = id_utilisateur
         self.mode_paiement = mode_paiement
         self.id_event = id_event
         self.nom_event = nom_event
@@ -98,14 +98,14 @@ class Inscription:
 
     def __repr__(self):
         """Représentation texte"""
-        return f"<Inscription {self.created_by} - {self.nom_event}>"
+        return f"<Inscription {self.id_utilisateur} - {self.nom_event}>"
 
     def to_dict(self) -> dict:
         """Convertit l'objet en dictionnaire"""
         return {
             "code_reservation": self.code_reservation,
             "boit": self.boit,
-            "created_by": self.created_by,
+            "id_utilisateur": self.id_utilisateur,
             "mode_paiement": self.mode_paiement,
             "id_event": self.id_event,
             "nom_event": self.nom_event,
@@ -120,7 +120,7 @@ class Inscription:
         return Inscription(
             code_reservation=data.get("code_reservation"),
             boit=data.get("boit", False),
-            created_by=data.get("created_by"),
+            id_utilisateur=data.get("id_utilisateur"),
             mode_paiement=data.get("mode_paiement", ""),
             id_event=data.get("id_event", ""),
             nom_event=data.get("nom_event", ""),
