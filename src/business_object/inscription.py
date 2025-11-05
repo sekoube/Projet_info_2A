@@ -18,7 +18,7 @@ class Inscription:
         self,
         code_reservation: int,
         boit: bool = False,
-        created_by: Utilisateur = None,
+        created_by: id_utilisateur = None,
         mode_paiement: str = "",
         id_event: str = "",
         nom_event: str = "",
@@ -37,8 +37,8 @@ class Inscription:
 
         if created_by is None:
             raise ValueError("L'attribut 'created_by' (ID utilisateur) est obligatoire.")
-        if not isinstance(created_by, Utilisateur):
-            raise TypeError("L'attribut 'created_by' doit être un objet de la classe Utilisateur.")
+        if not isinstance(created_by, int):
+            raise TypeError("L'attribut 'created_by' doit être un entier.")
 
         if mode_paiement not in ("espèce", "en ligne", ""):
             raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
