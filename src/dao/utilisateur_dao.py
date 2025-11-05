@@ -165,3 +165,14 @@ class UtilisateurDAO:
                 cursor.execute(query, (pseudo,))
                 result = cursor.fetchone()
                 return result["count"] > 0
+
+    @staticmethod
+def trouver_par_email(email: str) -> Optional[Utilisateur]:
+    query = "SELECT * FROM utilisateur WHERE email = %s"
+    with DBConnection().connection as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(query, (email,))
+            row = cursor.fetchone()
+            if row:
+                return Utilisateur.from_dict(row)
+            return None

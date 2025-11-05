@@ -3,5 +3,9 @@ python-dotenv
 argon2-cffi
 pytest
 pytest-cov
+<<<<<<< HEAD
 InquirerPy
 regex
+=======
+psycopg2-binary
+>>>>>>> 6e3789f9875044ad987cb3caf1478aaaf42291f8
