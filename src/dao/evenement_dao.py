@@ -1,9 +1,9 @@
 from typing import List, Optional
 from datetime import datetime, date
 
-from dao.db_connection import DBConnection
-from business_object.evenement import Evenement
-from utils.singleton import Singleton
+from Projet_info_2A.src.dao.db_connection import DBConnection
+from Projet_info_2A.src.business_object.evenement import Evenement
+from Projet_info_2A.utils.singleton import Singleton
 
 
 class EvenementDao(metaclass=Singleton):

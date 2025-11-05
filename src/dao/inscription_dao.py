@@ -1,4 +1,5 @@
-from dao.db_connection import DBConnection
+from
+ Projet_info_2A.src.dao.db_connection import DBConnection
 from typing import Optional, List
 from Projet_info_2A.src.business_object.inscription import Inscription
 

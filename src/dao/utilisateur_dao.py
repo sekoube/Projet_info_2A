@@ -1,7 +1,7 @@
 # dao/utilisateur_dao.py
 from typing import Optional, List
-from business_object.utilisateur import Utilisateur
-from dao.db_connection import DBConnection
+from Projet_info_2A.src.business_object.utilisateur import Utilisateur
+from Projet_info_2A.src.dao.db_connection import DBConnection
 
 
 class UtilisateurDAO:
@@ -9,15 +9,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def creer(utilisateur: Utilisateur) -> Utilisateur:
-        """
-        Insère un nouvel utilisateur dans la base de données.
-        
-        Args:
-            utilisateur: Objet Utilisateur à créer
-            
-        Returns:
-            Utilisateur avec son id_utilisateur généré
-        """
         query = """
             INSERT INTO utilisateur (pseudo, nom, prenom, email, mot_de_passe, role, date_creation)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -42,15 +33,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def get_by_id(id_utilisateur: int) -> Optional[Utilisateur]:
-        """
-        Recherche un utilisateur par son ID.
-        
-        Args:
-            id_utilisateur: ID de l'utilisateur recherché
-            
-        Returns:
-            Utilisateur trouvé ou None
-        """
         query = "SELECT * FROM utilisateur WHERE id_utilisateur = %s"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -62,12 +44,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def trouver_tous() -> List[Utilisateur]:
-        """
-        Retourne tous les utilisateurs.
-        
-        Returns:
-            Liste de tous les utilisateurs
-        """
         query = "SELECT * FROM utilisateur ORDER BY id_utilisateur"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -75,18 +51,8 @@ class UtilisateurDAO:
                 rows = cursor.fetchall()
                 return [Utilisateur.from_dict(row) for row in rows]
 
- 
     @staticmethod
     def modifier(utilisateur: Utilisateur) -> bool:
-        """
-        Met à jour un utilisateur existant dans la base de données.
-        
-        Args:
-            utilisateur: Objet Utilisateur avec les nouvelles données
-            
-        Returns:
-            True si la modification a réussi, False sinon
-        """
         query = """
             UPDATE utilisateur
             SET pseudo = %s,
@@ -115,15 +81,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def supprimer(id_utilisateur: int) -> bool:
-        """
-        Supprime un utilisateur par son ID.
-        
-        Args:
-            id_utilisateur: ID de l'utilisateur à supprimer
-            
-        Returns:
-            True si la suppression a réussi, False sinon
-        """
         query = "DELETE FROM utilisateur WHERE id_utilisateur = %s"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -132,15 +89,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def email_existe(email: str) -> bool:
-        """
-        Vérifie si un email existe déjà dans la base de données.
-        
-        Args:
-            email: Email à vérifier
-            
-        Returns:
-            True si l'email existe déjà, False sinon
-        """
         query = "SELECT COUNT(*) as count FROM utilisateur WHERE email = %s"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -150,15 +98,6 @@ class UtilisateurDAO:
 
     @staticmethod
     def pseudo_existe(pseudo: str) -> bool:
-        """
-        Vérifie si un pseudo existe déjà dans la base de données.
-        
-        Args:
-            pseudo: Pseudo à vérifier
-            
-        Returns:
-            True si le pseudo existe déjà, False sinon
-        """
         query = "SELECT COUNT(*) as count FROM utilisateur WHERE pseudo = %s"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -167,12 +106,12 @@ class UtilisateurDAO:
                 return result["count"] > 0
 
     @staticmethod
-def trouver_par_email(email: str) -> Optional[Utilisateur]:
-    query = "SELECT * FROM utilisateur WHERE email = %s"
-    with DBConnection().connection as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(query, (email,))
-            row = cursor.fetchone()
-            if row:
-                return Utilisateur.from_dict(row)
-            return None
+    def trouver_par_email(email: str) -> Optional[Utilisateur]:
+        query = "SELECT * FROM utilisateur WHERE email = %s"
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, (email,))
+                row = cursor.fetchone()
+                if row:
+                    return Utilisateur.from_dict(row)
+                return None
