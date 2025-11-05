@@ -28,11 +28,11 @@ class UtilisateurService:
 
         # Vérifier unicité e-mail et pseudo
         if self.utilisateur_dao.email_existe(email):
-            print(" Cet email est déjà utilisé.")
+            print("Cet email est déjà utilisé.")
             return None
 
         if self.utilisateur_dao.pseudo_existe(pseudo):
-            print(" Ce pseudo est déjà pris.")
+            print("Ce pseudo est déjà pris.")
             return None
 
         # Hachage du mot de passe
@@ -52,10 +52,10 @@ class UtilisateurService:
         utilisateur_cree = self.utilisateur_dao.creer(nouvel_utilisateur)
 
         if utilisateur_cree:
-            print(f" Utilisateur '{pseudo}' créé avec succès.")
+            print(f"Utilisateur '{pseudo}' créé avec succès.")
             return utilisateur_cree
         else:
-            print(" Erreur lors de la création de l'utilisateur.")
+            print("Erreur lors de la création de l'utilisateur.")
             return None
 
     # ======================================================
@@ -70,14 +70,14 @@ class UtilisateurService:
         """
         utilisateur = self.utilisateur_dao.trouver_par_email(email)
         if not utilisateur:
-            print(" Aucun compte trouvé avec cet email.")
+            print("Aucun compte trouvé avec cet email.")
             return None
 
         if not utilisateur.verify_password(mot_de_passe):
-            print(" Mot de passe incorrect.")
+            print("Mot de passe incorrect.")
             return None
 
-        print(f" Connexion réussie : {utilisateur.pseudo}")
+        print(f"Connexion réussie : {utilisateur.pseudo}")
         return utilisateur
 
     # ======================================================
@@ -88,7 +88,7 @@ class UtilisateurService:
         Retourne la liste de tous les utilisateurs enregistrés.
         """
         utilisateurs = self.utilisateur_dao.trouver_tous()
-        print(f"👥 {len(utilisateurs)} utilisateur(s) trouvé(s).")
+        print(f"{len(utilisateurs)} utilisateur(s) trouvé(s).")
         return utilisateurs
 
     # ======================================================
@@ -105,29 +105,20 @@ class UtilisateurService:
         """
         # Vérifier les droits d’accès
         if not admin.is_admin:
-            print(" Vous n'avez pas les droits pour supprimer un utilisateur.")
+            print("Vous n'avez pas les droits pour supprimer un utilisateur.")
             return False
 
         # Vérifier l’existence de l’utilisateur à supprimer
         utilisateur_cible = self.utilisateur_dao.get_by_id(id_utilisateur)
         if not utilisateur_cible:
-            print(f" Aucun utilisateur trouvé avec l'ID {id_utilisateur}.")
+            print(f"Aucun utilisateur trouvé avec l'ID {id_utilisateur}.")
             return False
 
-        # Optionnel : empêcher un admin de se supprimer lui-même
-        if admin.id_utilisateur == id_utilisateur:
-            print("Vous ne pouvez pas supprimer votre propre compte.")
-            return False
-
-        # Optionnel : empêcher la suppression d’un autre admin
-        if utilisateur_cible.is_admin:
-            print("Vous ne pouvez pas supprimer un autre administrateur.")
-            return False
 
         # Suppression via la DAO
         suppression_ok = self.utilisateur_dao.supprimer(id_utilisateur)
         if suppression_ok:
-            print(f" Utilisateur '{utilisateur_cible.pseudo}' supprimé avec succès.")
+            print(f"Utilisateur '{utilisateur_cible.pseudo}' supprimé avec succès.")
         else:
             print("Erreur lors de la suppression de l'utilisateur.")
         return suppression_ok

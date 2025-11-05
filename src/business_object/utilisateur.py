@@ -72,7 +72,6 @@ class Utilisateur:
         """
         return f"{self.prenom} {self.nom} ({self.pseudo})"
 
-    @staticmethod
     def is_admin(self):
         return self.role is True
 
