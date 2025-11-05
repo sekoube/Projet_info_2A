@@ -1,8 +1,8 @@
-import unittest
-from unittest.mock import Mock
-from datetime import date
+import pytest
+from datetime import date, timedelta
 from decimal import Decimal
-from src.services.evenement_service import EvenementService
+from dao.evenement_dao import EvenementDao
+from Projet_info_2A.src.service.evenement_service import EvenementService
 
 
 class TestCreerEvenement(unittest.TestCase):
