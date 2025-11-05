@@ -3,3 +3,4 @@ python-dotenv
 argon2-cffi
 pytest
 pytest-cov
+psycopg2-binary
