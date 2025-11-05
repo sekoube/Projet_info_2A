@@ -4,9 +4,9 @@ import dotenv
 
 from unittest import mock
 
-from utils.log_decorator import log
-from utils.singleton import Singleton
-from dao.db_connection import DBConnection
+from Projet_info_2A.utils.log_decorator import log
+from Projet_info_2A.utils.singleton import Singleton
+from Projet_info_2A.src.dao.db_connection import DBConnection
 
 from service.joueur_service import JoueurService
 
