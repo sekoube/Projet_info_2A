@@ -206,3 +206,10 @@ class Evenement:
             created_at=created_at,
             tarif=data.get("tarif", 0.00),
         )
+
+    def ajouter_bus(self, bus) -> None:
+        """Associe un bus à l'événement selon son sens."""
+        if bus.sens:  # True = aller
+            self.bus_aller = bus
+        else:  # False = retour
+            self.bus_retour = bus

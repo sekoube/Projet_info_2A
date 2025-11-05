@@ -24,6 +24,53 @@ class EvenementService:
         self.utilisateur_dao = utilisateur_dao
         self.bus_dao = bus_dao
 
+    def creer_evenement(
+        self,
+        titre: str,
+        lieu: str,
+        date_evenement,
+        capacite_max: int,
+        created_by: int,
+        description_evenement: str = "",
+        tarif: float = 0.00
+    ) -> Optional[Evenement]:
+        """
+        Crée un nouvel événement et le persiste en base de données.
+
+        titre: Titre de l'événement
+        lieu: Lieu de l'événement
+        date_evenement: Date de l'événement
+        capacite_max: Capacité maximale
+        created_by: ID de l'utilisateur créateur
+        description_evenement: Description (optionnelle)
+        tarif: Tarif de participation
+
+        return: Objet Evenement créé ou None en cas d'erreur
+        """
+        try:
+            # Créer l'objet métier (les validations sont faites dans le constructeur)
+            nouvel_evenement = Evenement(
+                titre=titre,
+                lieu=lieu,
+                date_evenement=date_evenement,
+                capacite_max=capacite_max,
+                created_by=created_by,
+                description_evenement=description_evenement,
+                tarif=tarif
+            )
+
+            # Persister en base de données
+            if self.evenement_dao.creer(nouvel_evenement):
+                print(f"Événement '{titre}' créé avec succès.")
+                return nouvel_evenement  # L'objet a maintenant son ID
+            else:
+                print("Erreur lors de la création de l'événement.")
+                return None
+
+        except ValueError as e:
+            print(f"Erreur de validation : {e}")
+            return None
+
     def inscrire_utilisateur(
         self,
         id_event: int,
@@ -97,6 +144,43 @@ class EvenementService:
             print("Erreur lors de la création de l'inscription.")
             return False
 
+    def ajouter_bus_a_evenement(self, id_event: int, id_bus: int) -> bool:
+        """
+        Associe un bus à un événement (aller ou retour selon le sens du bus).
+
+        id_event: ID de l'événement
+        id_bus: ID du bus
+
+        return: True si association réussie, False sinon
+        """
+        # Récupérer l'événement
+        evenement = self.evenement_dao.get_by_id(id_event)
+        if not evenement:
+            print(f"Événement {id_event} introuvable.")
+            return False
+
+        # Récupérer le bus
+        bus = self.bus_dao.get_by_id(id_bus)
+        if not bus:
+            print(f"Bus {id_bus} introuvable.")
+            return False
+
+        # Associer le bus à l'événement
+        evenement.ajouter_bus(bus)
+
+        # Persister l'association en base (selon votre implémentation DAO)
+        # Cela pourrait être une mise à jour de l'événement ou une table de liaison
+        if self.evenement_dao.modifier(evenement):
+            print(f"Bus {id_bus} associé à l'événement {evenement.titre}.")
+            return True
+        else:
+            print("Erreur lors de l'association du bus.")
+            return False
+            
+#######################################################################################
+#optionnel
+#######################################################################################
+
     def desinscrire_utilisateur(self, id_event: int, id_utilisateur: int) -> bool:
         """
         Désinscrit un utilisateur d'un événement.
@@ -142,39 +226,6 @@ class EvenementService:
             return True
         else:
             print("Erreur lors de la suppression de l'inscription.")
-            return False
-
-    def ajouter_bus_a_evenement(self, id_event: int, id_bus: int) -> bool:
-        """
-        Associe un bus à un événement (aller ou retour selon le sens du bus).
-
-        id_event: ID de l'événement
-        id_bus: ID du bus
-
-        return: True si association réussie, False sinon
-        """
-        # Récupérer l'événement
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
-            print(f"Événement {id_event} introuvable.")
-            return False
-
-        # Récupérer le bus
-        bus = self.bus_dao.get_by_id(id_bus)
-        if not bus:
-            print(f"Bus {id_bus} introuvable.")
-            return False
-
-        # Associer le bus à l'événement
-        evenement.ajouter_bus(bus)
-
-        # Persister l'association en base (selon votre implémentation DAO)
-        # Cela pourrait être une mise à jour de l'événement ou une table de liaison
-        if self.evenement_dao.update(evenement):
-            print(f"Bus {id_bus} associé à l'événement {evenement.titre}.")
-            return True
-        else:
-            print("Erreur lors de l'association du bus.")
             return False
 
     def get_participants(self, id_event: int) -> List:
@@ -246,7 +297,7 @@ class EvenementService:
 
         return: Liste des événements à venir
         """
-        tous_evenements = self.evenement_dao.get_all()
+        tous_evenements = self.evenement_dao.lister_tous()
         return [evt for evt in tous_evenements if not evt.est_passe()]
 
     def get_evenements_disponibles(self) -> List[Evenement]:
@@ -266,54 +317,6 @@ class EvenementService:
         
         return evenements_disponibles
 
-    def creer_evenement(
-        self,
-        titre: str,
-        lieu: str,
-        date_evenement,
-        capacite_max: int,
-        created_by: int,
-        description_evenement: str = "",
-        tarif: float = 0.00
-    ) -> Optional[Evenement]:
-        """
-        Crée un nouvel événement et le persiste en base de données.
-
-        titre: Titre de l'événement
-        lieu: Lieu de l'événement
-        date_evenement: Date de l'événement
-        capacite_max: Capacité maximale
-        created_by: ID de l'utilisateur créateur
-        description_evenement: Description (optionnelle)
-        tarif: Tarif de participation
-
-        return: Objet Evenement créé ou None en cas d'erreur
-        """
-        try:
-            # Créer l'objet métier (les validations sont faites dans le constructeur)
-            nouvel_evenement = Evenement(
-                titre=titre,
-                lieu=lieu,
-                date_evenement=date_evenement,
-                capacite_max=capacite_max,
-                created_by=created_by,
-                description_evenement=description_evenement,
-                tarif=tarif
-            )
-
-            # Persister en base de données
-            evenement_cree = self.evenement_dao.create(nouvel_evenement)
-            if evenement_cree:
-                print(f"Événement '{titre}' créé avec succès.")
-                return evenement_cree
-            else:
-                print("Erreur lors de la création de l'événement.")
-                return None
-
-        except ValueError as e:
-            print(f"Erreur de validation : {e}")
-            return None
-
     def modifier_evenement(self, evenement: Evenement) -> bool:
         """
         Modifie un événement existant.
@@ -322,7 +325,7 @@ class EvenementService:
 
         return: True si modification réussie, False sinon
         """
-        if self.evenement_dao.update(evenement):
+        if self.evenement_dao.modifier(evenement):
             print(f"Événement '{evenement.titre}' modifié avec succès.")
             return True
         else:

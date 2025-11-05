@@ -4,9 +4,15 @@ import dotenv
 
 from unittest import mock
 
+<<<<<<< HEAD
 from log_decorator import log
 from singleton import Singleton
 from src.dao.db_connection import DBConnection
+=======
+from Projet_info_2A.utils.log_decorator import log
+from Projet_info_2A.utils.singleton import Singleton
+from Projet_info_2A.src.dao.db_connection import DBConnection
+>>>>>>> 9cc3c7672e58f9ad95a2c5fe2a11657d41d1f70c
 
 from service.joueur_service import JoueurService
 
