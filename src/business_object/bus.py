@@ -32,6 +32,9 @@ class Bus:
         
         self.id_bus = id_bus
         self.id_event = id_event
-        self.sens = sens
+        if sens == "Aller":
+            self.sens = True
+        else:
+            self.sens = False
         self.description = description
         self.heure_depart = heure_depart
