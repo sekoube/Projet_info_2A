@@ -2,14 +2,8 @@ import pytest
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from unittest.mock import Mock
-import sys
-import os
 
-# Chemin du projet racine (2 niveaux au-dessus du fichier test)
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.append(project_root)
-
-from src.business_object.evenement import Evenement
+from business_object.evenement import Evenement
 
 
 # ==================== FIXTURES ====================

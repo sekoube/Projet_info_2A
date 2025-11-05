@@ -12,11 +12,11 @@ PRÉREQUIS :
 import pytest
 from datetime import date, timedelta
 from decimal import Decimal
-from Projet_info_2A.src.service.evenement_service import EvenementService
-from Projet_info_2A.src.dao.evenement_dao import EvenementDao
-from Projet_info_2A.src.dao.inscription_dao import InscriptionDao
-from Projet_info_2A.src.dao.utilisateur_dao import UtilisateurDao
-from Projet_info_2A.src.dao.bus_dao import BusDao
+from service.evenement_service import EvenementService
+from dao.evenement_dao import EvenementDao
+from dao.inscription_dao import InscriptionDao
+from dao.utilisateur_dao import UtilisateurDao
+from dao.bus_dao import BusDao
 
 
 @pytest.fixture(scope="module")
