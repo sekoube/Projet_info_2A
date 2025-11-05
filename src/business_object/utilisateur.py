@@ -27,7 +27,7 @@ class Utilisateur:
         id_utilisateur: Identifiant unique de l'utilisateur (auto-incrémenté en base)
         pseudo: Pseudonyme choisi par l'utilisateur
         nom: Nom de famille
-        prenom: Prénom
+        prenom: Prénoms
         email: Adresse e-mail de l'utilisateur
         Mot de passe (hashé en base)
         role: Booléen indiquant si l'utilisateur est administrateur (True) ou participant (False)
