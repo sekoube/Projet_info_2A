@@ -26,6 +26,8 @@ class DBConnection(metaclass=Singleton):
             cursor_factory=RealDictCursor,
         )
 
+        self.__connection.autocommit = True
+
     @property
     def connection(self):
         return self.__connection
