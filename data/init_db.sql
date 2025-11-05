@@ -8,7 +8,7 @@ CREATE TABLE projet.utilisateur (
     prenom         VARCHAR(50),
     email          VARCHAR(100) UNIQUE,
     mot_de_passe   VARCHAR(100),
-    role           VARCHAR(20) 
+    role           BOOLEAN DEFAULT FALSE
                                 );
 
 -- Création de la table admin
