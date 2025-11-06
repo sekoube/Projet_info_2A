@@ -1,5 +1,5 @@
-from Projet_info_2A.src.business_object.utilisateur import Utilisateur
-from Projet_info_2A.src.dao.utilisateur_dao import UtilisateurDAO
+from business_object.utilisateur import Utilisateur
+from dao.utilisateur_dao import UtilisateurDAO
 from Projet_info_2A.utils.mdp import hash_password
 
 

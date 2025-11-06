@@ -1,8 +1,8 @@
 from typing import Optional, List
-from Projet_info_2A.src.business_object.inscription import Inscription
-from Projet_info_2A.src.dao.inscription_dao import InscriptionDAO
-from Projet_info_2A.src.dao.evenement_dao import EvenementDAO
-from Projet_info_2A.src.dao.utilisateur_dao import UtilisateurDAO
+from business_object.inscription import Inscription
+from dao.inscription_dao import InscriptionDAO
+from dao.evenement_dao import EvenementDAO
+from dao.utilisateur_dao import UtilisateurDAO
 import random
 import string
 

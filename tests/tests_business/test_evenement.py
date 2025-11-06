@@ -1,4 +1,4 @@
-from Projet_info_2A.src.business_object.evenement import Evenement
+from business_object.evenement import Evenement
 from datetime import date, datetime
 
 

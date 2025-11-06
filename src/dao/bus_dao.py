@@ -1,5 +1,5 @@
-from Projet_info_2A.src.business_object.bus import Bus
-from Projet_info_2A.src.dao.db_connection import DBConnection
+from business_object.bus import Bus
+from dao.db_connection import DBConnection
 
 
 class BusDAO:
