@@ -1,44 +1,46 @@
-from InquirerPy import inquirer
+from business_object.utilisateur import Utilisateur
+from service.utilisateur_service import UtilisateurService  # Assure-toi que le chemin est correct
 
-## a créer dans le dossier accueil ?
-# from utils.reset_database import ResetDatabase
-# from view.vue_abstraite import VueAbstraite
-# from view.session import Session
+def creer_compte_terminal(service: UtilisateurService):
+    print("\n=== Création de compte ===")
+    pseudo = input("Pseudo : ")
+    nom = input("Nom : ")
+    prenom = input("Prénom : ")
+    email = input("Email : ")
+    mot_de_passe = input("Mot de passe : ")
+    role_input = input("Compte admin ? (oui/non) : ").lower()
+    role = True if role_input == "oui" else False
 
+    service.creer_compte(pseudo, nom, prenom, email, mot_de_passe, role)
 
-class AccueilVue(VueAbstraite):
-    """Vue d'accueil de l'application"""
+def connexion_terminal(service: UtilisateurService):
+    print("\n=== Connexion ===")
+    email = input("Email : ")
+    mot_de_passe = input("Mot de passe : ")
+    utilisateur = service.authentifier(email, mot_de_passe)
+    if utilisateur:
+        print(f"Bienvenue {utilisateur.pseudo} !")
+    else:
+        print("Échec de la connexion.")
 
-    def choisir_menu(self):
-        """ Choix du menu suivant : Créer un compte ou se connecter
- 
-        Return
-        ------
-        view
-            Retourne la vue choisie par l'utilisateur dans le terminal
-        """
+def menu():
+    service = UtilisateurService()
+    while True:
+        print("\n=== Menu Principal ===")
+        print("1. Créer un compte")
+        print("2. Connexion")
+        print("3. Quitter")
+        choix = input("Choisissez une option : ")
 
-        print("\n" + "-" * 50 + "\nAccueil : Bienvenue au bureau des élèves\n" + "-" * 50 + "\n")
+        if choix == "1":
+            creer_compte_terminal(service)
+        elif choix == "2":
+            connexion_terminal(service)
+        elif choix == "3":
+            print("Au revoir !")
+            break
+        else:
+            print("Option invalide, réessayez.")
 
-        choix = inquirer.select(
-            message="Que voulez-vous faire ? ",
-            choices=[
-                "Se connecter",
-                "Créer un compte"
-                "Quitter"
-            ],
-        ).execute()
-
-        match choix:
-            case "Quitter":
-                pass
-
-            case "Se connecter":
-                from view.accueil.connexion_vue import ConnexionVue
-
-                return ConnexionVue("Connexion à l'application")
-
-            case "Créer un compte":
-                from view.accueil.creation_compte_vue import InscriptionVue
-
-                return InscriptionVue("Créaction d'un compte utilisateur")
+if __name__ == "__main__":
+    menu()

@@ -115,3 +115,5 @@ class UtilisateurDAO:
                 if row:
                     return Utilisateur.from_dict(row)
                 return None
+
+UtilisateurDAO.creer(Utilisateur(pseudo=lucasrt,nom=repetti,prenom=lucas,email=lucas@gmail.com,mot_de_passe=123,))
