@@ -31,32 +31,3 @@ class DBConnection(metaclass=Singleton):
     @property
     def connection(self):
         return self.__connection
-
-# tests/test_utilisateur.py
-from src.dao.db_connection import DBConnection
-from datetime import datetime
-
-def test_ajout_utilisateur():
-    try:
-        conn = DBConnection().connection
-        with conn.cursor() as cursor:
-            # Exemple d'insertion
-            cursor.execute("""
-                INSERT INTO projet.utilisateur (nom, prenom, email, mot_de_passe, role)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id_utilisateur;
-            """, ("Dupont", "Alice", "alice.test@example.com", "motdepasse123", False))
-
-            id_utilisateur = cursor.fetchone()["id_utilisateur"]
-            print(f"[OK] Utilisateur inséré avec ID : {id_utilisateur}")
-
-            # Vérification : récupérer l'utilisateur ajouté
-            cursor.execute("SELECT * FROM projet.utilisateur WHERE id_utilisateur = %s;", (id_utilisateur,))
-            utilisateur = cursor.fetchone()
-            print("Données récupérées :", utilisateur)
-
-    except Exception as e:
-        print("[ERREUR] Impossible d'ajouter l'utilisateur :", e)
-
-if __name__ == "__main__":
-    test_ajout_utilisateur()
