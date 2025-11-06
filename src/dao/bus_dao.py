@@ -55,7 +55,7 @@ class BusDAO:
         """Retourne tous les bus"""
         query = "SELECT * FROM bus ORDER BY id_event"
         with DBConnection().connection as connection:
-            with connection.cursor as cursor:
+            with connection.cursor() as cursor:
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 return [Bus.from_dict(row) for row in rows]

@@ -1,5 +1,5 @@
 from utils.mdp import hash_password, verify_password
-from business_objet.utilisateur import Utilisateur
+from business_object.utilisateur import Utilisateur
 
 # **************** test sur la fonction de base ******************* #
 

@@ -1,5 +1,6 @@
 # dao/utilisateur_dao.py
 from typing import Optional, List
+from psycopg2.errors import UniqueViolation
 from business_object.utilisateur import Utilisateur
 from dao.db_connection import DBConnection
 
@@ -14,22 +15,31 @@ class UtilisateurDAO:
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id_utilisateur;
         """
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    query,
-                    (
-                        utilisateur.pseudo,
-                        utilisateur.nom,
-                        utilisateur.prenom,
-                        utilisateur.email,
-                        utilisateur.mot_de_passe,
-                        utilisateur.role,
-                        utilisateur.date_creation,
-                    ),
-                )
-                utilisateur.id_utilisateur = cursor.fetchone()["id_utilisateur"]
-        return utilisateur
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        query,
+                        (
+                            utilisateur.pseudo,
+                            utilisateur.nom,
+                            utilisateur.prenom,
+                            utilisateur.email,
+                            utilisateur.mot_de_passe,
+                            utilisateur.role,
+                            utilisateur.date_creation,
+                        ),
+                    )
+                    utilisateur.id_utilisateur = cursor.fetchone()["id_utilisateur"]
+            return utilisateur
+        except UniqueViolation as e:
+            # Gestion des contraintes d'unicité
+            if "utilisateur_email_key" in str(e):
+                raise ValueError(f"Un utilisateur avec l'email '{utilisateur.email}' existe déjà")
+            elif "utilisateur_pseudo_key" in str(e):
+                raise ValueError(f"Un utilisateur avec le pseudo '{utilisateur.pseudo}' existe déjà")
+            else:
+                raise
 
     @staticmethod
     def get_by_id(id_utilisateur: int) -> Optional[Utilisateur]:
