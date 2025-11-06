@@ -1,4 +1,3 @@
-
 import pytest
 from business_object.utilisateur import Utilisateur
 from dao.evenement_dao import EvenementDAO
