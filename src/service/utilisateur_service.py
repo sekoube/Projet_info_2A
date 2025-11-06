@@ -1,6 +1,6 @@
 from business_object.utilisateur import Utilisateur
 from dao.utilisateur_dao import UtilisateurDAO
-from Projet_info_2A.utils.mdp import hash_password
+from utils.mdp import hash_password
 
 
 class UtilisateurService:
@@ -25,10 +25,6 @@ class UtilisateurService:
 
         return: Objet Utilisateur créé ou None si erreur
         """
-        
-    # vérification si admin 
-    def is_admin(self):
-        return self.role is True
 
         # Vérifier unicité e-mail et pseudo
         if self.utilisateur_dao.email_existe(email):
@@ -126,3 +122,21 @@ class UtilisateurService:
         else:
             print("Erreur lors de la suppression de l'utilisateur.")
         return suppression_ok
+
+    # vérification si admin 
+    def is_admin(self):
+        return self.role is True
+
+service = UtilisateurService()
+
+utilisateur = service.creer_compte(
+    pseudo="lucasrt2",
+    nom="repetti",
+    prenom="lucas",
+    email="lucasrt@gmail.com",
+    mot_de_passe="123",
+    role=False
+)
+
+if utilisateur:
+    print("ID utilisateur:", utilisateur.id_utilisateur)

@@ -10,7 +10,7 @@ class UtilisateurDAO:
     @staticmethod
     def creer(utilisateur: Utilisateur) -> Utilisateur:
         query = """
-            INSERT INTO utilisateur (pseudo, nom, prenom, email, mot_de_passe, role, date_creation)
+            INSERT INTO projet.utilisateur (pseudo, nom, prenom, email, mot_de_passe, role, date_creation)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id_utilisateur;
         """
@@ -115,3 +115,18 @@ class UtilisateurDAO:
                 if row:
                     return Utilisateur.from_dict(row)
                 return None
+
+
+from datetime import datetime
+
+nouvel_utilisateur = Utilisateur(
+    pseudo="lucasrt",
+    nom="repetti",
+    prenom="lucas",
+    email="lucas@gmail.com",
+    mot_de_passe="123",
+    date_creation=datetime.now(),
+    role=False
+)
+
+UtilisateurDAO.creer(nouvel_utilisateur)
