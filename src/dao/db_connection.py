@@ -3,7 +3,7 @@ import os
 import dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from src.utils.singleton import Singleton
+from utils.singleton import Singleton
 
 
 class DBConnection(metaclass=Singleton):
@@ -33,8 +33,8 @@ class DBConnection(metaclass=Singleton):
         return self.__connection
 
 # tests/test_utilisateur.py
-from src.dao.db_connection import DBConnection
-from datetime import datetime
+
+
 
 def test_ajout_utilisateur():
     try:

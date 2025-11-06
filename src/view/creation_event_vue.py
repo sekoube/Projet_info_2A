@@ -5,13 +5,13 @@ from prompt_toolkit.validation import ValidationError, Validator
 
 
 from src.service.utilisateur_service import UtilisateurService
-from src.dao.utilisateur_dao import UtilisateurDAO
+from dao.utilisateur_dao import UtilisateurDAO
 from view.vue_abstraite import VueAbstraite
 from view.accueil.accueil_vue import AccueilVue
 
 
 from src.service.evenement_service import EvenementService
-from src.dao.evenement_dao import EvenementDao
+from dao.evenement_dao import EvenementDao
 
 
 class CreationEventVue(VueAbstraite):

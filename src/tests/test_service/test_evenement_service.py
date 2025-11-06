@@ -268,6 +268,7 @@ def test_creer_inscription_utilisateur_inexistant():
     # Mock des autres DAO
     service.evenement_dao.trouver_par_id = Mock()
     service.inscription_dao.compter_par_evenement = Mock()
+    service.inscription_dao.creer = Mock()
     
     # Act
     resultat = service.creer_inscription(
@@ -281,7 +282,7 @@ def test_creer_inscription_utilisateur_inexistant():
     # Assert
     assert resultat is None
     assert service.utilisateur_dao.trouver_par_id.called
-    assert not service.inscription_dao.creer.called
+    service.inscription_dao.creer.assert_not_called()
 
 
 def test_creer_inscription_evenement_inexistant():
@@ -300,9 +301,11 @@ def test_creer_inscription_evenement_inexistant():
     # Mock du DAO événement : événement introuvable
     service.evenement_dao.trouver_par_id = Mock(return_value=None)
     
+    
     # Mock des autres DAO
     service.inscription_dao.compter_par_evenement = Mock()
-    
+    service.inscription_dao.creer = Mock()
+
     # Act
     resultat = service.creer_inscription(
         boit=False,
@@ -315,5 +318,5 @@ def test_creer_inscription_evenement_inexistant():
     # Assert
     assert resultat is None
     assert service.evenement_dao.trouver_par_id.called
-    assert not service.inscription_dao.creer.called
+    service.inscription_dao.creer.assert_not_called()
 

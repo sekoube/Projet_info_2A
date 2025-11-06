@@ -5,7 +5,7 @@ from prompt_toolkit.validation import ValidationError, Validator
 
 
 from src.service.utilisateur_service import UtilisateurService
-from src.dao.utilisateur_dao import UtilisateurDAO
+from dao.utilisateur_dao import UtilisateurDAO
 from view.vue_abstraite import VueAbstraite
 from view.accueil.accueil_vue import AccueilVue
 
