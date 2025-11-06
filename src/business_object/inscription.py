@@ -1,7 +1,4 @@
-from datetime import datetime
-from business_object.utilisateur import Utilisateur
-from business_object.evenement import Evenement  
-from datetime import date
+from datetime import datetime  
 """import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException"""
 
@@ -91,9 +88,9 @@ class Inscription:
 
         try:
             response = api_instance.send_transac_email(send_smtp_email)
-            print(f"✅ E-mail envoyé à {adresse_email} — Message ID : {response['messageId']}")
+            print(f" E-mail envoyé à {adresse_email} — Message ID : {response['messageId']}")
         except ApiException as e:
-            print(f"❌ Erreur lors de l'envoi : {e}")
+            print(f" Erreur lors de l'envoi : {e}")
     """
 
     def __repr__(self):

@@ -2,7 +2,7 @@ from datetime import date
 from unittest.mock import Mock
 from service.evenement_service import EvenementService
 from business_object.evenement import Evenement
-from business_object.inscription import Inscription
+from service.inscription_service import InscriptionService
 
 
 def test_creer_evenement_succes():
