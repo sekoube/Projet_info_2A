@@ -10,7 +10,7 @@ class EvenementDAO(metaclass=Singleton):
     Gère toutes les opérations CRUD sur la table evenement.
     """
 
-    def creer(self, evenement: Evenement) -> bool:
+    def creer(self, evenement: Evenement) -> str:
         """
         Crée un nouvel événement dans la base de données.
 

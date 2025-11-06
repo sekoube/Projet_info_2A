@@ -100,13 +100,13 @@ class InscriptionService:
         """
         return self.inscription_dao.trouver_par_code_reservation(code_reservation)
 
-    def lister_inscriptions_evenement(self, id_evenement: str) -> List[Inscription]:
+    def lister_inscriptions_evenement(self, id_event: str) -> List[Inscription]:
         """
         Liste toutes les inscriptions d'un événement donné.
         
         return: Liste des inscriptions
         """
-        return self.inscription_dao.trouver_par_id_evenement(id_evenement)
+        return self.inscription_dao.trouver_par_id_evenement(id_event)
 
     def lister_toutes_inscriptions(self) -> List[Inscription]:
         """
@@ -116,21 +116,21 @@ class InscriptionService:
         """
         return self.inscription_dao.lister_toutes()
 
-    def obtenir_nombre_inscrits(self, id_evenement: str) -> int:
+    def obtenir_nombre_inscrits(self, id_event: str) -> int:
         """
         Retourne le nombre d'inscrits à un événement.
         
         return: Nombre d'inscriptions
         """
-        return self.inscription_dao.compter_par_evenement(id_evenement)
+        return self.inscription_dao.compter_par_evenement(id_event)
 
-    def est_deja_inscrit(self, id_utilisateur: int, id_evenement: str) -> bool:
+    def est_deja_inscrit(self, id_utilisateur: int, id_event: str) -> bool:
         """
         Vérifie si un utilisateur est déjà inscrit à un événement.
         
         return: True si déjà inscrit, False sinon
         """
-        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_evenement)
+        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_event)
         return any(insc.created_by == id_utilisateur for insc in inscriptions)
 
     def obtenir_inscriptions_utilisateur(self, id_utilisateur: int) -> List[Inscription]:
@@ -142,13 +142,13 @@ class InscriptionService:
         toutes_inscriptions = self.inscription_dao.lister_toutes()
         return [insc for insc in toutes_inscriptions if insc.created_by == id_utilisateur]
 
-    def calculer_statistiques_evenement(self, id_evenement: str) -> dict:
+    def calculer_statistiques_evenement(self, id_event: str) -> dict:
         """
         Calcule des statistiques sur les inscriptions d'un événement.
         
         return: Dictionnaire avec les statistiques
         """
-        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_evenement)
+        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_event)
         
         total = len(inscriptions)
         nb_buveurs = sum(1 for insc in inscriptions if insc.boit)
@@ -164,17 +164,17 @@ class InscriptionService:
             "paiements_non_definis": total - nb_especes - nb_en_ligne
         }
 
-    def verifier_disponibilite_evenement(self, id_evenement: str) -> dict:
+    def verifier_disponibilite_evenement(self, id_event: str) -> dict:
         """
         Vérifie la disponibilité d'un événement.
         
         return: Dictionnaire avec les infos de disponibilité
         """
-        evenement = self.evenement_dao.trouver_par_id(id_evenement)
+        evenement = self.evenement_dao.trouver_par_id(id_event)
         if not evenement:
             return {"disponible": False, "raison": "Événement introuvable"}
         
-        nb_inscrits = self.inscription_dao.compter_par_evenement(id_evenement)
+        nb_inscrits = self.inscription_dao.compter_par_evenement(id_event)
         
         if hasattr(evenement, 'capacite_max'):
             places_restantes = evenement.capacite_max - nb_inscrits

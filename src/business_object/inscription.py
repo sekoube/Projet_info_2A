@@ -20,7 +20,8 @@ class Inscription:
         id_event: str = "",
         nom_event: str = "",
         id_bus_aller: str = "",
-        id_bus_retour: str = ""
+        id_bus_retour: str = "",
+        created_by=None
     ):
         """
         Constructeur de la classe Inscription.
@@ -65,6 +66,7 @@ class Inscription:
         self.id_bus_aller = id_bus_aller
         self.id_bus_retour = id_bus_retour
         self.date_creation = datetime.now()
+        self.created_by = created_by
         # =================================================================
 
     # ************************ Méthodes ***********************************************
@@ -111,16 +113,16 @@ class Inscription:
             "date_creation": self.date_creation.isoformat(),
         }
 
-    @staticmethod
-    def from_dict(data: dict) -> "Inscription":
-        """Créer un objet Inscription à partir d'un dictionnaire"""
-        return Inscription(
-            code_reservation=data.get("code_reservation"),
-            boit=data.get("boit", False),
-            id_utilisateur=data.get("id_utilisateur"),
-            mode_paiement=data.get("mode_paiement", ""),
-            id_event=data.get("id_event", ""),
-            nom_event=data.get("nom_event", ""),
-            id_bus_aller=data.get("id_bus_aller", ""),
-            id_bus_retour=data.get("id_bus_retour", ""),
-        )
+@staticmethod
+def from_dict(data: dict) -> "Inscription":
+    return Inscription(
+        code_reservation=data.get("code_reservation"),
+        boit=data.get("boit", False),
+        id_utilisateur=data.get("id_utilisateur"),
+        mode_paiement=data.get("mode_paiement", ""),
+        id_event=data.get("id_event", ""),
+        nom_event=data.get("nom_event", ""),
+        id_bus_aller=data.get("id_bus_aller", ""),
+        id_bus_retour=data.get("id_bus_retour", ""),
+        created_by=data.get("created_by")  # ✅ ajouté
+    )

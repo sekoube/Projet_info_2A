@@ -1,13 +1,8 @@
 from business_object.utilisateur import Utilisateur
-<<<<<<< HEAD
-from service.utilisateur_service import UtilisateurService  # Assure-toi que le chemin est correct
-from service.evenement_service import EvenementService
-=======
 from service.utilisateur_service import UtilisateurService
 from service.evenement_service import EvenementService
 from service.inscription_service import InscriptionService
 import getpass
->>>>>>> 58b3efe398af4b33c8cca5fbe91fa7b3ca1f930f
 
 def creer_compte_terminal(service: UtilisateurService):
     print("\n=== Création de compte ===")
@@ -19,53 +14,39 @@ def creer_compte_terminal(service: UtilisateurService):
     while not nom:
         nom = input("Nom obligatoire, réessayez : ").strip()
 
-def creer_event_terminal(service : EvenementService):
-    print("\n=== Création d'un évènement")
-    titre = input("Titre : ")
-    lieu = input("Lieu : ")
-    date_evenement = input("Date : ")
-    capacite_max = input("Capacité max :")
-    created_by = input("Entrez votre identifiant :")
-    description_event = input("Description évènement :")
-    tarif = input("tarif :")
+    prenom = input("Prénom : ").strip()
+    while not prenom:
+        prenom = input("Prénom obligatoire, réessayez : ").strip()
 
-    service.creer_evenement(titre, lieu, date_evenement, capacite_max, created_by, description_event, tarif)
+    email = input("Email : ").strip()
+    while not email:
+        email = input("Email obligatoire, réessayez : ").strip()
 
+    mot_de_passe = getpass.getpass("Mot de passe : ").strip()
+    while not mot_de_passe:
+        mot_de_passe = getpass.getpass("Mot de passe obligatoire, réessayez : ").strip()
 
-def connexion_terminal(service: UtilisateurService):
+    role_input = input("Compte admin ? (oui/non) : ").strip().lower()
+    role = role_input == "oui"
+
+    try:
+        service.creer_compte(pseudo, nom, prenom, email, mot_de_passe, role)
+        print("✅ Compte créé avec succès !")
+    except Exception as e:
+        print(f"❌ Erreur lors de la création du compte : {e}")
+
+def connexion_terminal(service_utilisateur: UtilisateurService, evenement_service: EvenementService):
     print("\n=== Connexion ===")
     email = input("Email : ").strip()
     mot_de_passe = getpass.getpass("Mot de passe : ").strip()
 
     utilisateur = service_utilisateur.authentifier(email, mot_de_passe)
     if utilisateur:
-<<<<<<< HEAD
-        print(f"Bienvenue {utilisateur.pseudo} !")
-        print("\n=== Menu de l'utilisateur ===")
-        if UtilisateurService.is_admin():
-            print("1. Créer un évènement")
-            print("2. S'inscrire à un évènement")
-            print("3. Se désinscrire d'un évènement")
-            print("4. Supprimer un évènement")
-            print("5. Supprimer un utilisateur")
-            print("6. Suppremer son compte")
-            print("7. Se déconnecter")
-        else:
-            print("2. S'inscrire à un évènement")
-            print("3. Se désinscrire d'un évènement")
-            print("6. Suppremer son compte")
-            print("7. Se déconnecter")
-        
-        if choix==1:
-            creer_event_terminal(service)
-
-=======
         print(f"✅ Bienvenue {utilisateur.pseudo} !")
         if not utilisateur.role:  # Utilisateur simple
             page_utilisateur(utilisateur, evenement_service)
         else:
             print("⚠️ Interface admin non implémentée pour l'instant.")
->>>>>>> 58b3efe398af4b33c8cca5fbe91fa7b3ca1f930f
     else:
         print("❌ Échec de la connexion. Email ou mot de passe incorrect.")
 
@@ -155,3 +136,4 @@ def menu():
 
 if __name__ == "__main__":
     menu()
+

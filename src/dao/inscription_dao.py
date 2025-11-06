@@ -99,7 +99,7 @@ class InscriptionDAO:
                         FROM inscription
                         WHERE id_event = %(id_event)s;
                         """,
-                        {"id_event": id_evenement}
+                        {"id_event": id_event}
                     )
                     rows = cursor.fetchall()
                     return [
@@ -153,7 +153,7 @@ class InscriptionDAO:
             print(f"Erreur lors du listage des inscriptions : {e}")
             return []
 
-    def compter_par_evenement(self, id_evenement: int) -> int:
+    def compter_par_evenement(self, id_event: int) -> int:
         """
         Retourne le nombre d'inscriptions pour un événement donné.
         """
@@ -166,7 +166,7 @@ class InscriptionDAO:
                         FROM inscription 
                         WHERE id_event = %(id_event)s;
                         """,
-                        {"id_event": id_evenement}
+                        {"id_event": id_event}
                     )
                     resultat = cursor.fetchone()
                     return resultat["count"] if resultat else 0
