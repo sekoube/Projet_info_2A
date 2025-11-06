@@ -4,8 +4,8 @@ from dao.evenement_dao import EvenementDAO
 from dao.db_connection import DBConnection
 
 from datetime import date, datetime
-from Projet_info_2A.src.dao.evenement_dao import EvenementDao
-from Projet_info_2A.src.business_object.evenement import Evenement
+from dao.evenement_dao import EvenementDao
+from business_object.evenement import Evenement
 
 
 def test_creer_evenement_succes():

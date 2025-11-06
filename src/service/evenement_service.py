@@ -1,6 +1,6 @@
 from typing import Optional, List
-from Projet_info_2A.src.business_object.evenement import Evenement
-from Projet_info_2A.src.business_object.inscription import Inscription
+from business_object.evenement import Evenement
+from business_object.inscription import Inscription
 import random
 
 

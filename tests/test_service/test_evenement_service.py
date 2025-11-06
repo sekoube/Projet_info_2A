@@ -1,9 +1,9 @@
 from datetime import date
 from unittest.mock import Mock
-from Projet_info_2A.src.service.evenement_service import EvenementService
-from Projet_info_2A.src.business_object.evenement import Evenement
-from Projet_info_2A.src.business_object.inscription import Inscription
-from Projet_info_2A.src.dao.evenement_dao import EvenementDao
+from service.evenement_service import EvenementService
+from business_object.evenement import Evenement
+from business_object.inscription import Inscription
+
 
 def test_creer_evenement_succes():
     """

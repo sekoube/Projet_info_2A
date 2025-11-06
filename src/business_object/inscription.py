@@ -1,6 +1,6 @@
 from datetime import datetime
-from Projet_info_2A.src.business_object.utilisateur import Utilisateur
-from Projet_info_2A.src.business_object.evenement import Evenement  
+from business_object.utilisateur import Utilisateur
+from business_object.evenement import Evenement  
 from datetime import date
 """import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException"""
