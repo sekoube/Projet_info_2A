@@ -1,8 +1,6 @@
-import os
-import pytest
 from business_object.utilisateur import Utilisateur
 from dao.utilisateur_dao import UtilisateurDAO
-from dao.db_connection import DBConnection
+
 
 # ========================== Test DAO minimal ==========================
 

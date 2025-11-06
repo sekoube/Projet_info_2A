@@ -1,12 +1,10 @@
 from typing import List, Optional
-from datetime import datetime, date
-
 from dao.db_connection import DBConnection
 from business_object.evenement import Evenement
-from Projet_info_2A.utils.singleton import Singleton
+from utils.singleton import Singleton
 
 
-class EvenementDao(metaclass=Singleton):
+class EvenementDAO(metaclass=Singleton):
     """
     Classe DAO pour la gestion des événements en base de données.
     Gère toutes les opérations CRUD sur la table evenement.

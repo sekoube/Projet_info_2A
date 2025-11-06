@@ -1,10 +1,3 @@
-import pytest
-from business_object.utilisateur import Utilisateur
-from dao.evenement_dao import EvenementDAO
-from dao.db_connection import DBConnection
-
-from datetime import date, datetime
-from dao.evenement_dao import EvenementDao
 from business_object.evenement import Evenement
 
 
