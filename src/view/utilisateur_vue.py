@@ -6,6 +6,7 @@ from view.session import Session
 from src.service.utilisateur_service import UtilisateurService
 from src.service.evenement_service import EvenementService
 
+
 class UtilisateurVue(VueAbstraite):
     """ Vue du menu de l'utilisateur
 
@@ -26,7 +27,7 @@ class UtilisateurVue(VueAbstraite):
         Return
         ------
         vue
-            Retour la vue choisie par l'utilisateur dans le terminal
+            Retourne la vue choisie par l'utilisateur dans le terminal
         """
 
         print("\n" + "-" * 50 + "\nMenu Utilisateur\n" + "-" * 50 + "\n")
