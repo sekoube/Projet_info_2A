@@ -98,7 +98,7 @@ CREATE TABLE projet.utilisateur (
     prenom         VARCHAR(50) NOT NULL,
     email          VARCHAR(100) UNIQUE NOT NULL,
     mot_de_passe   VARCHAR(100) NOT NULL,
-    date_creation  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_creation  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role           BOOLEAN DEFAULT FALSE
 );
 
