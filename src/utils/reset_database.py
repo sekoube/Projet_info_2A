@@ -4,11 +4,8 @@ import dotenv
 from unittest import mock
 
 # Imports corrigés, selon la structure actuelle de ton projet
-from utils.log_decorator import log
 from utils.singleton import Singleton
 from dao.db_connection import DBConnection
-
-from service.joueur_service import JoueurService
 
 
 class ResetDatabase(metaclass=Singleton):
@@ -16,7 +13,7 @@ class ResetDatabase(metaclass=Singleton):
     Réinitialisation de la base de données
     """
 
-    @log
+
     def lancer(self, test_dao=False):
         """Lancement de la réinitialisation des données.
         Si test_dao = True : réinitialisation des données de test
@@ -52,14 +49,9 @@ class ResetDatabase(metaclass=Singleton):
             logging.info(e)
             raise
 
-        # Appliquer le hashage des mots de passe à chaque joueur
-        joueur_service = JoueurService()
-        for j in joueur_service.lister_tous(inclure_mdp=True):
-            joueur_service.modifier(j)
-
         return True
 
 
 if __name__ == "__main__":
     ResetDatabase().lancer()
-    ResetDatabase().lancer(True)
+    # ResetDatabase().lancer(True)
