@@ -126,3 +126,13 @@ class Utilisateur:
             role=data.get("role", False),
             date_creation=date_value,
         )
+
+    @property
+    def is_admin(self) -> bool:
+        """Retourne True si l'utilisateur est un administrateur."""
+        return self.role is True
+
+    @property
+    def is_normal_user(self) -> bool:
+        """Retourne True si l'utilisateur est un utilisateur normal."""
+        return not self.role

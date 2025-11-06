@@ -26,39 +26,35 @@ def test_bus_erreurs(params, erreur, message_erreur):
 
 # ========================== Tests de création valide ==========================
 @pytest.mark.parametrize(
-    'params',
+    'params, sens_attendu',
     [
-        {'id_event': '1234', 'sens': "Aller", 'description': ["direct"], 'heure_depart': "10:00"},
-        {'id_event': '5678', 'sens': "Retour", 'description': ["Bruz"], 'heure_depart': "10:00"}    
+        (
+            {'id_event': '1234', 'sens': "Aller", 'description': ["direct"], 'heure_depart': "10:00"},
+            True
+        ),
+        (
+            {'id_event': '5678', 'sens': "Retour", 'description': ["Bruz"], 'heure_depart': "18:30"},
+            False
+        ),
     ]
 )
-
-def test_bus_creation_valide(params):
+def test_bus_creation_valide(params, sens_attendu):
     """Vérifie la création correcte des bus et l'assignation des attributs"""
     bus_cour = Bus(**params)
-    for key, value in params.items():
-        assert getattr(bus_cour, key) == value
+    
+    # Vérifie que les attributs correspondent aux paramètres
+    assert bus_cour.id_event == params['id_event']
+    assert bus_cour.sens == sens_attendu  # Vérifie le booléen
+    assert bus_cour.description == params['description']
+    
     # Vérifie que l'heure de départ est bien un datetime
     assert isinstance(bus_cour.heure_depart, datetime)
+    
+    # Vérifie que l'heure correspond à celle entrée
+    heure_attendue = datetime.strptime(params['heure_depart'], "%H:%M")
+    assert bus_cour.heure_depart.hour == heure_attendue.hour
+    assert bus_cour.heure_depart.minute == heure_attendue.minute
+    
+    # Vérifie que id_bus est None par défaut
+    assert bus_cour.id_bus is None
 
-
-"""
-@pytest.fixture
-def bus_instance():
-    return Bus(
-        id_bus=200,
-        id_event=111,
-        sens="Retour",
-        description="Bus de l'Ensai vers Chartres",
-        heure_depart="18:45")
-
-
-class TestBus:
-
-    def test_bus_init(self, bus_instance):
-        assert bus_instance.id_bus == 200
-        assert bus_instance.id_event == 111
-        assert bus_instance.sens == "Retour"
-        assert bus_instance.description == "Bus de l'Ensai vers Chartres"
-        assert bus_instance.heure_depart == "18:45"
-"""

@@ -1,27 +1,30 @@
 from business_object.utilisateur import Utilisateur
 from dao.utilisateur_dao import UtilisateurDAO
+from datetime import datetime
 
 
 # ========================== Test DAO minimal ==========================
 
 
+
+
 def test_creer_utilisateur_ok():
-    """Vérifie qu'on peut créer un utilisateur valide dans la base"""
-    # GIVEN
+    # Arrange
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
     utilisateur = Utilisateur(
-        pseudo="testuser_dao",
-        nom="Durand",
+        nom="Dao",
         prenom="Alex",
-        email="alex.dao@example.com",
-        mot_de_passe="azerty123"
+        pseudo=f"alexdao_{timestamp}",  # Pseudo unique
+        email=f"alex.dao.{timestamp}@example.com",  # Email unique
+        mot_de_passe="MotDePasse123!"
     )
-
-    # WHEN
+    
+    # Act
     utilisateur_cree = UtilisateurDAO().creer(utilisateur)
-
-    # THEN
+    
+    # Assert
     assert utilisateur_cree is not None
-    assert utilisateur.id_utilisateur is not None
+    assert utilisateur_cree.id_utilisateur is not None
 
 
 def test_creer_utilisateur_ko_email_existe():
@@ -44,11 +47,9 @@ def test_creer_utilisateur_ko_email_existe():
         mot_de_passe="mdp456"
     )
 
-    # WHEN
-    email_existe = UtilisateurDAO().email_existe(utilisateur2.email)
-
-    # THEN
-    assert email_existe is True
+        # Vérifier que ValueError est levée
+    with pytest.raises(ValueError, match="Un utilisateur avec l'email.*existe déjà"):
+        UtilisateurDAO().creer(utilisateur2)
 
 def test_creer_utilisateur_ko_pseudo_existe():
     """Vérifie que la création échoue si le pseudo existe déjà"""
