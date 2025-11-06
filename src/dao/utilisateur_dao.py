@@ -117,16 +117,3 @@ class UtilisateurDAO:
                 return None
 
 
-from datetime import datetime
-
-nouvel_utilisateur = Utilisateur(
-    pseudo="lucasrt",
-    nom="repetti",
-    prenom="lucas",
-    email="lucas@gmail.com",
-    mot_de_passe="123",
-    date_creation=datetime.now(),
-    role=False
-)
-
-UtilisateurDAO.creer(nouvel_utilisateur)
