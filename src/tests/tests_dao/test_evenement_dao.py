@@ -1,5 +1,6 @@
 from business_object.evenement import Evenement
-
+from dao.evenement_dao import EvenementDAO
+from datetime import date
 
 def test_creer_evenement_succes():
     """
@@ -7,7 +8,7 @@ def test_creer_evenement_succes():
     Vérifie que l'événement est bien créé et qu'un ID est attribué.
     """
     # Arrange
-    dao = EvenementDao()
+    dao = EvenementDAO()
     evenement = Evenement(
         titre="Concert de Jazz",
         description_evenement="Soirée jazz avec musiciens locaux",
@@ -33,7 +34,7 @@ def test_get_by_id_existant():
     Vérifie que toutes les données sont correctement récupérées.
     """
     # Arrange
-    dao = EvenementDao()
+    dao = EvenementDAO()
     # D'abord créer un événement
     evenement_initial = Evenement(
         titre="Conférence Python",
@@ -65,7 +66,7 @@ def test_lister_futurs_evenements():
     Vérifie que seuls les événements avec date >= aujourd'hui sont retournés.
     """
     # Arrange
-    dao = EvenementDao()
+    dao = EvenementDAO()
     date_future = date(2026, 6, 1)
     date_passee = date(2024, 1, 1)
     
