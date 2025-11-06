@@ -22,7 +22,7 @@ def test_creer_utilisateur_ok():
     # THEN
     assert utilisateur_cree is not None
     assert utilisateur.id_utilisateur is not None
-test_creer_utilisateur_ok()
+
 
 def test_creer_utilisateur_ko_email_existe():
     """Vérifie que la création échoue si l'email existe déjà"""
