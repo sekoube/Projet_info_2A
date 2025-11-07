@@ -5,6 +5,7 @@ from dao.evenement_dao import EvenementDAO
 from dao.utilisateur_dao import UtilisateurDAO
 import random
 import string
+import random
 
 
 class InscriptionService:
@@ -18,16 +19,20 @@ class InscriptionService:
         self.evenement_dao = EvenementDAO()
         self.utilisateur_dao = UtilisateurDAO()
 
+
     def generer_code_reservation(self, longueur: int = 8) -> str:
         """
-        Génère un code de réservation unique aléatoire.
-        
-        longueur: Longueur du code (par défaut 8 caractères)
-        
+        Génère un code de réservation unique, entièrement numérique.
+
+        longueur: Longueur du code (par défaut 8 chiffres)
+
         return: Code de réservation unique
         """
         while True:
-            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=longueur))
+            # Génère un entier aléatoire du nombre minimal au maximal possible
+            code = int(random.randint(10**(longueur - 1), 10**longueur - 1))
+
+            # Vérifie l'unicité via la base de données / DAO
             if not self.inscription_dao.trouver_par_code_reservation(code):
                 return code
 
@@ -47,13 +52,13 @@ class InscriptionService:
         return: Inscription créée ou None si échec
         """
         # Validation : l'utilisateur existe-t-il ?
-        utilisateur = self.utilisateur_dao.trouver_par_id(created_by)
+        utilisateur = self.utilisateur_dao.get_by_id(created_by)
         if not utilisateur:
             print(f"Erreur : Utilisateur {created_by} introuvable")
             return None
 
         # Validation : l'événement existe-t-il ?
-        evenement = self.evenement_dao.trouver_par_id(id_event)
+        evenement = self.evenement_dao.get_by_id(id_event)
         if not evenement:
             print(f"Erreur : Événement {id_event} introuvable")
             return None
@@ -106,7 +111,7 @@ class InscriptionService:
         
         return: Liste des inscriptions
         """
-        return self.inscription_dao.trouver_par_id_evenement(id_event)
+        return self.inscription_dao.get_by_event(id_event)
 
     def lister_toutes_inscriptions(self) -> List[Inscription]:
         """
@@ -130,7 +135,7 @@ class InscriptionService:
         
         return: True si déjà inscrit, False sinon
         """
-        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_event)
+        inscriptions = self.inscription_dao.get_by_event(id_event)
         return any(insc.created_by == id_utilisateur for insc in inscriptions)
 
     def obtenir_inscriptions_utilisateur(self, id_utilisateur: int) -> List[Inscription]:
@@ -148,7 +153,7 @@ class InscriptionService:
         
         return: Dictionnaire avec les statistiques
         """
-        inscriptions = self.inscription_dao.trouver_par_id_evenement(id_event)
+        inscriptions = self.inscription_dao.get_by_event(id_event)
         
         total = len(inscriptions)
         nb_buveurs = sum(1 for insc in inscriptions if insc.boit)
@@ -170,7 +175,7 @@ class InscriptionService:
         
         return: Dictionnaire avec les infos de disponibilité
         """
-        evenement = self.evenement_dao.trouver_par_id(id_event)
+        evenement = self.evenement_dao.get_by_id(id_event)
         if not evenement:
             return {"disponible": False, "raison": "Événement introuvable"}
         

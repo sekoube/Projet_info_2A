@@ -62,7 +62,7 @@
 --     date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --     boit             BOOLEAN NOT NULL, 
 --     mode_paiement    VARCHAR(50) NOT NULL,
---     id_utilisateur   INT NOT NULL,
+--     created_by   INT NOT NULL,
 --     id_event         INT NOT NULL,
 --     id_bus_aller     INT,
 --     id_bus_retour    INT,
