@@ -1,7 +1,7 @@
 from business_object.utilisateur import Utilisateur
 from dao.utilisateur_dao import UtilisateurDAO
 from datetime import datetime
-
+import pytest
 
 # ========================== Test DAO minimal ==========================
 
