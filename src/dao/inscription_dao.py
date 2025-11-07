@@ -58,7 +58,7 @@ class InscriptionDAO:
                     cursor.execute(
                         """
                         SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription
                         WHERE code_reservation = %(code_reservation)s;
                         """,
@@ -95,7 +95,7 @@ class InscriptionDAO:
                     cursor.execute(
                         """
                         SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription
                         WHERE id_event = %(id_event)s;
                         """,
@@ -109,7 +109,6 @@ class InscriptionDAO:
                             created_by=row["created_by"],
                             mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )

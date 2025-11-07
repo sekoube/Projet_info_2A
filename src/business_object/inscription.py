@@ -15,12 +15,11 @@ class Inscription:
         self,
         code_reservation: int,
         boit: bool = False,
-        id_utilisateur: int = None,
         mode_paiement: str = "",
-        id_event: str = "",
+        id_event: int,
         nom_event: str = "",
-        id_bus_aller: str = "",
-        id_bus_retour: str = "",
+        id_bus_aller: int,
+        id_bus_retour: int,
         created_by=None
     ):
         """
@@ -33,23 +32,23 @@ class Inscription:
         if not isinstance(boit, bool):
             raise TypeError("Le champ 'boit' doit être de type bool.")
 
-        if id_utilisateur is None:
+        if created_by is None:
             raise ValueError("L'attribut 'id_utilisateur' (ID utilisateur) est obligatoire.")
-        if not isinstance(id_utilisateur, int):
+        if not isinstance(created_by, int):
             raise TypeError("L'attribut 'id_utilisateur' doit être un entier.")
 
         if mode_paiement not in ("espèce", "en ligne", ""):
             raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
 
-        if not id_event or not isinstance(id_event, str):
-            raise ValueError("L'ID de l'événement est obligatoire et doit être une chaîne.")
+        if not id_event or not isinstance(id_event, int):
+            raise ValueError("L'ID de l'événement est obligatoire et doit être un entier.")
         if not nom_event or not isinstance(nom_event, str):
             raise ValueError("Le nom de l'événement est obligatoire et doit être une chaîne.")
 
-        if not isinstance(id_bus_aller, str):
-            raise TypeError("L'identifiant du bus aller doit être une chaîne de caractères.")
-        if not isinstance(id_bus_retour, str):
-            raise TypeError("L'identifiant du bus retour doit être une chaîne de caractères.")
+        if not isinstance(id_bus_aller, int):
+            raise TypeError("L'identifiant du bus aller doit être un entier")
+        if not isinstance(id_bus_retour, int):
+            raise TypeError("L'identifiant du bus retour doit être un entier")
         # =================================================================
 
         # ========================== INITIALISATION ==========================
@@ -59,7 +58,6 @@ class Inscription:
 
         self.code_reservation = code_reservation
         self.boit = boit
-        self.id_utilisateur = id_utilisateur
         self.mode_paiement = mode_paiement
         self.id_event = id_event
         self.nom_event = nom_event
@@ -97,14 +95,14 @@ class Inscription:
 
     def __repr__(self):
         """Représentation texte"""
-        return f"<Inscription {self.id_utilisateur} - {self.nom_event}>"
+        return f"<Inscription {self.created_by} - {self.nom_event}>"
 
     def to_dict(self) -> dict:
         """Convertit l'objet en dictionnaire"""
         return {
             "code_reservation": self.code_reservation,
             "boit": self.boit,
-            "id_utilisateur": self.id_utilisateur,
+            "created_by": self.created_by,
             "mode_paiement": self.mode_paiement,
             "id_event": self.id_event,
             "nom_event": self.nom_event,
@@ -118,11 +116,10 @@ def from_dict(data: dict) -> "Inscription":
     return Inscription(
         code_reservation=data.get("code_reservation"),
         boit=data.get("boit", False),
-        id_utilisateur=data.get("id_utilisateur"),
+        created_by=data.get("created_by"),
         mode_paiement=data.get("mode_paiement", ""),
         id_event=data.get("id_event", ""),
         nom_event=data.get("nom_event", ""),
         id_bus_aller=data.get("id_bus_aller", ""),
         id_bus_retour=data.get("id_bus_retour", ""),
-        created_by=data.get("created_by")  # ✅ ajouté
     )
