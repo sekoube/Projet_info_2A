@@ -14,12 +14,12 @@ class Inscription:
     def __init__(
         self,
         code_reservation: int,
-        boit: bool = False,
-        mode_paiement: str = "",
         id_event: int,
-        nom_event: str = "",
         id_bus_aller: int,
         id_bus_retour: int,
+        boit: bool = False,
+        mode_paiement: str = "",
+        nom_event: str = "",
         created_by=None
     ):
         """

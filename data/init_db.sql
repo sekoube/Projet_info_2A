@@ -133,7 +133,7 @@ CREATE TABLE projet.administrateur (
 -- ==============================
 CREATE TABLE projet.bus (
     id_bus          SERIAL PRIMARY KEY,
-    id_event        INT NOT NULL UNIQUE,
+    id_event        INT NOT NULL,
     sens            BOOLEAN NOT NULL,
     description_bus TEXT,
     heure_depart    TIMESTAMP NOT NULL,

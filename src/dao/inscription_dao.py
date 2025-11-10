@@ -19,9 +19,9 @@ class InscriptionDAO:
                         """
                         INSERT INTO inscription 
                         (code_reservation, boit, created_by, mode_paiement, 
-                         id_event, nom_event, id_bus_aller, id_bus_retour)
+                         id_event, id_bus_retour, id_bus_aller)
                         VALUES (%(code_reservation)s, %(boit)s, %(created_by)s, 
-                                %(mode_paiement)s, %(id_event)s, %(nom_event)s, 
+                                %(mode_paiement)s, %(id_event)s, 
                                 %(id_bus_aller)s, %(id_bus_retour)s)
                         RETURNING code_reservation;
                         """,
@@ -31,7 +31,6 @@ class InscriptionDAO:
                             "created_by": inscription.created_by,
                             "mode_paiement": inscription.mode_paiement,
                             "id_event": inscription.id_event,
-                            "nom_event": inscription.nom_event,
                             "id_bus_aller": inscription.id_bus_aller,
                             "id_bus_retour": float(inscription.id_bus_retour),
                         },
@@ -72,7 +71,6 @@ class InscriptionDAO:
                             created_by=row["created_by"],
                             mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )
@@ -130,7 +128,7 @@ class InscriptionDAO:
                     cursor.execute(
                         """
                         SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription;
                         """
                     )
@@ -142,7 +140,6 @@ class InscriptionDAO:
                             created_by=row["created_by"],
                             mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )

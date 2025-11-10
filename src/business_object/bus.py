@@ -7,7 +7,7 @@ class Bus:
     Cette classe contient uniquement la logique métier et les attributs de l'entité.
     """
     
-    def __init__(self, id_event, sens, description, heure_depart, id_bus=None):
+    def __init__(self, id_event, sens, description, heure_depart, capacite_max, id_bus=None):
         """
         Constructeur de la classe Bus.
         
@@ -26,11 +26,11 @@ class Bus:
         if not id_event or id_event is None:
             raise ValueError("L'identifiant de l'évènement doit être renseigné")
 
-        if not sens or sens.strip() == "":
-            raise ValueError("Le sens ne peut pas être vide")
+        #if not sens == "":
+        #    raise ValueError("Le sens ne peut pas être vide")
         
-        if sens not in ["Aller", "Retour"]:
-            raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
+        #if sens not in ["Aller", "Retour"]:
+        #    raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
 
         if not description or description == [] or description == ['']:
             raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire ['direct']")
@@ -47,7 +47,7 @@ class Bus:
         self.sens = (sens == "Aller")
         
         self.description = description
-        
+        self.capacite_max = capacite_max
         # Conversion de l'heure de départ en datetime si c'est une string
         if isinstance(heure_depart, str):
             try:

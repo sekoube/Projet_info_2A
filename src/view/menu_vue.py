@@ -10,6 +10,7 @@ from dao.bus_dao import BusDAO
 from view.connexion_vue import connexion_terminal
 from view.creer_compte_vue import creer_compte_terminal
 
+
 def menu():
     # Création des DAO
     evenement_dao = EvenementDAO()
@@ -32,6 +33,7 @@ def menu():
         print("1. Créer un compte")
         print("2. Connexion")
         print("3. Quitter")
+
         choix = input("Choisissez une option : ").strip()
 
         if choix == "1":
