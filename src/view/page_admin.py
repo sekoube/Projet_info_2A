@@ -19,6 +19,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
         print("2. Créer un événement")
         print("3. Déconnexion")
         print("4. Créer un bus")  # 🔹 Nouvelle option
+        print("5. Supprimer un événement")
         choix = input("Choisissez une option : ").strip()
 
         # ---- OPTION 1 : Liste des événements ----
@@ -99,11 +100,15 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print("❌ ID invalide.")
                 continue
 
-            sens_input = input("Sens du trajet (1 = Aller, 0 = Retour) : ").strip()
-            if sens_input not in ["0", "1"]:
-                print("❌ Valeur de sens invalide (1 ou 0 attendu).")
+            sens_input = input("Sens du trajet (Aller / Retour) : ").strip().lower()
+
+            if sens_input not in ["aller", "retour"]:
+                print("❌ Valeur de sens invalide (‘Aller’ ou ‘Retour’ attendu).")
                 continue
-            sens = bool(int(sens_input))
+
+            # Normalisation pour l'envoyer à la classe Bus
+            sens = sens_input.capitalize()   # → “Aller” ou “Retour”
+
 
             description = input("Description du bus (optionnel) : ").strip()
             heure_str = input("Heure de départ (format HH:MM) : ").strip()
@@ -138,6 +143,47 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print(f"❌ {e}")
             except Exception as e:
                 print(f"⚠️ Erreur inattendue : {e}")
+
+                # ---- OPTION 5 : Supprimer un événement ----
+        elif choix == "5":
+            print("\n=== Suppression d’un événement ===")
+
+            # Récupérer les événements disponibles
+            evenements = evenement_service.get_evenements_disponibles()
+            if not evenements:
+                print("❌ Aucun événement disponible à supprimer.")
+                continue
+
+            print("\nÉvénements disponibles :")
+            for evt in evenements:
+                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_evenement}")
+
+            try:
+                id_event = int(input("ID de l'événement à supprimer : ").strip())
+            except ValueError:
+                print("❌ ID invalide.")
+                continue
+
+            # Vérifier que l'événement existe
+            evenement_a_supprimer = evenement_service.evenement_dao.get_by_id(id_event)
+            if not evenement_a_supprimer:
+                print(f"❌ L'événement avec l'ID {id_event} n'existe pas.")
+                continue
+
+            confirmation = input(
+                f"⚠️ Êtes-vous sûr de vouloir supprimer l'événement '{evenement_a_supprimer.titre}' ? (oui/non) : "
+            ).strip().lower()
+
+            if confirmation != "oui":
+                print("❌ Suppression annulée.")
+                continue
+
+            # Appel du service
+            if evenement_service.supprimer_evenement(id_event):
+                print(f"✅ Événement {id_event} supprimé avec succès.")
+            else:
+                print("❌ La suppression a échoué.")
+
 
         else:
             print("❌ Option invalide, réessayez.")

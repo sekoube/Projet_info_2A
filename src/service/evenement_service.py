@@ -268,13 +268,9 @@ class EvenementService:
 
         return: True si suppression réussie, False sinon
         """
-        # Supprimer d'abord toutes les inscriptions
-        inscriptions = self.inscription_dao.get_by_event(id_event)
-        for inscription in inscriptions:
-            self.inscription_dao.delete(id_event, inscription.id_utilisateur)
 
         # Supprimer l'événement
-        if self.evenement_dao.delete(id_event):
+        if self.evenement_dao.supprimer(id_event):
             print(f"Événement {id_event} supprimé avec succès.")
             return True
         else:

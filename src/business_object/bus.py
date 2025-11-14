@@ -21,7 +21,7 @@ class Bus:
         sens: str,
         heure_depart: str,
         capacite_max: int,
-        description: list = None,
+        description: str,
         id_bus: int = None
     ):
         """
@@ -30,7 +30,7 @@ class Bus:
         Parameters:
             id_event (str): Identifiant de l'évènement auquel le bus est attribué
             sens (str): Direction du trajet ("Aller" ou "Retour")
-            description (list): Liste des arrêts intermédiaires (écrire ['direct'] si aucun)
+            description (str): description du bus (arrêts)
             heure_depart (datetime): Heure de départ du bus (format "HH:MM" ou datetime)
             id_bus (int, optional): Identifiant unique du bus (None avant insertion en base)
         
@@ -39,7 +39,7 @@ class Bus:
             sens: Direction ('Aller', 'aller', 'Retour', 'retour', etc.)
             heure_depart: Heure de départ (format HH:MM)
             capacite_max: Capacité maximale du bus
-            description: Liste des arrêts (optionnel, par défaut liste vide)
+            description: description (arrêts)
             id_bus: Identifiant du bus (optionnel)
             
         Raises:
@@ -68,9 +68,9 @@ class Bus:
         self.id_event = id_event
         
         # Conversion du sens en booléen (True = Aller, False = Retour)
-        self.sens = (sens_normalise == "ALLER")
+        self.sens = sens
         
-        self.description = description if description else []
+        self.description = description
         
         # Conversion de l'heure en datetime
         if isinstance(heure_depart, str):
@@ -79,10 +79,6 @@ class Bus:
             self.heure_depart = heure_depart
         
         self.capacite_max = capacite_max
-    
-    def get_sens_str(self):
-        """Retourne le sens sous forme de string."""
-        return "Aller" if self.sens else "Retour"
     
     @classmethod
     def from_dict(cls, data: dict):
@@ -95,8 +91,6 @@ class Bus:
         Returns:
             Bus: Instance de Bus créée à partir du dictionnaire
         """
-        # Convertir le booléen sens en string pour le constructeur
-        sens_str = "Aller" if data.get("sens") else "Retour"
         
         # Convertir l'heure si c'est une string, sinon la garder telle quelle
         heure_depart = data.get("heure_depart")
@@ -105,10 +99,10 @@ class Bus:
         
         return cls(
             id_event=data.get("id_event"),
-            sens=sens_str,
+            sens=data.get(sens),
             heure_depart=heure_depart,
             capacite_max=data.get("capacite_max"),
-            description=data.get("description", []),
+            description=data.get("description"),
             id_bus=data.get("id_bus")
         )
     
@@ -122,7 +116,7 @@ class Bus:
         return {
             "id_bus": self.id_bus,
             "id_event": self.id_event,
-            "sens": self.sens,  # Booléen
+            "sens": self.sens,
             "description": self.description,
             "heure_depart": self.heure_depart.strftime("%H:%M") if isinstance(self.heure_depart, datetime) else self.heure_depart,
             "capacite_max": self.capacite_max
@@ -130,8 +124,8 @@ class Bus:
     
     def __repr__(self):
         return (f"Bus(id_bus={self.id_bus}, id_event={self.id_event}, "
-                f"sens={self.get_sens_str()}, heure_depart='{self.heure_depart.strftime('%H:%M')}', "
+                f"sens={self.get_sens()}, heure_depart='{self.heure_depart.strftime('%H:%M')}', "
                 f"capacite_max={self.capacite_max})")
     
     def __str__(self):
-        return f"Bus {self.get_sens_str()} - Départ: {self.heure_depart.strftime('%H:%M')} ({self.capacite_max} places)"
+        return f"Bus {self.get_sens()} - Départ: {self.heure_depart.strftime('%H:%M')} ({self.capacite_max} places)"

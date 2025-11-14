@@ -1,4 +1,5 @@
 from datetime import datetime  
+import resend
 """import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException"""
 
@@ -68,31 +69,6 @@ class Inscription:
         # =================================================================
 
     # ************************ Méthodes ***********************************************
-    """
-    @staticmethod
-    def envoyer_mail(adresse_email: str):
-        # Configuration de l'API
-        configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key['api-key'] = "TA_CLE_API_BREVO"  # ← Remplace ici ta clé
-
-        # Création de l’instance API
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-
-        # Contenu du mail
-        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-            to=[{"email": adresse_email}],
-            sender={"name": "Ton Nom", "email": "ton_adresse@domaine.com"},
-            subject="Ceci est un test Brevo",
-            html_content="<html><body><h1>Bonjour !</h1><p>Ceci est un test d’envoi d’e-mail via Brevo.</p></body></html>"
-        )
-
-        try:
-            response = api_instance.send_transac_email(send_smtp_email)
-            print(f" E-mail envoyé à {adresse_email} — Message ID : {response['messageId']}")
-        except ApiException as e:
-            print(f" Erreur lors de l'envoi : {e}")
-    """
-
     def __repr__(self):
         """Représentation texte"""
         return f"<Inscription {self.created_by} - {self.nom_event}>"
