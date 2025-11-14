@@ -31,7 +31,7 @@ class BusService:
             ValueError: Si l'événement n'existe pas
         """
         # Vérification des droits admin
-        if not self.utilisateur_service.is_admin(utilisateur):
+        if not self.utilisateur_service.is_admin:
             raise PermissionError("Seuls les administrateurs peuvent créer des bus")
         
         # Vérification que l'événement existe
@@ -60,7 +60,7 @@ class BusService:
             PermissionError: Si l'utilisateur n'est pas admin
         """
         # Vérification des droits admin
-        if not self.utilisateur_service.is_admin(utilisateur):
+        if not self.utilisateur_service.is_admin:
             raise PermissionError("Seuls les administrateurs peuvent supprimer des bus")
         
         # Vérification que le bus existe
@@ -96,7 +96,7 @@ class BusService:
             PermissionError: Si l'utilisateur n'est pas admin
         """
         # Vérification des droits admin
-        if not self.utilisateur_service.is_admin(utilisateur):
+        if not self.utilisateur_service.is_admin:
             raise PermissionError("Seuls les administrateurs peuvent modifier des bus")
         
         # Récupération du bus existant
@@ -125,7 +125,7 @@ class BusService:
         Returns:
             True si l'utilisateur est admin, False sinon
         """
-        return self.utilisateur_service.is_admin(utilisateur)
+        return self.utilisateur_service.is_admin
 
     # ... (le reste des méthodes restent identiques)
     def get_bus_by_event(self, id_event: int) -> Optional[Bus]:
