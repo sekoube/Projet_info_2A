@@ -6,6 +6,10 @@ Il s’appuie sur une **architecture en couches orientée objet**, une **base de
 ---
 
 ##  Installation et configuration
+###  Comment lancer vs code 
+
+
+
 
 ###  Structure du projet
 - Tout le code source et les tests se trouvent dans le dossier **`src/`**.  
