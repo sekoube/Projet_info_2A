@@ -16,7 +16,7 @@ def mock_utilisateur():
         mot_de_passe="hash123",
         role=False
     )
-    # On mock la méthode verify_password pour les tests d’authentification
+    # On mock la méthode verify_password pour les tests d'authentification
     u.verify_password = MagicMock(return_value=True)
     return u
 
@@ -66,7 +66,7 @@ def test_creer_compte_pseudo_deja_pris(service):
 
 
 # ======================================================
-# === TESTS D’AUTHENTIFICATION =========================
+# === TESTS D'AUTHENTIFICATION =========================
 # ======================================================
 
 def test_authentifier_succes(service, mock_utilisateur):
@@ -108,8 +108,62 @@ def test_lister_utilisateurs(service, mock_utilisateur):
 # === TESTS SUPPRESSION ADMIN/NON ADMIN ================
 # ======================================================
 
-def test_supprimer_utilisateur_admin(service, mock_utilisateur):
-    """Suppression réussie si admin"""
+def test_supprimer_utilisateur_admin(service):
+    """Test : Un administrateur peut supprimer un utilisateur."""
+    # Arrange
+    admin = Utilisateur(
+        pseudo="admin",
+        nom="Admin",
+        prenom="Super",
+        email="admin@test.com",
+        mot_de_passe="password123",
+        role=True  # ← Admin avec role=True
+    )
+    
+    utilisateur_a_supprimer = Utilisateur(
+        pseudo="user_to_delete",
+        nom="User",
+        prenom="Delete",
+        email="delete@test.com",
+        mot_de_passe="password123",
+        role=False,
+        id_utilisateur=1
+    )
+    
+    # Mock du DAO
+    service.utilisateur_dao.get_by_id.return_value = utilisateur_a_supprimer
+    service.utilisateur_dao.supprimer.return_value = True
+    
+    # Act
+    resultat = service.supprimer_utilisateur(admin, 1)
+    
+    # Assert
+    assert resultat is True
+    service.utilisateur_dao.get_by_id.assert_called_once_with(1)
+    service.utilisateur_dao.supprimer.assert_called_once_with(1)
+
+
+def test_supprimer_utilisateur_non_admin(service):
+    """Refusé si l'utilisateur n'est pas admin"""
+    non_admin = Utilisateur(
+        pseudo="user",
+        nom="User",
+        prenom="Normal",
+        email="user@test.com",
+        mot_de_passe="password123",
+        role=False  # ← Non-admin avec role=False
+    )
+
+    # Act
+    resultat = service.supprimer_utilisateur(non_admin, 1)
+    
+    # Assert
+    assert resultat is False
+    service.utilisateur_dao.supprimer.assert_not_called()
+
+
+def test_supprimer_utilisateur_inexistant(service):
+    """Refus si l'utilisateur à supprimer n'existe pas"""
     admin = Utilisateur(
         id_utilisateur=99,
         pseudo="admin",
@@ -117,34 +171,16 @@ def test_supprimer_utilisateur_admin(service, mock_utilisateur):
         prenom="Super",
         email="admin@example.com",
         mot_de_passe="hash",
-        role=True
+        role=True  # ← Admin avec role=True
     )
-    admin.is_admin = True
 
-    service.utilisateur_dao.get_by_id.return_value = mock_utilisateur
-    service.utilisateur_dao.supprimer.return_value = True
-
-    resultat = service.supprimer_utilisateur(admin, 1)
-    assert resultat is True
-    service.utilisateur_dao.supprimer.assert_called_once_with(1)
-
-
-def test_supprimer_utilisateur_non_admin(service, mock_utilisateur):
-    """Refusé si l'utilisateur n'est pas admin"""
-    non_admin = mock_utilisateur
-    non_admin.is_admin = False
-
-    resultat = service.supprimer_utilisateur(non_admin, 1)
-    assert resultat is False
-    service.utilisateur_dao.supprimer.assert_not_called()
-
-
-def test_supprimer_utilisateur_inexistant(service):
-    """Refus si l'utilisateur à supprimer n’existe pas"""
-    admin = Utilisateur(id_utilisateur=99, pseudo="admin", nom="Root", prenom="Super", email="admin@example.com", mot_de_passe="hash", role=True)
-    admin.is_admin = True
-
+    # Mock du DAO pour retourner None (utilisateur inexistant)
     service.utilisateur_dao.get_by_id.return_value = None
+    
+    # Act
     resultat = service.supprimer_utilisateur(admin, 123)
+    
+    # Assert
     assert resultat is False
+    service.utilisateur_dao.get_by_id.assert_called_once_with(123)
     service.utilisateur_dao.supprimer.assert_not_called()

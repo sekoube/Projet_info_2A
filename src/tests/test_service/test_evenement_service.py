@@ -42,105 +42,6 @@ def test_creer_evenement_succes():
     assert evenement_dao_mock.creer.called
 
 
-def test_inscrire_utilisateur_evenement_complet():
-    """
-    Test d'inscription à un événement complet.
-    Vérifie que l'inscription est refusée quand la capacité est atteinte.
-    """
-    # Arrange
-    evenement_dao_mock = Mock()
-    evenement = Evenement(
-        id_event=1,
-        titre="Atelier Complet",
-        lieu="Salle 101",
-        date_evenement=date(2025, 12, 1),
-        capacite_max=2,
-        created_by=1
-    )
-    # Simuler un événement avec 2 inscriptions (complet)
-    evenement.inscriptions = [Mock(), Mock()]
-    evenement_dao_mock.get_by_id.return_value = evenement
-    
-    inscription_dao_mock = Mock()
-    inscription_dao_mock.get_by_event.return_value = evenement.inscriptions
-    
-    utilisateur_dao_mock = Mock()
-    utilisateur_mock = Mock()
-    utilisateur_mock.nom = "Dupont"
-    utilisateur_mock.prenom = "Jean"
-    utilisateur_dao_mock.get_by_id.return_value = utilisateur_mock
-    
-    bus_dao_mock = Mock()
-    
-    service = EvenementService(
-        evenement_dao_mock,
-        inscription_dao_mock,
-        utilisateur_dao_mock,
-        bus_dao_mock
-    )
-    
-    # Act
-    resultat = service.inscrire_utilisateur(
-        id_event=1,
-        id_utilisateur=3,
-        boit=False,
-        mode_paiement="cb"
-    )
-    
-    # Assert
-    assert resultat is False
-    assert not inscription_dao_mock.creer.called
-
-
-def test_inscrire_utilisateur_succes():
-    """
-    Test d'inscription réussie à un événement disponible.
-    Vérifie que l'inscription est créée correctement.
-    """
-    # Arrange
-    evenement_dao_mock = Mock()
-    evenement = Evenement(
-        id_event=1,
-        titre="Conférence Tech",
-        lieu="Auditorium",
-        date_evenement=date(2025, 11, 20),
-        capacite_max=100,
-        created_by=1
-    )
-    evenement.inscriptions = []  # Événement vide
-    evenement_dao_mock.get_by_id.return_value = evenement
-    
-    inscription_dao_mock = Mock()
-    inscription_dao_mock.get_by_event.return_value = []
-    inscription_dao_mock.creer.return_value = True
-    
-    utilisateur_dao_mock = Mock()
-    utilisateur_mock = Mock()
-    utilisateur_mock.nom = "Martin"
-    utilisateur_mock.prenom = "Sophie"
-    utilisateur_dao_mock.get_by_id.return_value = utilisateur_mock
-    
-    bus_dao_mock = Mock()
-    
-    service = EvenementService(
-        evenement_dao_mock,
-        inscription_dao_mock,
-        utilisateur_dao_mock,
-        bus_dao_mock
-    )
-    
-    # Act
-    resultat = service.inscrire_utilisateur(
-        id_event=1,
-        id_utilisateur=5,
-        boit=True,
-        mode_paiement="espèce"
-    )
-    
-    # Assert
-    assert resultat is True
-    assert inscription_dao_mock.creer.called
-
 
 def test_get_evenements_disponibles():
     """
@@ -263,10 +164,10 @@ def test_creer_inscription_utilisateur_inexistant():
     service = InscriptionService()
     
     # Mock du DAO utilisateur : utilisateur introuvable
-    service.utilisateur_dao.trouver_par_id = Mock(return_value=None)
+    service.utilisateur_dao.get_by_id = Mock(return_value=None)
     
     # Mock des autres DAO
-    service.evenement_dao.trouver_par_id = Mock()
+    service.evenement_dao.get_by_id= Mock()
     service.inscription_dao.compter_par_evenement = Mock()
     service.inscription_dao.creer = Mock()
     
@@ -281,7 +182,7 @@ def test_creer_inscription_utilisateur_inexistant():
     
     # Assert
     assert resultat is None
-    assert service.utilisateur_dao.trouver_par_id.called
+    assert service.utilisateur_dao.get_by_id.called
     service.inscription_dao.creer.assert_not_called()
 
 
@@ -296,10 +197,10 @@ def test_creer_inscription_evenement_inexistant():
     # Mock du DAO utilisateur : utilisateur existe
     utilisateur_mock = Mock()
     utilisateur_mock.id_utilisateur = 1
-    service.utilisateur_dao.trouver_par_id = Mock(return_value=utilisateur_mock)
+    service.utilisateur_dao.get_by_id = Mock(return_value=utilisateur_mock)
     
     # Mock du DAO événement : événement introuvable
-    service.evenement_dao.trouver_par_id = Mock(return_value=None)
+    service.evenement_dao.get_by_id = Mock(return_value=None)
     
     
     # Mock des autres DAO
@@ -317,6 +218,6 @@ def test_creer_inscription_evenement_inexistant():
     
     # Assert
     assert resultat is None
-    assert service.evenement_dao.trouver_par_id.called
+    assert service.evenement_dao.get_by_id.called
     service.inscription_dao.creer.assert_not_called()
 

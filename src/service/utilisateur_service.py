@@ -124,8 +124,17 @@ class UtilisateurService:
         return suppression_ok
 
     # vérification si admin 
-    def is_admin(self):
-        return self.role is True
+    def is_admin(self, utilisateur: Utilisateur) -> bool:
+        """
+    Vérifie si un utilisateur est administrateur.
+    
+    Args:
+        utilisateur: L'utilisateur à vérifier
+        
+    Returns:
+        True si l'utilisateur est admin, False sinon
+        """
+        return utilisateur.role  # ou utilisateur.admin selon votre modèle
 
 service = UtilisateurService()
 

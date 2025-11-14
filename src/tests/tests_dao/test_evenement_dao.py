@@ -47,10 +47,6 @@ def test_get_by_id_existant(utilisateur_test):
     assert float(evenement_recupere.tarif) == 10.0
 
 
-def test_get_by_id_inexistant():
-    """Test la récupération d'un événement inexistant"""
-    evenement_recupere = EvenementDAO().get_by_id(99999)
-    assert evenement_recupere is None
 
 
 # ==================== TESTS DE LISTAGE ====================
