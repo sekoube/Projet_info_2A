@@ -4,8 +4,10 @@ from datetime import date, timedelta
 from service.inscription_service import InscriptionService
 from business_object.utilisateur import Utilisateur
 from business_object.evenement import Evenement
+from business_object.bus import Bus
 from dao.utilisateur_dao import UtilisateurDAO
 from dao.evenement_dao import EvenementDAO
+from dao.bus_dao import BusDAO
 
 
 class TestInscriptionService:
@@ -48,10 +50,33 @@ class TestInscriptionService:
             return evenement
         return None
 
-    def test_creer_inscription_succes(self, inscription_service, utilisateur_test, evenement_test):
+    @pytest.fixture
+    def bus_test(self, evenement_test):
+        """Crée des bus de test pour l'événement"""
+        # Créer un bus aller
+        bus_aller = Bus(
+            capacite_max=50,
+            id_event=evenement_test.id_event,
+            sens="aller",
+            heure_depart="08:00"
+        )
+        BusDAO().creer(bus_aller)
+        
+        # Créer un bus retour
+        bus_retour = Bus(
+            capacite_max=50,
+            id_event=evenement_test.id_event,
+            sens="retour",
+            heure_depart="23:00"
+        )
+        BusDAO().creer(bus_retour)
+        
+        return {"aller": bus_aller, "retour": bus_retour}
+
+    def test_creer_inscription_succes(self, inscription_service, utilisateur_test, evenement_test, bus_test):
         """
         Test : Création d'une inscription valide
-        GIVEN un utilisateur et un événement valides
+        GIVEN un utilisateur, un événement et des bus valides
         WHEN on crée une inscription
         THEN l'inscription est créée avec un code de réservation unique
         """
@@ -61,7 +86,9 @@ class TestInscriptionService:
             created_by=utilisateur_test.id_utilisateur,
             mode_paiement="en ligne",
             id_event=evenement_test.id_event,
-            nom_event=evenement_test.titre
+            nom_event=evenement_test.titre,
+            id_bus_aller=bus_test["aller"].id_bus,
+            id_bus_retour=bus_test["retour"].id_bus
         )
 
         # Assert
@@ -72,8 +99,10 @@ class TestInscriptionService:
         assert inscription.mode_paiement == "en ligne"
         assert inscription.created_by == utilisateur_test.id_utilisateur
         assert inscription.id_event == evenement_test.id_event
+        assert inscription.id_bus_aller == bus_test["aller"].id_bus
+        assert inscription.id_bus_retour == bus_test["retour"].id_bus
 
-    def test_creer_inscription_utilisateur_inexistant(self, inscription_service, evenement_test):
+    def test_creer_inscription_utilisateur_inexistant(self, inscription_service, evenement_test, bus_test):
         """
         Test : Tentative d'inscription avec un utilisateur inexistant
         GIVEN un ID utilisateur qui n'existe pas
@@ -86,7 +115,9 @@ class TestInscriptionService:
             created_by=99999,  # ID inexistant
             mode_paiement="espèce",
             id_event=evenement_test.id_event,
-            nom_event=evenement_test.titre
+            nom_event=evenement_test.titre,
+            id_bus_aller=bus_test["aller"].id_bus,
+            id_bus_retour=bus_test["retour"].id_bus
         )
 
         # Assert
@@ -112,6 +143,12 @@ class TestInscriptionService:
         )
         EvenementDAO().creer(evenement_petit)
 
+        # Créer des bus pour cet événement
+        bus_aller = Bus(capacite_max=50, id_event=evenement_petit.id_event, sens="aller", heure_depart="08:00")
+        bus_retour = Bus(capacite_max=50, id_event=evenement_petit.id_event, sens="retour", heure_depart="23:00")
+        BusDAO().creer(bus_aller)
+        BusDAO().creer(bus_retour)
+
         # Créer 2 autres utilisateurs et les inscrire
         for i in range(2):
             user = Utilisateur(
@@ -127,7 +164,9 @@ class TestInscriptionService:
                 created_by=user.id_utilisateur,
                 mode_paiement="en ligne",
                 id_event=evenement_petit.id_event,
-                nom_event=evenement_petit.titre
+                nom_event=evenement_petit.titre,
+                id_bus_aller=bus_aller.id_bus,
+                id_bus_retour=bus_retour.id_bus
             )
 
         # Act - Tenter d'inscrire un 3ème utilisateur
@@ -136,14 +175,16 @@ class TestInscriptionService:
             created_by=utilisateur_test.id_utilisateur,
             mode_paiement="espèce",
             id_event=evenement_petit.id_event,
-            nom_event=evenement_petit.titre
+            nom_event=evenement_petit.titre,
+            id_bus_aller=bus_aller.id_bus,
+            id_bus_retour=bus_retour.id_bus
         )
 
         # Assert
         assert inscription is None
         assert inscription_service.obtenir_nombre_inscrits(evenement_petit.id_event) == 2
 
-    def test_creer_inscription_doublon(self, inscription_service, utilisateur_test, evenement_test):
+    def test_creer_inscription_doublon(self, inscription_service, utilisateur_test, evenement_test, bus_test):
         """
         Test : Tentative de double inscription au même événement
         GIVEN un utilisateur déjà inscrit à un événement
@@ -156,7 +197,9 @@ class TestInscriptionService:
             created_by=utilisateur_test.id_utilisateur,
             mode_paiement="en ligne",
             id_event=evenement_test.id_event,
-            nom_event=evenement_test.titre
+            nom_event=evenement_test.titre,
+            id_bus_aller=bus_test["aller"].id_bus,
+            id_bus_retour=bus_test["retour"].id_bus
         )
         assert premiere_inscription is not None
 
@@ -166,7 +209,9 @@ class TestInscriptionService:
             created_by=utilisateur_test.id_utilisateur,
             mode_paiement="espèce",
             id_event=evenement_test.id_event,
-            nom_event=evenement_test.titre
+            nom_event=evenement_test.titre,
+            id_bus_aller=bus_test["aller"].id_bus,
+            id_bus_retour=bus_test["retour"].id_bus
         )
 
         # Assert
@@ -176,7 +221,7 @@ class TestInscriptionService:
             evenement_test.id_event
         ) is True
 
-    def test_calculer_statistiques_evenement(self, inscription_service, evenement_test):
+    def test_calculer_statistiques_evenement(self, inscription_service, evenement_test, bus_test):
         """
         Test : Calcul des statistiques d'un événement
         GIVEN un événement avec plusieurs inscriptions variées
@@ -206,7 +251,9 @@ class TestInscriptionService:
                 created_by=user.id_utilisateur,
                 mode_paiement=config["paiement"],
                 id_event=evenement_test.id_event,
-                nom_event=evenement_test.titre
+                nom_event=evenement_test.titre,
+                id_bus_aller=bus_test["aller"].id_bus,
+                id_bus_retour=bus_test["retour"].id_bus
             )
 
         # Act
@@ -220,7 +267,7 @@ class TestInscriptionService:
         assert stats["paiements_espece"] == 2
         assert stats["paiements_non_definis"] == 0
 
-    def test_verifier_disponibilite_evenement(self, inscription_service, utilisateur_test, evenement_test):
+    def test_verifier_disponibilite_evenement(self, inscription_service, utilisateur_test, evenement_test, bus_test):
         """
         Test : Vérification de la disponibilité d'un événement
         GIVEN un événement avec capacité 50 et 3 inscrits
@@ -242,7 +289,9 @@ class TestInscriptionService:
                 created_by=user.id_utilisateur,
                 mode_paiement="en ligne",
                 id_event=evenement_test.id_event,
-                nom_event=evenement_test.titre
+                nom_event=evenement_test.titre,
+                id_bus_aller=bus_test["aller"].id_bus,
+                id_bus_retour=bus_test["retour"].id_bus
             )
 
         # Act
@@ -281,6 +330,8 @@ class TestInscriptionService:
         """
         # Arrange - Créer 3 événements et inscrire l'utilisateur
         evenements = []
+        bus_list = []
+        
         for i in range(3):
             evt = Evenement(
                 titre=f"Event {i}",
@@ -293,14 +344,23 @@ class TestInscriptionService:
             )
             EvenementDAO().creer(evt)
             evenements.append(evt)
+            
+            # Créer des bus pour chaque événement
+            bus_aller = Bus(capacite_max=50, id_event=evt.id_event, sens="aller", heure_depart="08:00")
+            bus_retour = Bus(capacite_max=50, id_event=evt.id_event, sens="retour", heure_depart="23:00")
+            BusDAO().creer(bus_aller)
+            BusDAO().creer(bus_retour)
+            bus_list.append({"aller": bus_aller, "retour": bus_retour})
 
-        for evt in evenements:
+        for i, evt in enumerate(evenements):
             inscription_service.creer_inscription(
                 boit=True,
                 created_by=utilisateur_test.id_utilisateur,
                 mode_paiement="en ligne",
                 id_event=evt.id_event,
-                nom_event=evt.titre
+                nom_event=evt.titre,
+                id_bus_aller=bus_list[i]["aller"].id_bus,
+                id_bus_retour=bus_list[i]["retour"].id_bus
             )
 
         # Act

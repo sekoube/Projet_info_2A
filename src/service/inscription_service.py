@@ -43,8 +43,8 @@ class InscriptionService:
         mode_paiement: str,
         id_event: str,
         nom_event: str,
-        id_bus_aller: str = "",
-        id_bus_retour: str = ""
+        id_bus_aller: int,
+        id_bus_retour: int
     ) -> Optional[Inscription]:
         """
         Crée une nouvelle inscription avec validations métier.

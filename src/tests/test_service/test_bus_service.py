@@ -48,6 +48,7 @@ def bus_aller():
         sens="Aller",
         description=["direct"],
         heure_depart="08:00",
+        capacite_max=50,  # ← AJOUTEZ ce paramètre
         id_bus=1
     )
 
@@ -60,6 +61,7 @@ def bus_retour():
         sens="Retour",
         description=["Arrêt 1", "Arrêt 2"],
         heure_depart="18:00",
+        capacite_max=50,  # ← AJOUTEZ ce paramètre
         id_bus=2
     )
 
@@ -133,6 +135,7 @@ def test_get_bus_disponibles_pour_evenement(bus_service, bus_aller, bus_retour):
         sens="Aller",
         description=["direct"],
         heure_depart="09:00",
+        capacite_max=50,
         id_bus=3
     )
     

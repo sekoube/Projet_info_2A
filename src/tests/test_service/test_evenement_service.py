@@ -177,7 +177,9 @@ def test_creer_inscription_utilisateur_inexistant():
         created_by=999,  # ID utilisateur inexistant
         mode_paiement="cb",
         id_event="1",
-        nom_event="Concert Rock"
+        nom_event="Concert Rock", 
+        id_bus_aller=1,
+        id_bus_retour=2
     )
     
     # Assert
@@ -213,7 +215,9 @@ def test_creer_inscription_evenement_inexistant():
         created_by=1,
         mode_paiement="espèce",
         id_event="999",  # ID événement inexistant
-        nom_event="Événement Fantôme"
+        nom_event="Événement Fantôme",
+        id_bus_aller=1,
+        id_bus_retour=2
     )
     
     # Assert

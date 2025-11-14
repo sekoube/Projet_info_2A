@@ -12,7 +12,8 @@ def fake_bus():
         id_event=1,
         sens="Aller",
         description="Bus vers le stade",
-        heure_depart="10:00"
+        heure_depart="10:00",
+        capacite_max=50
     )
 
 
