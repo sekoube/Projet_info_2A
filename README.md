@@ -9,9 +9,13 @@ L’application permet aux étudiants de l’ENSAI de consulter et s'inscrire à
 
 ▶️ Installation et configuration
 
-- Tout le code source et les tests se trouvent dans le dossier **`src/`**.  
-- Le fichier **`requirements.txt`** contient la liste des **packages nécessaires**.  
-- Le fichier **`settings.json`** est configuré pour exécuter le code depuis le dossier `src`.
+📁 Dossiers :
+ 📁 data contenant les scripts SQL
+ 📁 doc contenant les diagrammes UML,  bilans hebdomadaires
+ 📁 src contenant des fichiers python organisés en une architecture en couches. Tout le code source et les tests se trouvent dans le dossier **`src/`**.  
+
+📄 Le fichier **`requirements.txt`** contient la liste des **packages nécessaires**.  
+📄 Le fichier **`settings.json`** est configuré pour exécuter le code depuis le dossier `src`.
 
 1. Prérequis
 Visual Studio Code
