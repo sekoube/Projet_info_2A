@@ -28,21 +28,11 @@ CREATE TABLE projet.evenement (
     lieu                  VARCHAR(100) NOT NULL,
     date_evenement        DATE NOT NULL,
     capacite_max          INT CHECK (capacite_max > 0),
-    created_by            INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE CASCADE,
+    created_by            INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE SET NULL,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tarif                 NUMERIC(10,2) CHECK (tarif >= 0)
 );
 
--- ==============================
---  Table administrateur
--- ==============================
-CREATE TABLE projet.administrateur (
-    id_admin       SERIAL PRIMARY KEY,
-    id_utilisateur INT NOT NULL UNIQUE,
-    FOREIGN KEY (id_utilisateur)
-        REFERENCES projet.utilisateur(id_utilisateur)
-        ON DELETE CASCADE
-);
 
 -- ==============================
 --  Table bus
