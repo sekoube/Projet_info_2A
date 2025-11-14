@@ -105,8 +105,8 @@ pytest -v --color=yes
 (Les tests réussis apparaissent en vert, les échecs en rouge.)
 
 2. Lancer un test spécifique
-Exemple : pytest tests/test_service/test_utilisateur_service.py
-(A adapter selon le chemin ou le test souhaité.)
+Exemple : pytest src/tests/test_service/test_utilisateur_service.py
+(A adapter selon le test souhaité.)
 
 🗄️ Base de données
 init_db.sql : Initialise le schéma et les tables PostgreSQL.
