@@ -37,7 +37,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                     )
                     print(
                         f"- ID: {evt.id_event}, Titre: {evt.titre}, Lieu: {evt.lieu}, "
-                        f"Date: {evt.date_evenement}, Places restantes: {places_restantes}"
+                        f"Date: {evt.date_event}, Places restantes: {places_restantes}"
                     )
 
         # ---- OPTION 2 : Création d’un nouvel événement ----
@@ -52,7 +52,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
 
             # Validation des entrées
             try:
-                date_evenement = datetime.strptime(date_str, "%Y-%m-%d").date()
+                date_event = datetime.strptime(date_str, "%Y-%m-%d").date()
                 capacite_max = int(capacite_str)
                 tarif = float(tarif_str) if tarif_str else 0.00
             except ValueError as e:
@@ -63,10 +63,10 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
             nouvel_evenement = evenement_service.creer_evenement(
                 titre=titre,
                 lieu=lieu,
-                date_evenement=date_evenement,
+                date_event=date_event,
                 capacite_max=capacite_max,
                 created_by=utilisateur.id_utilisateur,  # ID de l'admin
-                description_evenement=description,
+                description_event=description,
                 tarif=tarif
             )
 
@@ -92,7 +92,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
 
             print("\nÉvénements disponibles :")
             for evt in evenements:
-                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_evenement}")
+                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_event}")
 
             try:
                 id_event = int(input("ID de l'événement associé : ").strip())
@@ -156,7 +156,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
 
             print("\nÉvénements disponibles :")
             for evt in evenements:
-                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_evenement}")
+                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_event}")
 
             try:
                 id_event = int(input("ID de l'événement à supprimer : ").strip())

@@ -38,9 +38,9 @@ class TestInscriptionService:
         """Crée un événement de test"""
         evenement = Evenement(
             titre="Soirée Test",
-            description_evenement="Event pour les tests",
+            description_event="Event pour les tests",
             lieu="Rennes",
-            date_evenement=date.today() + timedelta(days=30),
+            date_event=date.today() + timedelta(days=30),
             capacite_max=50,
             created_by=utilisateur_test.id_utilisateur,
             tarif=15.0
@@ -134,9 +134,9 @@ class TestInscriptionService:
         # Arrange - Créer un événement avec capacité limitée
         evenement_petit = Evenement(
             titre="Petit Event",
-            description_evenement="Capacité limitée",
+            description_event="Capacité limitée",
             lieu="Rennes",
-            date_evenement=date.today() + timedelta(days=15),
+            date_event=date.today() + timedelta(days=15),
             capacite_max=2,  # Seulement 2 places
             created_by=utilisateur_test.id_utilisateur,
             tarif=10.0
@@ -335,9 +335,9 @@ class TestInscriptionService:
         for i in range(3):
             evt = Evenement(
                 titre=f"Event {i}",
-                description_evenement=f"Description {i}",
+                description_event=f"Description {i}",
                 lieu="Rennes",
-                date_evenement=date.today() + timedelta(days=10 + i),
+                date_event=date.today() + timedelta(days=10 + i),
                 capacite_max=30,
                 created_by=utilisateur_test.id_utilisateur,
                 tarif=10.0

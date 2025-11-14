@@ -71,9 +71,9 @@ def evenement_mock():
     """Fixture pour un événement mocké."""
     return Evenement(
         titre="Concert",                      # ← 'titre' au lieu de 'nom'
-        description_evenement="Super concert", # ← 'description_evenement' au lieu de 'description'
+        description_event="Super concert", # ← 'description_event' au lieu de 'description'
         lieu="Rennes",
-        date_evenement=date(2025, 12, 1),     # ← 'date_evenement' (date, pas datetime)
+        date_event=date(2025, 12, 1),     # ← 'date_event' (date, pas datetime)
         capacite_max=100,                      # ← 'capacite_max' au lieu de 'nombre_places'
         created_by=1,                          # ← Obligatoire ! ID du créateur
         id_event=1,                            # ← 'id_event' au lieu de 'id_evenement'

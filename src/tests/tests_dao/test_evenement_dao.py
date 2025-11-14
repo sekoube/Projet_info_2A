@@ -12,10 +12,10 @@ def test_creer_evenement_succes(utilisateur_test):
     evenement = Evenement(
         titre="Concert Test",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Description du concert test",
+        description_event="Description du concert test",
         tarif=10.0
     )
     
@@ -31,10 +31,10 @@ def test_get_by_id_existant(utilisateur_test):
     evenement = Evenement(
         titre="Concert Test",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Description du concert test",
+        description_event="Description du concert test",
         tarif=10.0
     )
     EvenementDAO().creer(evenement)
@@ -58,10 +58,10 @@ def test_lister_tous_avec_plusieurs_evenements(utilisateur_test):
         evenement = Evenement(
             titre=f"Événement {i+1}",
             lieu=f"Lieu {i+1}",
-            date_evenement=date.today() + timedelta(days=10+i*10),
+            date_event=date.today() + timedelta(days=10+i*10),
             capacite_max=100,
             created_by=utilisateur_test.id_utilisateur,
-            description_evenement=f"Description {i+1}",
+            description_event=f"Description {i+1}",
             tarif=10.0 * (i+1)
         )
         EvenementDAO().creer(evenement)
@@ -76,10 +76,10 @@ def test_lister_futurs_evenements(utilisateur_test):
     evenement_futur = Evenement(
         titre="Concert Futur",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=10),
+        date_event=date.today() + timedelta(days=10),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Concert dans le futur",
+        description_event="Concert dans le futur",
         tarif=10.0
     )
     EvenementDAO().creer(evenement_futur)
@@ -88,10 +88,10 @@ def test_lister_futurs_evenements(utilisateur_test):
     evenement_passe = Evenement(
         titre="Concert Passé",
         lieu="Lyon",
-        date_evenement=date.today() - timedelta(days=10),
+        date_event=date.today() - timedelta(days=10),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Concert passé",
+        description_event="Concert passé",
         tarif=10.0
     )
     EvenementDAO().creer(evenement_passe)
@@ -102,7 +102,7 @@ def test_lister_futurs_evenements(utilisateur_test):
     # Vérifier qu'on a bien que les événements futurs
     assert len(evenements_futurs) >= 1
     for evt in evenements_futurs:
-        assert evt.date_evenement >= date.today()
+        assert evt.date_event >= date.today()
 
 
 def test_lister_par_createur(utilisateur_test):
@@ -112,10 +112,10 @@ def test_lister_par_createur(utilisateur_test):
         evenement = Evenement(
             titre=f"Mon Événement {i+1}",
             lieu=f"Lieu {i+1}",
-            date_evenement=date.today() + timedelta(days=10+i*10),
+            date_event=date.today() + timedelta(days=10+i*10),
             capacite_max=100,
             created_by=utilisateur_test.id_utilisateur,
-            description_evenement=f"Description {i+1}",
+            description_event=f"Description {i+1}",
             tarif=10.0
         )
         EvenementDAO().creer(evenement)
@@ -136,10 +136,10 @@ def test_modifier_evenement_succes(utilisateur_test):
     evenement = Evenement(
         titre="Titre Original",
         lieu="Lieu Original",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Description originale",
+        description_event="Description originale",
         tarif=10.0
     )
     EvenementDAO().creer(evenement)
@@ -161,28 +161,28 @@ def test_modifier_evenement_succes(utilisateur_test):
     assert float(evenement_recupere.tarif) == 15.0
 
 
-def test_modifier_date_evenement(utilisateur_test):
+def test_modifier_date_event(utilisateur_test):
     """Test la modification de la date d'un événement"""
     evenement = Evenement(
         titre="Événement Report",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Événement qui sera reporté",
+        description_event="Événement qui sera reporté",
         tarif=10.0
     )
     EvenementDAO().creer(evenement)
     
     # Reporter l'événement de 30 jours
     nouvelle_date = date.today() + timedelta(days=60)
-    evenement.date_evenement = nouvelle_date
+    evenement.date_event = nouvelle_date
     
     resultat = EvenementDAO().modifier(evenement)
     assert resultat is True
     
     evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere.date_evenement == nouvelle_date
+    assert evenement_recupere.date_event == nouvelle_date
 
 
 # ==================== TESTS DE SUPPRESSION ====================
@@ -192,10 +192,10 @@ def test_supprimer_evenement_succes(utilisateur_test):
     evenement = Evenement(
         titre="Événement à Supprimer",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Sera supprimé",
+        description_event="Sera supprimé",
         tarif=10.0
     )
     EvenementDAO().creer(evenement)
@@ -214,10 +214,10 @@ def test_supprimer_puis_recreer(utilisateur_test):
     evenement1 = Evenement(
         titre="Événement Récurrent",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Première édition",
+        description_event="Première édition",
         tarif=10.0
     )
     EvenementDAO().creer(evenement1)
@@ -230,10 +230,10 @@ def test_supprimer_puis_recreer(utilisateur_test):
     evenement2 = Evenement(
         titre="Événement Récurrent",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=60),
+        date_event=date.today() + timedelta(days=60),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Deuxième édition",
+        description_event="Deuxième édition",
         tarif=10.0
     )
     EvenementDAO().creer(evenement2)
@@ -256,10 +256,10 @@ def test_lister_tous_ordre_decroissant(utilisateur_test):
         evenement = Evenement(
             titre=f"Événement {i+1}",
             lieu="Paris",
-            date_evenement=d,
+            date_event=d,
             capacite_max=100,
             created_by=utilisateur_test.id_utilisateur,
-            description_evenement=f"Description {i+1}",
+            description_event=f"Description {i+1}",
             tarif=10.0
         )
         EvenementDAO().creer(evenement)
@@ -268,7 +268,7 @@ def test_lister_tous_ordre_decroissant(utilisateur_test):
     
     # Vérifier l'ordre décroissant (le plus récent d'abord)
     for i in range(len(evenements) - 1):
-        assert evenements[i].date_evenement >= evenements[i+1].date_evenement
+        assert evenements[i].date_event >= evenements[i+1].date_event
 
 
 def test_lister_futurs_ordre_croissant(utilisateur_test):
@@ -283,10 +283,10 @@ def test_lister_futurs_ordre_croissant(utilisateur_test):
         evenement = Evenement(
             titre=f"Événement Futur {i+1}",
             lieu="Paris",
-            date_evenement=d,
+            date_event=d,
             capacite_max=100,
             created_by=utilisateur_test.id_utilisateur,
-            description_evenement=f"Description {i+1}",
+            description_event=f"Description {i+1}",
             tarif=10.0
         )
         EvenementDAO().creer(evenement)
@@ -295,7 +295,7 @@ def test_lister_futurs_ordre_croissant(utilisateur_test):
     
     # Vérifier l'ordre croissant (le plus proche d'abord)
     for i in range(len(evenements) - 1):
-        assert evenements[i].date_evenement <= evenements[i+1].date_evenement
+        assert evenements[i].date_event <= evenements[i+1].date_event
 
 
 # ==================== TESTS DE SCENARIOS COMPLEXES ====================
@@ -306,10 +306,10 @@ def test_scenario_complet_cycle_vie_evenement(utilisateur_test):
     evenement = Evenement(
         titre="Événement Complet",
         lieu="Rennes",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Test cycle de vie",
+        description_event="Test cycle de vie",
         tarif=20.0
     )
     
@@ -358,10 +358,10 @@ def test_plusieurs_utilisateurs_creent_evenements(utilisateur_test):
     evt1 = Evenement(
         titre="Événement User1",
         lieu="Paris",
-        date_evenement=date.today() + timedelta(days=10),
+        date_event=date.today() + timedelta(days=10),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
-        description_evenement="Par user 1",
+        description_event="Par user 1",
         tarif=10.0
     )
     EvenementDAO().creer(evt1)
@@ -369,10 +369,10 @@ def test_plusieurs_utilisateurs_creent_evenements(utilisateur_test):
     evt2 = Evenement(
         titre="Événement User2",
         lieu="Lyon",
-        date_evenement=date.today() + timedelta(days=20),
+        date_event=date.today() + timedelta(days=20),
         capacite_max=100,
         created_by=utilisateur2.id_utilisateur,
-        description_evenement="Par user 2",
+        description_event="Par user 2",
         tarif=15.0
     )
     EvenementDAO().creer(evt2)

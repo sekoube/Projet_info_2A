@@ -29,10 +29,10 @@ class EvenementService:
         self,
         titre: str,
         lieu: str,
-        date_evenement,
+        date_event,
         capacite_max: int,
         created_by: int,
-        description_evenement: str = "",
+        description_event: str = "",
         tarif: float = 0.00
     ) -> Optional[Evenement]:
         """
@@ -40,10 +40,10 @@ class EvenementService:
 
         titre: Titre de l'événement
         lieu: Lieu de l'événement
-        date_evenement: Date de l'événement
+        date_event: Date de l'événement
         capacite_max: Capacité maximale
         created_by: ID de l'utilisateur créateur
-        description_evenement: Description (optionnelle)
+        description_event: Description (optionnelle)
         tarif: Tarif de participation
 
         return: Objet Evenement créé ou None en cas d'erreur
@@ -53,10 +53,10 @@ class EvenementService:
             nouvel_evenement = Evenement(
                 titre=titre,
                 lieu=lieu,
-                date_evenement=date_evenement,
+                date_event=date_event,
                 capacite_max=capacite_max,
                 created_by=created_by,
-                description_evenement=description_evenement,
+                description_event=description_event,
                 tarif=tarif
             )
 

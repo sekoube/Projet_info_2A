@@ -31,7 +31,7 @@ def page_utilisateur(utilisateur, evenement_service: EvenementService, inscripti
                     )
                     print(
                         f"- ID: {evt.id_event}, Titre: {evt.titre}, Lieu: {evt.lieu}, "
-                        f"Date: {evt.date_evenement}, Places restantes: {places_restantes}"
+                        f"Date: {evt.date_event}, Places restantes: {places_restantes}"
                     )
 
         elif choix == "2":

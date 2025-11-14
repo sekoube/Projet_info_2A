@@ -79,9 +79,9 @@ def evenement_test(utilisateur_test):
     
     evenement = Evenement(
         titre="Événement Test",
-        description_evenement="Description de test",
+        description_event="Description de test",
         lieu="Lieu Test",
-        date_evenement=date.today() + timedelta(days=30),
+        date_event=date.today() + timedelta(days=30),
         capacite_max=100,
         created_by=utilisateur_test.id_utilisateur,
         tarif=10.0

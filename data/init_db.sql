@@ -24,9 +24,9 @@ CREATE TABLE projet.utilisateur (
 CREATE TABLE projet.evenement (
     id_event              SERIAL PRIMARY KEY,
     titre                 VARCHAR(100) NOT NULL,
-    description_evenement TEXT,
+    description_event TEXT,
     lieu                  VARCHAR(100) NOT NULL,
-    date_evenement        DATE NOT NULL,
+    date_event        DATE NOT NULL,
     capacite_max          INT CHECK (capacite_max > 0),
     created_by            INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE SET NULL,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

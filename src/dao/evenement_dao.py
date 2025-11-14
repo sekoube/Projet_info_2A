@@ -25,20 +25,20 @@ class EvenementDAO(metaclass=Singleton):
                     cursor.execute(
                         """
                         INSERT INTO evenement (
-                            titre, description_evenement, lieu, 
-                            date_evenement, capacite_max, created_by, 
+                            titre, description_event, lieu, 
+                            date_event, capacite_max, created_by, 
                             created_at, tarif
                         )
-                        VALUES (%(titre)s, %(description_evenement)s, %(lieu)s, 
-                                %(date_evenement)s, %(capacite_max)s, %(created_by)s,
+                        VALUES (%(titre)s, %(description_event)s, %(lieu)s, 
+                                %(date_event)s, %(capacite_max)s, %(created_by)s,
                                 %(created_at)s, %(tarif)s)
                         RETURNING id_event;
                         """,
                         {
                             "titre": evenement.titre,
-                            "description_evenement": evenement.description_evenement,
+                            "description_event": evenement.description_event,
                             "lieu": evenement.lieu,
-                            "date_evenement": evenement.date_evenement,
+                            "date_event": evenement.date_event,
                             "capacite_max": evenement.capacite_max,
                             "created_by": evenement.created_by,
                             "created_at": evenement.created_at,
@@ -66,11 +66,11 @@ class EvenementDAO(metaclass=Singleton):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_evenement, lieu,
-                               date_evenement, capacite_max, created_by,
+                        SELECT id_event, titre, description_event, lieu,
+                               date_event, capacite_max, created_by,
                                created_at, tarif
                         FROM evenement
-                        ORDER BY date_evenement DESC;
+                        ORDER BY date_event DESC;
                         """
                     )
                     results = cursor.fetchall()
@@ -80,9 +80,9 @@ class EvenementDAO(metaclass=Singleton):
                         evenement = Evenement(
                             id_event=row["id_event"],
                             titre=row["titre"],
-                            description_evenement=row["description_evenement"],
+                            description_event=row["description_event"],
                             lieu=row["lieu"],
-                            date_evenement=row["date_evenement"],
+                            date_event=row["date_event"],
                             capacite_max=row["capacite_max"],
                             created_by=row["created_by"],
                             created_at=row["created_at"],
@@ -109,8 +109,8 @@ class EvenementDAO(metaclass=Singleton):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_evenement, lieu,
-                               date_evenement, capacite_max, created_by,
+                        SELECT id_event, titre, description_event, lieu,
+                               date_event, capacite_max, created_by,
                                created_at, tarif
                         FROM evenement
                         WHERE id_event = %(id_event)s;
@@ -123,9 +123,9 @@ class EvenementDAO(metaclass=Singleton):
                         return Evenement(
                             id_event=result["id_event"],
                             titre=result["titre"],
-                            description_evenement=result["description_evenement"],
+                            description_event=result["description_event"],
                             lieu=result["lieu"],
-                            date_evenement=result["date_evenement"],
+                            date_event=result["date_event"],
                             capacite_max=result["capacite_max"],
                             created_by=result["created_by"],
                             created_at=result["created_at"],
@@ -152,9 +152,9 @@ class EvenementDAO(metaclass=Singleton):
                         """
                         UPDATE evenement
                         SET titre = %(titre)s,
-                            description_evenement = %(description_evenement)s,
+                            description_event = %(description_event)s,
                             lieu = %(lieu)s,
-                            date_evenement = %(date_evenement)s,
+                            date_event = %(date_event)s,
                             capacite_max = %(capacite_max)s,
                             tarif = %(tarif)s
                         WHERE id_event = %(id_event)s;
@@ -162,9 +162,9 @@ class EvenementDAO(metaclass=Singleton):
                         {
                             "id_event": evenement.id_event,
                             "titre": evenement.titre,
-                            "description_evenement": evenement.description_evenement,
+                            "description_event": evenement.description_event,
                             "lieu": evenement.lieu,
-                            "date_evenement": evenement.date_evenement,
+                            "date_event": evenement.date_event,
                             "capacite_max": evenement.capacite_max,
                             "tarif": float(evenement.tarif),
                         },
@@ -212,12 +212,12 @@ class EvenementDAO(metaclass=Singleton):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_evenement, lieu,
-                               date_evenement, capacite_max, created_by,
+                        SELECT id_event, titre, description_event, lieu,
+                               date_event, capacite_max, created_by,
                                created_at, tarif
                         FROM evenement
                         WHERE created_by = %(id_utilisateur)s
-                        ORDER BY date_evenement DESC;
+                        ORDER BY date_event DESC;
                         """,
                         {"id_utilisateur": id_utilisateur},
                     )
@@ -228,9 +228,9 @@ class EvenementDAO(metaclass=Singleton):
                         evenement = Evenement(
                             id_event=row["id_event"],
                             titre=row["titre"],
-                            description_evenement=row["description_evenement"],
+                            description_event=row["description_event"],
                             lieu=row["lieu"],
-                            date_evenement=row["date_evenement"],
+                            date_event=row["date_event"],
                             capacite_max=row["capacite_max"],
                             created_by=row["created_by"],
                             created_at=row["created_at"],
@@ -255,12 +255,12 @@ class EvenementDAO(metaclass=Singleton):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_evenement, lieu,
-                               date_evenement, capacite_max, created_by,
+                        SELECT id_event, titre, description_event, lieu,
+                               date_event, capacite_max, created_by,
                                created_at, tarif
                         FROM evenement
-                        WHERE date_evenement >= CURRENT_DATE
-                        ORDER BY date_evenement ASC;
+                        WHERE date_event >= CURRENT_DATE
+                        ORDER BY date_event ASC;
                         """
                     )
                     results = cursor.fetchall()
@@ -270,9 +270,9 @@ class EvenementDAO(metaclass=Singleton):
                         evenement = Evenement(
                             id_event=row["id_event"],
                             titre=row["titre"],
-                            description_evenement=row["description_evenement"],
+                            description_event=row["description_event"],
                             lieu=row["lieu"],
-                            date_evenement=row["date_evenement"],
+                            date_event=row["date_event"],
                             capacite_max=row["capacite_max"],
                             created_by=row["created_by"],
                             created_at=row["created_at"],
@@ -297,12 +297,12 @@ class EvenementDAO(metaclass=Singleton):
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_evenement, lieu,
-                               date_evenement, capacite_max, created_by,
+                        SELECT id_event, titre, description_event, lieu,
+                               date_event, capacite_max, created_by,
                                created_at, tarif
                         FROM evenement
-                        WHERE date_evenement < CURRENT_DATE
-                        ORDER BY date_evenement DESC;
+                        WHERE date_event < CURRENT_DATE
+                        ORDER BY date_event DESC;
                         """
                     )
                     results = cursor.fetchall()
@@ -312,9 +312,9 @@ class EvenementDAO(metaclass=Singleton):
                         evenement = Evenement(
                             id_event=row["id_event"],
                             titre=row["titre"],
-                            description_evenement=row["description_evenement"],
+                            description_event=row["description_event"],
                             lieu=row["lieu"],
-                            date_evenement=row["date_evenement"],
+                            date_event=row["date_event"],
                             capacite_max=row["capacite_max"],
                             created_by=row["created_by"],
                             created_at=row["created_at"],

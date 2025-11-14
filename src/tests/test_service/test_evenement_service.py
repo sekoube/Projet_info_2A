@@ -29,10 +29,10 @@ def test_creer_evenement_succes():
     resultat = service.creer_evenement(
         titre="Festival de Musique",
         lieu="Parc Central",
-        date_evenement=date(2025, 7, 15),
+        date_event=date(2025, 7, 15),
         capacite_max=500,
         created_by=1,
-        description_evenement="Grand festival d'été",
+        description_event="Grand festival d'été",
         tarif=25.00
     )
     
@@ -56,7 +56,7 @@ def test_get_evenements_disponibles():
         id_event=1,
         titre="Événement Disponible",
         lieu="Centre",
-        date_evenement=date(2026, 1, 15),
+        date_event=date(2026, 1, 15),
         capacite_max=50,
         created_by=1
     )
@@ -67,7 +67,7 @@ def test_get_evenements_disponibles():
         id_event=2,
         titre="Événement Complet",
         lieu="Salle B",
-        date_evenement=date(2026, 2, 20),
+        date_event=date(2026, 2, 20),
         capacite_max=10,
         created_by=1
     )
@@ -78,7 +78,7 @@ def test_get_evenements_disponibles():
         id_event=3,
         titre="Événement Passé",
         lieu="Musée",
-        date_evenement=date(2020, 5, 10),
+        date_event=date(2020, 5, 10),
         capacite_max=30,
         created_by=1
     )
@@ -121,7 +121,7 @@ def test_desinscrire_utilisateur_non_inscrit():
         id_event=1,
         titre="Soirée Théâtre",
         lieu="Théâtre Municipal",
-        date_evenement=date(2025, 12, 10),
+        date_event=date(2025, 12, 10),
         capacite_max=100,
         created_by=1
     )

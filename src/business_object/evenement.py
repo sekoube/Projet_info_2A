@@ -14,11 +14,11 @@ class Evenement:
         self,
         titre: str = "",
         lieu: str = "",
-        date_evenement: Optional[date] = None,
+        date_event: date,
         capacite_max: int = 0,
         created_by: Optional[int] = None,
         id_event: Optional[int] = None,
-        description_evenement: str = "",
+        description_event: str = "",
         created_at: Optional[datetime] = None,
         tarif: float = 0.00
     ):
@@ -27,11 +27,11 @@ class Evenement:
 
         titre: Titre de l'événement (max 100 caractères)
         lieu: Lieu de l'événement (max 100 caractères)
-        date_evenement: Date de l'événement
+        date_event: Date de l'événement
         capacite_max: Capacité maximale de participants
         created_by: ID de l'utilisateur créateur (FK vers utilisateur)
         id_event: Identifiant unique de l'événement (auto-incrémenté en base)
-        description_evenement: Description détaillée de l'événement
+        description_event: Description détaillée de l'événement
         created_at: Date de création de l'événement
         tarif: Tarif de participation à l'événement
         """
@@ -47,9 +47,9 @@ class Evenement:
         if len(lieu) > 100:
             raise ValueError("Le lieu ne peut pas dépasser 100 caractères")
 
-        if date_evenement is None:
+        if date_event is None:
             raise ValueError("La date de l'événement est obligatoire")
-        if not isinstance(date_evenement, date):
+        if not isinstance(date_event, date):
             raise ValueError("La date de l'événement doit être un objet date")
 
         if capacite_max <= 0:
@@ -72,9 +72,9 @@ class Evenement:
 
         self.id_event = id_event
         self.titre = titre
-        self.description_evenement = description_evenement
+        self.description_event = description_event
         self.lieu = lieu
-        self.date_evenement = date_evenement
+        self.date_event = date_event
         self.capacite_max = capacite_max
         self.created_by = created_by
         self.created_at = created_at or datetime.now()
@@ -125,7 +125,7 @@ class Evenement:
         return: True si la date de l'événement est antérieure à aujourd'hui
         ------
         """
-        return self.date_evenement < date.today()
+        return self.date_event < date.today()
 
     def resume(self) -> str:
         """
@@ -138,7 +138,7 @@ class Evenement:
         # Formatage du tarif avec exactement 2 décimales
         tarif_str = f"{self.tarif:.2f}"
         return (
-            f"{self.titre} - {self.date_evenement} à {self.lieu} "
+            f"{self.titre} - {self.date_event} à {self.lieu} "
             f"({len(self.inscriptions)}/{self.capacite_max} participants) - {tarif_str}€"
         )
 
@@ -146,7 +146,7 @@ class Evenement:
         """Représentation technique de l'objet"""
         return (
             f"<Evenement #{self.id_event} - {self.titre} "
-            f"({self.date_evenement} à {self.lieu})>"
+            f"({self.date_event} à {self.lieu})>"
         )
 
     def __str__(self):
@@ -164,9 +164,9 @@ class Evenement:
         return {
             "id_event": self.id_event,
             "titre": self.titre,
-            "description_evenement": self.description_evenement,
+            "description_event": self.description_event,
             "lieu": self.lieu,
-            "date_evenement": self.date_evenement.isoformat() if self.date_evenement else None,
+            "date_event": self.date_event.isoformat() if self.date_event else None,
             "capacite_max": self.capacite_max,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -187,9 +187,9 @@ class Evenement:
         ------
         """
         # Conversion de la date si elle est en format string
-        date_evenement = data.get("date_evenement")
-        if isinstance(date_evenement, str):
-            date_evenement = datetime.fromisoformat(date_evenement).date()
+        date_event = data.get("date_event")
+        if isinstance(date_event, str):
+            date_event = datetime.fromisoformat(date_event).date()
 
         created_at = data.get("created_at")
         if isinstance(created_at, str):
@@ -198,9 +198,9 @@ class Evenement:
         return Evenement(
             id_event=data.get("id_event"),
             titre=data.get("titre", ""),
-            description_evenement=data.get("description_evenement", ""),
+            description_event=data.get("description_event", ""),
             lieu=data.get("lieu", ""),
-            date_evenement=date_evenement,
+            date_event=date_event,
             capacite_max=data.get("capacite_max", 0),
             created_by=data.get("created_by"),
             created_at=created_at,
