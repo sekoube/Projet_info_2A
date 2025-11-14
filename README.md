@@ -51,7 +51,7 @@ Exécutez le script data/pop_db.sql pour insérer un premier utilisateur et quel
 ▶️ Lancement de l’application
 
 Pour démarrer l’application en ligne de commande, exécuter :
-python src/view/menu_vue.py
+python src/main.py
 
 🧩 Fonctionnalités principales
 
