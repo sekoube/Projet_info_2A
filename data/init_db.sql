@@ -50,7 +50,7 @@
 --     id_bus                  SERIAL PRIMARY KEY,
 --     id_event                INT NOT NULL UNIQUE,
 --     sens                    BOOLEAN NOT NULL,
---     description_bus         TEXT,
+--     description         TEXT,
 --     heure_depart            TIMESTAMP NOT NULL,
 --     FOREIGN KEY (id_event) 
 --         REFERENCES projet.evenement(id_event) 
@@ -135,8 +135,8 @@ CREATE TABLE projet.bus (
     id_bus          SERIAL PRIMARY KEY,
     id_event        INT NOT NULL,
     sens            BOOLEAN NOT NULL,
-    description_bus TEXT,
-    heure_depart    TIMESTAMP NOT NULL,
+    description     TEXT,
+    heure_depart    TIME,
     FOREIGN KEY (id_event)
         REFERENCES projet.evenement(id_event)
         ON DELETE CASCADE
