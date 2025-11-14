@@ -15,7 +15,7 @@ class Bus:
             id_event (str): Identifiant de l'évènement auquel le bus est attribué
             sens (str): Direction du trajet ("Aller" ou "Retour")
             description (list): Liste des arrêts intermédiaires (écrire ['direct'] si aucun)
-            heure_depart (str|datetime): Heure de départ du bus (format "HH:MM" ou datetime)
+            heure_depart (datetime): Heure de départ du bus (format "HH:MM" ou datetime)
             id_bus (int, optional): Identifiant unique du bus (None avant insertion en base)
         
         Raises:
