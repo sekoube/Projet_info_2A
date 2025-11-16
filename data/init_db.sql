@@ -9,12 +9,11 @@ CREATE SCHEMA projet;
 -- ==============================
 CREATE TABLE projet.utilisateur (
     id_utilisateur SERIAL PRIMARY KEY,
-    pseudo         VARCHAR(50) NOT NULL,
     nom            VARCHAR(50) NOT NULL,
     prenom         VARCHAR(50) NOT NULL,
     email          VARCHAR(100) UNIQUE NOT NULL,
     mot_de_passe   VARCHAR(100) NOT NULL,
-    date_creation  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role           BOOLEAN DEFAULT FALSE
 );
 

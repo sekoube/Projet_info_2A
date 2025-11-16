@@ -12,9 +12,9 @@ class Evenement:
 
     def __init__(
         self,
+        date_event: date,
         titre: str = "",
         lieu: str = "",
-        date_event: date,
         capacite_max: int = 0,
         created_by: Optional[int] = None,
         id_event: Optional[int] = None,
@@ -77,46 +77,11 @@ class Evenement:
         self.date_event = date_event
         self.capacite_max = capacite_max
         self.created_by = created_by
-        self.created_at = created_at or datetime.now()
+        self.created_at = datetime.now()
         # Quantize pour garantir exactement 2 décimales
         self.tarif = Decimal(str(tarif)).quantize(Decimal('0.01'))
 
-        # Relations (non persistées directement en DB, gérées via tables de liaison)
-        self.inscriptions: List = []  # Liste des objets Inscription
-        self.bus_aller = None  # Objet Bus (sens=True)
-        self.bus_retour = None  # Objet Bus (sens=False)
-        self.createur = None  # Objet Utilisateur (si chargé depuis la DB)
-
     # ************************ Méthodes ***********************************************
-
-    def places_disponibles(self) -> int:
-        """
-        Retourne le nombre de places disponibles.
-
-        return: Nombre de places restantes
-        ------
-        """
-        return self.capacite_max - len(self.inscriptions)
-
-    def est_complet(self) -> bool:
-        """
-        Vérifie si l'événement est complet.
-
-        return: True si aucune place disponible
-        ------
-        """
-        return len(self.inscriptions) >= self.capacite_max
-
-    def taux_remplissage(self) -> float:
-        """
-        Calcule le taux de remplissage de l'événement en pourcentage.
-
-        return: Pourcentage de places occupées (0.0 à 100.0)
-        ------
-        """
-        if self.capacite_max == 0:
-            return 0.0
-        return (len(self.inscriptions) / self.capacite_max) * 100
 
     def est_passe(self) -> bool:
         """
@@ -127,7 +92,7 @@ class Evenement:
         """
         return self.date_event < date.today()
 
-    def resume(self) -> str:
+    def __str__(self) -> str:
         """
         Retourne un résumé textuel de l'événement.
         Utile pour affichage dans les listes ou interfaces.
@@ -138,8 +103,7 @@ class Evenement:
         # Formatage du tarif avec exactement 2 décimales
         tarif_str = f"{self.tarif:.2f}"
         return (
-            f"{self.titre} - {self.date_event} à {self.lieu} "
-            f"({len(self.inscriptions)}/{self.capacite_max} participants) - {tarif_str}€"
+            f"{self.titre} - {self.date_event} à {self.lieu} - {tarif_str}€"
         )
 
     def __repr__(self):
@@ -148,10 +112,6 @@ class Evenement:
             f"<Evenement #{self.id_event} - {self.titre} "
             f"({self.date_event} à {self.lieu})>"
         )
-
-    def __str__(self):
-        """Représentation textuelle lisible"""
-        return self.resume()
 
     def to_dict(self) -> dict:
         """
@@ -171,9 +131,6 @@ class Evenement:
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "tarif": f"{self.tarif:.2f}",  # Formatage avec exactement 2 décimales
-            "places_disponibles": self.places_disponibles(),
-            "est_complet": self.est_complet(),
-            "taux_remplissage": self.taux_remplissage(),
         }
 
     @staticmethod
@@ -206,10 +163,3 @@ class Evenement:
             created_at=created_at,
             tarif=data.get("tarif", 0.00),
         )
-
-    def ajouter_bus(self, bus) -> None:
-        """Associe un bus à l'événement selon son sens."""
-        if bus.sens:  # True = aller
-            self.bus_aller = bus
-        else:  # False = retour
-            self.bus_retour = bus

@@ -1,11 +1,8 @@
-from datetime import datetime  
-import resend
-"""import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException"""
+from datetime import datetime
+from typing import Optional, List
 
 
 class Inscription:
-    _compteurs = {}
 
     """
     Classe métier représentant une inscription dans un évènement.
@@ -14,14 +11,14 @@ class Inscription:
 
     def __init__(
         self,
-        code_reservation: int,
         id_event: int,
         id_bus_aller: int,
         id_bus_retour: int,
+        code_reservation: Optional[int] = None,
         boit: bool = False,
         mode_paiement: str = "",
         nom_event: str = "",
-        created_by=None
+        created_by: Optional[int] = None
     ):
         """
         Constructeur de la classe Inscription.
@@ -38,13 +35,13 @@ class Inscription:
         if not isinstance(created_by, int):
             raise TypeError("L'attribut 'id_utilisateur' doit être un entier.")
 
-        if mode_paiement not in ("espèce", "en ligne", ""):
-            raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
+        if mode_paiement not in ("espece", "en ligne", ""):
+            raise ValueError("Le mode de paiement doit être 'espece', 'en ligne' ou vide.")
 
         if not id_event or not isinstance(id_event, int):
             raise ValueError("L'ID de l'événement est obligatoire et doit être un entier.")
-        if not nom_event or not isinstance(nom_event, str):
-            raise ValueError("Le nom de l'événement est obligatoire et doit être une chaîne.")
+        if not isinstance(nom_event, str):
+            raise ValueError("Le nom de l'événement doit être une chaîne.")
 
         if not isinstance(id_bus_aller, int):
             raise TypeError("L'identifiant du bus aller doit être un entier")
@@ -64,7 +61,7 @@ class Inscription:
         self.nom_event = nom_event
         self.id_bus_aller = id_bus_aller
         self.id_bus_retour = id_bus_retour
-        self.date_creation = datetime.now()
+        self.created_at = datetime.now()
         self.created_by = created_by
         # =================================================================
 
@@ -84,11 +81,16 @@ class Inscription:
             "nom_event": self.nom_event,
             "id_bus_aller": self.id_bus_aller,
             "id_bus_retour": self.id_bus_retour,
-            "date_creation": self.date_creation.isoformat(),
+            "created_at": self.created_at.isoformat(),
         }
 
 @staticmethod
 def from_dict(data: dict) -> "Inscription":
+
+    created_at = data.get("created_at")
+    if isinstance(created_at, str):
+        created_at = datetime.fromisoformat(created_at)
+
     return Inscription(
         code_reservation=data.get("code_reservation"),
         boit=data.get("boit", False),
@@ -96,6 +98,7 @@ def from_dict(data: dict) -> "Inscription":
         mode_paiement=data.get("mode_paiement", ""),
         id_event=data.get("id_event", ""),
         nom_event=data.get("nom_event", ""),
+        created_at=created_at,
         id_bus_aller=data.get("id_bus_aller", ""),
         id_bus_retour=data.get("id_bus_retour", ""),
     )

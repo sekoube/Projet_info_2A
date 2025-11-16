@@ -13,39 +13,34 @@ class Utilisateur:
     def __init__(
         self,
         id_utilisateur: Optional[int] = None,
-        pseudo: str = "",
         nom: str = "",
         prenom: str = "",
         email: str = "",
         mot_de_passe: str = "",
         role: bool = False,
-        date_creation: Optional[datetime] = None
+        created_at: Optional[datetime] = None
     ):
         """
         Constructeur de la classe Utilisateur.
 
         id_utilisateur: Identifiant unique de l'utilisateur (auto-incrémenté en base)
-        pseudo: Pseudonyme choisi par l'utilisateur
         nom: Nom de famille
         prenom: Prénoms
         email: Adresse e-mail de l'utilisateur
         Mot de passe (hashé en base)
         role: Booléen indiquant si l'utilisateur est administrateur (True) ou participant (False)
-        date_creation: Date de création du compte
+        created_at: Date de création du compte
         """
 
         self.id_utilisateur = id_utilisateur
-        self.pseudo = pseudo
         self.nom = nom
         self.prenom = prenom
         self.email = email
         self.mot_de_passe = mot_de_passe
         self.role = role
-        self.date_creation = date_creation or datetime.now()
+        self.created_at = datetime.now()
 
         # ========================== VALIDATIONS ==========================
-        if not pseudo or pseudo.strip() == "":
-            raise ValueError("Le pseudo ne peut pas être vide")
         if not nom or nom.strip() == "":
             raise ValueError("Le nom ne peut pas être vide")
         if not prenom or prenom.strip() == "":
@@ -67,10 +62,10 @@ class Utilisateur:
         Retourne une représentation de l'identité de l'utilisateur.
         utile pour héritage avec Administrateur
 
-        return: str -> "Prénom Nom (pseudo)"
+        return: str -> "Prénom Nom"
         ------
         """
-        return f"{self.prenom} {self.nom} ({self.pseudo})"
+        return f"{self.prenom} {self.nom}"
 
 
     def set_password(self, plain_password: str) -> None:
@@ -87,7 +82,7 @@ class Utilisateur:
     def __repr__(self):
         """Représentation texte"""
         role_str = "Admin" if self.role else "Participant"
-        return f"<Utilisateur #{self.id_utilisateur} - {self.pseudo} ({role_str})>"
+        return f"<Utilisateur #{self.id_utilisateur} - ({role_str})>"
 
     def to_dict(self) -> dict:
         """
@@ -95,19 +90,18 @@ class Utilisateur:
         """
         return {
             "id_utilisateur": self.id_utilisateur,
-            "pseudo": self.pseudo,
             "nom": self.nom,
             "prenom": self.prenom,
             "email": self.email,
             "mot_de_passe": self.mot_de_passe,  # hash attendu
             "role": self.role,
-            "date_creation": self.date_creation.isoformat(),
+            "created_at": self.created_at.isoformat(),
         }
 
     @staticmethod
     def from_dict(data: dict) -> "Utilisateur":
         """Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier."""
-        date_value = data.get("date_creation", datetime.now())
+        date_value = data.get("created_at", datetime.now())
         
         # Si la date est une chaîne ISO, on la retransforme en datetime
         if isinstance(date_value, str):
@@ -118,13 +112,12 @@ class Utilisateur:
         
         return Utilisateur(
             id_utilisateur=data.get("id_utilisateur"),
-            pseudo=data.get("pseudo", ""),
             nom=data.get("nom", ""),
             prenom=data.get("prenom", ""),
             email=data.get("email", ""),
             mot_de_passe=data.get("mot_de_passe", ""),
             role=data.get("role", False),
-            date_creation=date_value,
+            created_at=date_value,
         )
 
     @property
