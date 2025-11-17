@@ -147,7 +147,7 @@ class BusService:
     def get_tous_les_bus(self) -> list[Bus]:
         """Récupère tous les bus."""
         try:
-            return self.bus_dao.trouver_tous()
+            return self.bus_dao.lister_tous()
         except Exception as e:
             print(f"Erreur lors de la récupération des bus : {e}")
             return []
@@ -155,7 +155,7 @@ class BusService:
     def get_bus_disponibles_pour_evenement(self, id_event: int) -> dict:
         """Récupère les bus disponibles pour un événement (aller et retour)."""
         try:
-            tous_les_bus = self.bus_dao.trouver_tous()
+            tous_les_bus = self.bus_dao.lister_tous()
             bus_evenement = [bus for bus in tous_les_bus if bus.id_event == id_event]
             
             return {

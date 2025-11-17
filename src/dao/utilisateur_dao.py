@@ -53,7 +53,7 @@ class UtilisateurDAO:
                 return None
 
     @staticmethod
-    def trouver_tous() -> List[Utilisateur]:
+    def lister_tous() -> List[Utilisateur]:
         query = "SELECT * FROM utilisateur ORDER BY id_utilisateur"
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:

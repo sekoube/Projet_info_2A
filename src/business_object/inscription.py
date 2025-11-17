@@ -66,6 +66,18 @@ class Inscription:
         # =================================================================
 
     # ************************ Méthodes ***********************************************
+    def __str__(self) -> str:
+        """
+        Retourne un résumé textuel de l'inscription.
+        Utile pour affichage dans les listes ou interfaces.
+
+        return: str -> "code de reservation, nom_event, id_bus_aller, id_bus_retour"
+        ------
+        """
+        return (
+            f"{self.code_reservation} - {self.nom_event} - {self.id_bus_aller} - {self.id_bus_retour}"
+        )
+
     def __repr__(self):
         """Représentation texte"""
         return f"<Inscription {self.created_by} - {self.nom_event}>"

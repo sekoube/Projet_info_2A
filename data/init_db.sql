@@ -41,6 +41,7 @@ CREATE TABLE projet.bus (
     id_event        INT NOT NULL,
     sens            BOOLEAN NOT NULL,
     description     TEXT,
+    capacite_max    INT NOT NULL,
     heure_depart    TIME,
     FOREIGN KEY (id_event)
         REFERENCES projet.evenement(id_event)

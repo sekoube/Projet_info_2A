@@ -87,7 +87,7 @@ class UtilisateurService:
         """
         Retourne la liste de tous les utilisateurs enregistrés.
         """
-        utilisateurs = self.utilisateur_dao.trouver_tous()
+        utilisateurs = self.utilisateur_dao.lister_tous()
         print(f"{len(utilisateurs)} utilisateur(s) trouvé(s).")
         return utilisateurs
 

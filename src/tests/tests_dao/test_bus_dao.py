@@ -84,7 +84,7 @@ def test_get_by_id(mock_db_conn, fake_bus):
 
 # Test de récupération de tous les bus
 @patch("dao.bus_dao.DBConnection")
-def test_trouver_tous(mock_db_conn, fake_bus):
+def test_lister_tous(mock_db_conn, fake_bus):
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
 
@@ -97,7 +97,7 @@ def test_trouver_tous(mock_db_conn, fake_bus):
     mock_db_conn.return_value.connection = mock_conn
 
     with patch.object(Bus, "from_dict", side_effect=[fake_bus, fake_bus]):
-        result = BusDAO.trouver_tous()
+        result = BusDAO.lister_tous()
         assert len(result) == 2
         assert all(isinstance(b, Bus) for b in result)
 

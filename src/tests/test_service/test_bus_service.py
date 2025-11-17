@@ -139,7 +139,7 @@ def test_get_bus_disponibles_pour_evenement(bus_service, bus_aller, bus_retour):
         id_bus=3
     )
     
-    bus_service.bus_dao.trouver_tous.return_value = [bus_aller, bus_retour, bus_autre_event]
+    bus_service.bus_dao.lister_tous.return_value = [bus_aller, bus_retour, bus_autre_event]
 
     # Act
     resultat = bus_service.get_bus_disponibles_pour_evenement(1)

@@ -57,7 +57,7 @@ class Utilisateur:
 
     # ************************ Méthodes ***********************************************
 
-    def identite(self) -> str:
+    def __str__(self) -> str:
         """
         Retourne une représentation de l'identité de l'utilisateur.
         utile pour héritage avec Administrateur
@@ -124,8 +124,3 @@ class Utilisateur:
     def is_admin(self) -> bool:
         """Retourne True si l'utilisateur est un administrateur."""
         return self.role is True
-
-    @property
-    def is_normal_user(self) -> bool:
-        """Retourne True si l'utilisateur est un utilisateur normal."""
-        return not self.role

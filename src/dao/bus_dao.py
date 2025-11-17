@@ -9,8 +9,8 @@ class BusDAO:
     def creer(bus: Bus) -> Bus:
         """Insère un nouveau bus dans la base de données."""
         query = """
-            INSERT INTO bus (id_event, sens, description, heure_depart)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO bus (id_event, sens, description, heure_depart, capacite_max)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id_bus;
         """
         with DBConnection().connection as connection:
@@ -22,6 +22,7 @@ class BusDAO:
                         bus.sens,
                         bus.description,
                         bus.heure_depart,
+                        bus.capacite_max,
                     ),
                 )
                 bus.id_bus = cursor.fetchone()["id_bus"]
@@ -51,7 +52,7 @@ class BusDAO:
                 return None
 
     @staticmethod
-    def trouver_tous() -> list[Bus]:
+    def lister_tous() -> list[Bus]:
         """Retourne tous les bus"""
         query = "SELECT * FROM bus ORDER BY id_event"
         with DBConnection().connection as connection:

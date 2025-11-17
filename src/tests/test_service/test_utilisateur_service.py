@@ -98,7 +98,7 @@ def test_authentifier_motdepasse_incorrect(service, mock_utilisateur):
 
 def test_lister_utilisateurs(service, mock_utilisateur):
     """Retourne la liste complète des utilisateurs"""
-    service.utilisateur_dao.trouver_tous.return_value = [mock_utilisateur]
+    service.utilisateur_dao.lister_tous.return_value = [mock_utilisateur]
     liste = service.lister_utilisateurs()
     assert len(liste) == 1
     assert liste[0].email == "lucasrt@gmail.com"
