@@ -12,29 +12,54 @@ class BusService:
         self.bus_dao = BusDAO()
         self.evenement_dao = EvenementDAO()
 
-    def creer_bus(self, bus: Bus) -> Optional[Bus]:
+    def creer_bus(self, 
+                  id_event: int, 
+                  sens: str, 
+                  description: Optional[str], 
+                  heure_depart: time, 
+                  capacite_max: int) -> Optional[Bus]:
         """
-        Crée un nouveau bus (réservé aux admins).
+        Crée un nouvel objet Bus à partir des paramètres, valide les données, 
+        et l'insère via la DAO.
         
-        Args:
-            bus: L'objet Bus à créer
-            
-        Returns:
-            Bus créé ou None si échec
-            
-        Raises:
-            ValueError: Si l'événement n'existe pas
+        :param id_event: ID de l'événement associé.
+        :param sens: Direction du bus (e.g., 'Aller' ou 'Retour').
+        :param description: Description du trajet.
+        :param heure_depart: Heure de départ prévue.
+        :param capacite_max: Capacité maximale du bus.
+        :return: L'objet Bus inséré avec son id_bus généré, ou None en cas d'erreur.
         """
-
-        # Vérification que l'événement existe
-        evenement = self.evenement_dao.get_by_id(bus.id_event)
-        if not evenement:
-            raise ValueError(f"L'événement {bus.id_event} n'existe pas")
         
+        # --- 1. Validation des données ---
+        if not id_event or not sens or not capacite_max:
+            print("Erreur de validation : Les champs essentiels sont requis.")
+            return None
+        
+        if capacite_max <= 0:
+             print("Erreur de validation : La capacité maximale doit être positive.")
+             return None
+        
+        # --- 2. Création de l'objet Modèle (Bus) ---
+        # Le Service crée l'objet que la DAO attend
+        nouveau_bus = Bus(
+            id_bus=None, # L'ID sera généré par la BDD
+            id_event=id_event,
+            sens=sens,
+            description=description,
+            heure_depart=heure_depart,
+            capacite_max=capacite_max
+        )
+        
+        # --- 3. Appel à la DAO ---
         try:
-            return self.bus_dao.creer(bus)
+            # L'appel à la DAO exécute la logique SQL et met à jour nouveau_bus.id_bus
+            bus_cree = self.bus_dao.creer(nouveau_bus)
+            
+            return bus_cree
+            
         except Exception as e:
-            print(f"Erreur lors de la création du bus : {e}")
+            # Gérer les exceptions de la DAO
+            print(f"Erreur lors de la création du bus dans le service : {e}")
             return None
 
     def supprimer_bus(self, id_bus: int) -> bool:

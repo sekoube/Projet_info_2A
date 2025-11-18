@@ -39,7 +39,6 @@ class InscriptionService:
     def creer_inscription(
         self,
         boit: bool,
-        created_by: int,
         mode_paiement: str,
         id_event: str,
         nom_event: str,
@@ -82,7 +81,6 @@ class InscriptionService:
             inscription = Inscription(
                 code_reservation=code_reservation,
                 boit=boit,
-                created_by=created_by,
                 mode_paiement=mode_paiement,
                 id_event=id_event,
                 nom_event=nom_event,
@@ -97,21 +95,6 @@ class InscriptionService:
             print(f"Erreur de validation : {e}")
             return None
 
-    def obtenir_inscription(self, code_reservation: str) -> Optional[Inscription]:
-        """
-        Récupère une inscription par son code de réservation.
-        
-        return: Inscription trouvée ou None
-        """
-        return self.inscription_dao.trouver_par_code_reservation(code_reservation)
-
-    def lister_inscriptions_evenement(self, id_event: str) -> List[Inscription]:
-        """
-        Liste toutes les inscriptions d'un événement donné.
-        
-        return: Liste des inscriptions
-        """
-        return self.inscription_dao.get_by_event(id_event)
 
     def lister_toutes_inscriptions(self) -> List[Inscription]:
         """
@@ -121,80 +104,66 @@ class InscriptionService:
         """
         return self.inscription_dao.lister_toutes()
 
-    def obtenir_nombre_inscrits(self, id_event: str) -> int:
+    def get_inscription_by_field(self, field: str, value) -> Optional[Inscription]:
         """
-        Retourne le nombre d'inscrits à un événement.
-        
-        return: Nombre d'inscriptions
-        """
-        return self.inscription_dao.compter_par_evenement(id_event)
+        Récupère une Inscription en fonction d'un champ et de sa valeur.
 
-    def est_deja_inscrit(self, id_utilisateur: int, id_event: str) -> bool:
-        """
-        Vérifie si un utilisateur est déjà inscrit à un événement.
-        
-        return: True si déjà inscrit, False sinon
-        """
-        inscriptions = self.inscription_dao.get_by_event(id_event)
-        return any(insc.created_by == id_utilisateur for insc in inscriptions)
+        Args:
+            field (str): Le nom du champ de la table 'inscription' à rechercher.
+            value: La valeur à comparer dans ce champ.
 
-    def obtenir_inscriptions_utilisateur(self, id_utilisateur: int) -> List[Inscription]:
+        Returns:
+            Optional[Inscription]: L'objet Inscription trouvé ou None.
+        
+        Raises:
+            ValueError: Si le champ fourni n'est pas autorisé par la DAO.
         """
-        Récupère toutes les inscriptions d'un utilisateur.
-        
-        return: Liste des inscriptions de l'utilisateur
-        """
-        toutes_inscriptions = self.inscription_dao.lister_toutes()
-        return [insc for insc in toutes_inscriptions if insc.created_by == id_utilisateur]
-
-    def calculer_statistiques_evenement(self, id_event: str) -> dict:
-        """
-        Calcule des statistiques sur les inscriptions d'un événement.
-        
-        return: Dictionnaire avec les statistiques
-        """
-        inscriptions = self.inscription_dao.get_by_event(id_event)
-        
-        total = len(inscriptions)
-        nb_buveurs = sum(1 for insc in inscriptions if insc.boit)
-        nb_especes = sum(1 for insc in inscriptions if insc.mode_paiement == "espèce")
-        nb_en_ligne = sum(1 for insc in inscriptions if insc.mode_paiement == "en ligne")
-        
-        return {
-            "total_inscrits": total,
-            "nombre_buveurs": nb_buveurs,
-            "nombre_non_buveurs": total - nb_buveurs,
-            "paiements_espece": nb_especes,
-            "paiements_en_ligne": nb_en_ligne,
-            "paiements_non_definis": total - nb_especes - nb_en_ligne
-        }
-
-    def verifier_disponibilite_evenement(self, id_event: str) -> dict:
-        """
-        Vérifie la disponibilité d'un événement.
-        
-        return: Dictionnaire avec les infos de disponibilité
-        """
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
-            return {"disponible": False, "raison": "Événement introuvable"}
-        
-        nb_inscrits = self.inscription_dao.compter_par_evenement(id_event)
-        
-        if hasattr(evenement, 'capacite_max'):
-            places_restantes = evenement.capacite_max - nb_inscrits
-            disponible = places_restantes > 0
+        # Le service délègue la validation des champs et la logique de base de données 
+        # directement à la DAO.
+        try:
+            inscription = self.inscription_dao.get_by_field(field, value)
             
-            return {
-                "disponible": disponible,
-                "places_restantes": places_restantes,
-                "capacite_max": evenement.capacite_max,
-                "nombre_inscrits": nb_inscrits,
-                "taux_remplissage": round((nb_inscrits / evenement.capacite_max) * 100, 2)
-            }
+            # Ici, vous pourriez ajouter de la logique métier supplémentaire 
+            # si nécessaire (ex: vérifier des permissions, journaliser l'accès, 
+            # transformer les données, etc.)
+            
+            return inscription
+            
+        except ValueError as e:
+            # Renvoyer l'erreur levée par la DAO si le champ n'est pas autorisé.
+            # Dans une application réelle, on pourrait choisir de la loguer et/ou 
+            # de la transformer en une erreur de niveau Service/Application.
+            raise e
+
+    def supprimer_inscription(self, inscription: Inscription) -> bool:
+        """
+        Gère la suppression d'une inscription, en appliquant toute logique métier
+        nécessaire avant de déléguer à la DAO.
+
+        Args:
+            inscription (Inscription): L'objet Inscription à supprimer.
+                                       Il doit contenir 'code_reservation'.
+
+        Returns:
+            bool: True si l'inscription a été supprimée avec succès, False sinon.
+        """
+        # 1. Vérification des données (Logique métier)
+        if not inscription.code_reservation:
+            # Lever une erreur si la clé de suppression est manquante
+            raise ValueError("L'objet Inscription doit contenir un 'code_reservation' valide pour la suppression.")
+
+        # 2. Logique de vérification supplémentaire (Exemple : Statut)
+        # Supposons qu'on ne puisse supprimer que les inscriptions dont le statut est 'Annulée'
+        # if inscription.statut != 'Annulée':
+        #     raise PermissionError("Seules les inscriptions annulées peuvent être supprimées définitivement.")
         
-        return {
-            "disponible": True,
-            "nombre_inscrits": nb_inscrits,
-            "capacite_max": None
-        }
+        # 3. Délégation à la DAO
+        # On appelle la méthode de la DAO et on retourne son résultat.
+        suppression_reussie = self.inscription_dao.supprimer(inscription)
+        
+        # 4. Logique post-opération (Exemple : Journalisation)
+        if suppression_reussie:
+            print(f"INFO: Inscription avec code {inscription.code_reservation} supprimée par le service.")
+            # self.log_service.enregistrer_evenement("SUPPRESSION", inscription.code_reservation)
+
+        return suppression_reussie

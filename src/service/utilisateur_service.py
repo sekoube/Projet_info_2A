@@ -16,23 +16,19 @@ class UtilisateurService:
     # ======================================================
     # === Création d'un compte utilisateur =================
     # ======================================================
-    def creer_compte(self, pseudo: str, nom: str, prenom: str,
-                     email: str, mot_de_passe: str, role: bool = False) -> Utilisateur | None:
+    def creer_utilisateur(self, nom: str, prenom: str,
+                    email: str, mot_de_passe: str, role: bool = False) -> Utilisateur | None:
         """
         Crée un nouvel utilisateur après vérifications.
-        Vérifie que le pseudo et l'email ne sont pas déjà pris,
+        Vérifie que l'email n'est pas déjà pris,
         puis insère en base un utilisateur avec mot de passe hashé.
 
         return: Objet Utilisateur créé ou None si erreur
         """
 
-        # Vérifier unicité e-mail et pseudo
+        # Vérifier unicité e-mail
         if self.utilisateur_dao.email_existe(email):
             print("Cet email est déjà utilisé.")
-            return None
-
-        if self.utilisateur_dao.pseudo_existe(pseudo):
-            print("Ce pseudo est déjà pris.")
             return None
 
         # Hachage du mot de passe
@@ -40,7 +36,6 @@ class UtilisateurService:
 
         # Création de l'objet métier
         nouvel_utilisateur = Utilisateur(
-            pseudo=pseudo,
             nom=nom,
             prenom=prenom,
             email=email,
@@ -52,7 +47,7 @@ class UtilisateurService:
         utilisateur_cree = self.utilisateur_dao.creer(nouvel_utilisateur)
 
         if utilisateur_cree:
-            print(f"Utilisateur '{pseudo}' créé avec succès.")
+            print(f"Utilisateur '{prenom}', '{nom}' créé avec succès.")
             return utilisateur_cree
         else:
             print("Erreur lors de la création de l'utilisateur.")
@@ -77,7 +72,7 @@ class UtilisateurService:
             print("Mot de passe incorrect.")
             return None
 
-        print(f"Connexion réussie : {utilisateur.pseudo}")
+        print(f"Connexion réussie : {utilisateur.prenom}, {utilisateur.nom}")
         return utilisateur
 
     # ======================================================
@@ -118,34 +113,43 @@ class UtilisateurService:
         # Suppression via la DAO
         suppression_ok = self.utilisateur_dao.supprimer(id_utilisateur)
         if suppression_ok:
-            print(f"Utilisateur '{utilisateur_cible.pseudo}' supprimé avec succès.")
+            print(f"Utilisateur '{utilisateur_cible.prenom}', {utilisateur_cible.nom} supprimé avec succès.")
         else:
             print("Erreur lors de la suppression de l'utilisateur.")
         return suppression_ok
 
-    # vérification si admin 
-    def is_admin(self, utilisateur: Utilisateur) -> bool:
+    def get_utilisateur_by_field(self, field: str, value) -> Optional[Utilisateur]:
         """
-    Vérifie si un utilisateur est administrateur.
-    
-    Args:
-        utilisateur: L'utilisateur à vérifier
+        Récupère un Utilisateur en fonction d'un champ et de sa valeur.
+
+        Args:
+            field (str): Le nom du champ de la table 'utilisateur' à rechercher.
+                         La DAO gère la validation des champs autorisés.
+            value: La valeur à comparer dans ce champ.
+
+        Returns:
+            Optional[Utilisateur]: L'objet Utilisateur trouvé ou None.
         
-    Returns:
-        True si l'utilisateur est admin, False sinon
+        Raises:
+            ValueError: Si le champ fourni n'est pas autorisé par la DAO.
         """
-        return utilisateur.role  # ou utilisateur.admin selon votre modèle
-
-service = UtilisateurService()
-
-utilisateur = service.creer_compte(
-    pseudo="lucasrt2",
-    nom="repetti",
-    prenom="lucas",
-    email="lucasrt@gmail.com",
-    mot_de_passe="123",
-    role=False
-)
-
-if utilisateur:
-    print("ID utilisateur:", utilisateur.id_utilisateur)
+        
+        # 1. Logique métier (si nécessaire)
+        # Par exemple, vérifier ici les permissions de l'utilisateur qui fait la requête.
+        
+        # 2. Délégation à la DAO
+        try:
+            # La DAO est responsable de l'exécution de la requête et de la validation
+            # des champs autorisés (liste blanche).
+            utilisateur = self.utilisateur_dao.get_by_field(field, value)
+            
+            # 3. Logique post-récupération (si nécessaire)
+            # Par exemple, masquer le champ 'mot_de_passe' avant de retourner l'objet, 
+            # bien que cela soit souvent géré par le modèle ou la couche API.
+            
+            return utilisateur
+            
+        except ValueError as e:
+            # Capturer et propager l'erreur levée par la DAO si le champ n'est pas autorisé.
+            # C'est important pour la sécurité.
+            raise e

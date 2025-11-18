@@ -2,6 +2,7 @@ from typing import Optional, List
 from business_object.evenement import Evenement
 from business_object.inscription import Inscription
 import random
+STATUTS_VALIDES = ['en_cours', 'complet', 'passe']
 
 
 class EvenementService:
@@ -31,7 +32,6 @@ class EvenementService:
         lieu: str,
         date_event,
         capacite_max: int,
-        created_by: int,
         description_event: str = "",
         tarif: float = 0.00
     ) -> Optional[Evenement]:
@@ -42,7 +42,6 @@ class EvenementService:
         lieu: Lieu de l'événement
         date_event: Date de l'événement
         capacite_max: Capacité maximale
-        created_by: ID de l'utilisateur créateur
         description_event: Description (optionnelle)
         tarif: Tarif de participation
 
@@ -55,7 +54,6 @@ class EvenementService:
                 lieu=lieu,
                 date_event=date_event,
                 capacite_max=capacite_max,
-                created_by=created_by,
                 description_event=description_event,
                 tarif=tarif
             )
@@ -118,3 +116,59 @@ class EvenementService:
             print("Erreur lors de la suppression de l'événement.")
             return False
 
+
+    def modifier_statut(self, id_event: int) -> bool:
+        """
+        Détermine et met à jour automatiquement le statut d'un événement
+        en fonction de la date et de la capacité.
+
+        :param id_event: Identifiant de l'événement.
+        :return: True si la mise à jour a réussi, False sinon.
+        """
+
+        # 1. Récupérer les détails de l'événement (nécessite la méthode dans EvenementDAO)
+        # Assurez-vous que EvenementDAO.recuperer_details_evenement(id_event) 
+        # retourne un dictionnaire avec 'capacite_max' (int) et 'date_event' (date).
+        details_event = self.evenement_dao.recuperer_details_evenement(id_event)
+
+        if not details_event:
+            print(f"Erreur : Événement avec l'ID {id_event} introuvable.")
+            return False
+
+        capacite_max = details_event.get("capacite_max")
+        date_event = details_event.get("date_event")
+
+        statut_a_appliquer = None
+
+        # 2. Logique de détermination du nouveau statut
+
+        # A. Statut 'passe' (Priorité la plus haute)
+        if date_event and date_event < date.today():
+            statut_a_appliquer = 'passe'
+
+        # B. Statut 'complet'
+        elif capacite_max is not None and capacite_max > 0:
+            nombre_inscriptions = self.inscription_dao.compter_par_evenement(id_event)
+
+            if nombre_inscriptions >= capacite_max:
+                statut_a_appliquer = 'complet'
+            else:
+                # C. Statut par défaut si ni passé ni complet
+                statut_a_appliquer = 'en_cours'
+
+        else:
+            # Si aucune capacité maximale n'est définie (ex: capacite_max = None ou <= 0)
+            # et que l'événement n'est pas passé.
+            statut_a_appliquer = 'en_cours'
+
+
+        # 3. Appel à la DAO pour la mise à jour
+        if statut_a_appliquer:
+            mise_a_jour_reussie = self.evenement_dao.modifier_statut(id_event, statut_a_appliquer)
+
+            if mise_a_jour_reussie:
+                print(f"Statut de l'événement {id_event} mis à jour vers : **{statut_a_appliquer}**.")
+
+            return mise_a_jour_reussie
+
+        return False
