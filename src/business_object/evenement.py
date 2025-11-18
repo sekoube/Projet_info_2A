@@ -20,7 +20,8 @@ class Evenement:
         id_event: Optional[int] = None,
         description_event: str = "",
         created_at: Optional[datetime] = None,
-        tarif: float = 0.00
+        tarif: float = 0.00,
+        statut : str = "en_cours"
     ):
         """
         Constructeur de la classe Evenement.
@@ -68,6 +69,9 @@ class Evenement:
         
         if tarif < 0:
             raise ValueError("Le tarif ne peut pas être négatif")
+
+        if not statut in ["en_cours", "passe", "complet"]:
+            raise ValueError("le satut doit être en_cours, passe ou complet")
         # =================================================================
 
         self.id_event = id_event
@@ -80,6 +84,7 @@ class Evenement:
         self.created_at = datetime.now()
         # Quantize pour garantir exactement 2 décimales
         self.tarif = Decimal(str(tarif)).quantize(Decimal('0.01'))
+        self.statut = statut
 
     # ************************ Méthodes ***********************************************
 
@@ -130,8 +135,9 @@ class Evenement:
             "capacite_max": self.capacite_max,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "tarif": f"{self.tarif:.2f}",  # Formatage avec exactement 2 décimales
-        }
+            "tarif": f"{self.tarif:.2f}",  # Formatage avec exactement 2 décimales,
+            "statut": self.statut
+            }
 
     @staticmethod
     def from_dict(data: dict) -> "Evenement":
@@ -162,4 +168,5 @@ class Evenement:
             created_by=data.get("created_by"),
             created_at=created_at,
             tarif=data.get("tarif", 0.00),
+            statut=data.get("statut", "en_cours"),
         )

@@ -19,10 +19,10 @@ class InscriptionDAO:
                         """
                         INSERT INTO inscription 
                         (code_reservation, boit, created_by, mode_paiement, 
-                         id_event, id_bus_retour, id_bus_aller)
+                         id_event, id_bus_retour, id_bus_aller, created_at)
                         VALUES (%(code_reservation)s, %(boit)s, %(created_by)s, 
                                 %(mode_paiement)s, %(id_event)s, 
-                                %(id_bus_aller)s, %(id_bus_retour)s)
+                                %(id_bus_aller)s, %(id_bus_retour)s, %(created_at)s)
                         RETURNING code_reservation;
                         """,
                         {
@@ -33,6 +33,7 @@ class InscriptionDAO:
                             "id_event": inscription.id_event,
                             "id_bus_aller": inscription.id_bus_aller,
                             "id_bus_retour": float(inscription.id_bus_retour),
+                            "created_at": inscription.created_at,
                         },
                     )
                     code_reservation = cursor.fetchone()["code_reservation"]
@@ -43,78 +44,24 @@ class InscriptionDAO:
             print(f"Erreur lors de la création de l'inscription : {e}")
             return None
 
-    def trouver_par_code_reservation(self, code_reservation: str) -> Optional[Inscription]:
-        """
-        Trouve une inscription par son code de réservation.
-        
-        code_reservation: Code de réservation à rechercher
-        
-        return: Objet Inscription trouvé, ou None si non trouvé
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, id_bus_aller, id_bus_retour
-                        FROM inscription
-                        WHERE code_reservation = %(code_reservation)s;
-                        """,
-                        {"code_reservation": code_reservation}
-                    )
-                    row = cursor.fetchone()
-                    if row:
-                        return Inscription(
-                            code_reservation=row["code_reservation"],
-                            boit=row["boit"],
-                            created_by=row["created_by"],
-                            mode_paiement=row["mode_paiement"],
-                            id_event=row["id_event"],
-                            id_bus_aller=row["id_bus_aller"],
-                            id_bus_retour=row["id_bus_retour"]
-                        )
-                    return None
-        except Exception as e:
-            print(f"Erreur lors de la recherche de l'inscription : {e}")
-            return None
+    def get_by_field(self, field: str, value) ->  Inscription | None:
+        """Retourne une Inscription selon un champ donné."""
 
-    def get_by_event(self, id_event: int) -> List[Inscription]:
-        """
-        Trouve toutes les inscriptions pour un événement donné.
-        
-        id_evenement: ID de l'événement
-        
-        return: Liste des inscriptions trouvées
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, id_bus_aller, id_bus_retour
-                        FROM inscription
-                        WHERE id_event = %(id_event)s;
-                        """,
-                        {"id_event": id_event}
-                    )
-                    rows = cursor.fetchall()
-                    return [
-                        Inscription(
-                            code_reservation=row["code_reservation"],
-                            boit=row["boit"],
-                            created_by=row["created_by"],
-                            mode_paiement=row["mode_paiement"],
-                            id_event=row["id_event"],
-                            id_bus_aller=row["id_bus_aller"],
-                            id_bus_retour=row["id_bus_retour"]
-                        )
-                        for row in rows
-                    ]
-        except Exception as e:
-            print(f"Erreur lors de la recherche des inscriptions : {e}")
-            return []
+        # Sécurité : liste blanche des champs autorisés
+        allowed_fields = {"code_reservation", "boit", "created_by", "mode_paiement", 
+                        "id_event", "id_bus_retour", "id_bus_aller", "created_at"}
+        if field not in allowed_fields:
+            raise ValueError(f"Champ non autorisé : {field}")
+
+        query = f"SELECT * FROM inscription WHERE {field} = %s"
+
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, (value,))
+                row = cursor.fetchone()
+
+                return Inscription.from_dict(row) if row else None
+
 
     def lister_toutes(self) -> List[Inscription]:
         """
@@ -128,7 +75,7 @@ class InscriptionDAO:
                     cursor.execute(
                         """
                         SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, id_bus_aller, id_bus_retour
+                               id_event, id_bus_aller, id_bus_retour, created_at
                         FROM inscription;
                         """
                     )
@@ -141,7 +88,8 @@ class InscriptionDAO:
                             mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
                             id_bus_aller=row["id_bus_aller"],
-                            id_bus_retour=row["id_bus_retour"]
+                            id_bus_retour=row["id_bus_retour"],
+                            created_at=row["created_at"]
                         )
                         for row in rows
                     ]
@@ -169,3 +117,27 @@ class InscriptionDAO:
         except Exception as e:
             print(f"Erreur lors du comptage des inscriptions : {e}")
             return 0
+
+    def supprimer(self, inscription: Inscription) -> bool:
+        """
+        Supprime une inscription de la base de données.
+
+        inscription : Objet Inscription à supprimer (doit contenir code_reservation)
+
+        return : True si la suppression a réussi, False sinon.
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        DELETE FROM inscription
+                        WHERE code_reservation = %(code_reservation)s;
+                        """,
+                        {"code_reservation": inscription.code_reservation},
+                    )
+                    return cursor.rowcount > 0
+
+        except Exception as e:
+            print(f"Erreur lors de la suppression de l'inscription : {e}")
+            return False

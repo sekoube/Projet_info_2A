@@ -23,13 +23,14 @@ CREATE TABLE projet.utilisateur (
 CREATE TABLE projet.evenement (
     id_event              SERIAL PRIMARY KEY,
     titre                 VARCHAR(100) NOT NULL,
-    description_event TEXT,
+    description_event     TEXT,
     lieu                  VARCHAR(100) NOT NULL,
-    date_event        DATE NOT NULL,
+    date_event            DATE NOT NULL,
     capacite_max          INT CHECK (capacite_max > 0),
     created_by            INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE SET NULL,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tarif                 NUMERIC(10,2) CHECK (tarif >= 0)
+    statut                TEXT,
 );
 
 
@@ -53,7 +54,6 @@ CREATE TABLE projet.bus (
 -- ==============================
 CREATE TABLE projet.inscription (
     code_reservation SERIAL PRIMARY KEY,
-    date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     boit             BOOLEAN NOT NULL,
     mode_paiement    VARCHAR(50) NOT NULL,
     created_by   INT NOT NULL,

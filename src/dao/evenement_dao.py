@@ -95,84 +95,24 @@ class EvenementDAO(metaclass=Singleton):
             print(f"Erreur lors de la récupération des événements : {e}")
             return []
 
-    def get_by_id(self, id_event: int) -> Optional[Evenement]:
-        """
-        Trouve un événement par son identifiant.
+    def get_by_field(self, field: str, value) ->  Evenement | None:
+        """Retourne un Evenement selon un champ donné."""
 
-        id_event: Identifiant de l'événement
+        # Sécurité : liste blanche des champs autorisés
+        allowed_fields = {"id_event", "titre", "description_event", "lieu",
+                               "date_event", "capacite_max", "created_by",
+                               "created_at, tarif", "statut"}
+        if field not in allowed_fields:
+            raise ValueError(f"Champ non autorisé : {field}")
 
-        return: Instance d'Evenement ou None si non trouvé
-        ------
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT id_event, titre, description_event, lieu,
-                               date_event, capacite_max, created_by,
-                               created_at, tarif
-                        FROM evenement
-                        WHERE id_event = %(id_event)s;
-                        """,
-                        {"id_event": id_event},
-                    )
-                    result = cursor.fetchone()
-                    
-                    if result:
-                        return Evenement(
-                            id_event=result["id_event"],
-                            titre=result["titre"],
-                            description_event=result["description_event"],
-                            lieu=result["lieu"],
-                            date_event=result["date_event"],
-                            capacite_max=result["capacite_max"],
-                            created_by=result["created_by"],
-                            created_at=result["created_at"],
-                            tarif=float(result["tarif"]),
-                        )
-                    return None
-        except Exception as e:
-            print(f"Erreur lors de la recherche de l'événement : {e}")
-            return None
+        query = f"SELECT * FROM evenement WHERE {field} = %s"
 
-    def modifier(self, evenement: Evenement) -> bool:
-        """
-        Modifie un événement existant dans la base de données.
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, (value,))
+                row = cursor.fetchone()
 
-        evenement: Instance d'Evenement avec les nouvelles valeurs
-        
-        return: True si modification réussie, False sinon
-        ------
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        UPDATE evenement
-                        SET titre = %(titre)s,
-                            description_event = %(description_event)s,
-                            lieu = %(lieu)s,
-                            date_event = %(date_event)s,
-                            capacite_max = %(capacite_max)s,
-                            tarif = %(tarif)s
-                        WHERE id_event = %(id_event)s;
-                        """,
-                        {
-                            "id_event": evenement.id_event,
-                            "titre": evenement.titre,
-                            "description_event": evenement.description_event,
-                            "lieu": evenement.lieu,
-                            "date_event": evenement.date_event,
-                            "capacite_max": evenement.capacite_max,
-                            "tarif": float(evenement.tarif),
-                        },
-                    )
-                    return cursor.rowcount > 0
-        except Exception as e:
-            print(f"Erreur lors de la modification de l'événement : {e}")
-            return False
+                return Evenement.from_dict(row) if row else None
 
     def supprimer(self, evenement: Evenement) -> bool:
         """
@@ -198,131 +138,30 @@ class EvenementDAO(metaclass=Singleton):
             print(f"Erreur lors de la suppression de l'événement : {e}")
             return False
 
-    def lister_par_createur(self, id_utilisateur: int) -> List[Evenement]:
+    def modifier_statut(self, id_event: int, nouveau_statut: str) -> bool:
         """
-        Liste tous les événements créés par un utilisateur spécifique.
+        Met à jour uniquement le statut d'un événement dans la base de données.
 
-        id_utilisateur: ID de l'utilisateur créateur
-        
-        return: Liste d'objets Evenement
-        ------
+        id_event : identifiant de l'événement
+        nouveau_statut : chaîne ('en_cours', 'complet', 'passe')
+
+        return : True si la mise à jour a réussi, False sinon
         """
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT id_event, titre, description_event, lieu,
-                               date_event, capacite_max, created_by,
-                               created_at, tarif
-                        FROM evenement
-                        WHERE created_by = %(id_utilisateur)s
-                        ORDER BY date_event DESC;
+                        UPDATE evenement
+                        SET statut = %(statut)s
+                        WHERE id_event = %(id_event)s;
                         """,
-                        {"id_utilisateur": id_utilisateur},
+                        {
+                            "statut": nouveau_statut,
+                            "id_event": id_event
+                        },
                     )
-                    results = cursor.fetchall()
-                    
-                    evenements = []
-                    for row in results:
-                        evenement = Evenement(
-                            id_event=row["id_event"],
-                            titre=row["titre"],
-                            description_event=row["description_event"],
-                            lieu=row["lieu"],
-                            date_event=row["date_event"],
-                            capacite_max=row["capacite_max"],
-                            created_by=row["created_by"],
-                            created_at=row["created_at"],
-                            tarif=float(row["tarif"]),
-                        )
-                        evenements.append(evenement)
-                    
-                    return evenements
+                    return cursor.rowcount > 0
         except Exception as e:
-            print(f"Erreur lors de la récupération des événements par créateur : {e}")
-            return []
-
-    def lister_futurs(self) -> List[Evenement]:
-        """
-        Liste tous les événements futurs (date >= aujourd'hui).
-
-        return: Liste d'objets Evenement
-        ------
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT id_event, titre, description_event, lieu,
-                               date_event, capacite_max, created_by,
-                               created_at, tarif
-                        FROM evenement
-                        WHERE date_event >= CURRENT_DATE
-                        ORDER BY date_event ASC;
-                        """
-                    )
-                    results = cursor.fetchall()
-                    
-                    evenements = []
-                    for row in results:
-                        evenement = Evenement(
-                            id_event=row["id_event"],
-                            titre=row["titre"],
-                            description_event=row["description_event"],
-                            lieu=row["lieu"],
-                            date_event=row["date_event"],
-                            capacite_max=row["capacite_max"],
-                            created_by=row["created_by"],
-                            created_at=row["created_at"],
-                            tarif=float(row["tarif"]),
-                        )
-                        evenements.append(evenement)
-                    
-                    return evenements
-        except Exception as e:
-            print(f"Erreur lors de la récupération des événements futurs : {e}")
-            return []
-
-    def lister_passes(self) -> List[Evenement]:
-        """
-        Liste tous les événements passés (date < aujourd'hui).
-
-        return: Liste d'objets Evenement
-        ------
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT id_event, titre, description_event, lieu,
-                               date_event, capacite_max, created_by,
-                               created_at, tarif
-                        FROM evenement
-                        WHERE date_event < CURRENT_DATE
-                        ORDER BY date_event DESC;
-                        """
-                    )
-                    results = cursor.fetchall()
-                    
-                    evenements = []
-                    for row in results:
-                        evenement = Evenement(
-                            id_event=row["id_event"],
-                            titre=row["titre"],
-                            description_event=row["description_event"],
-                            lieu=row["lieu"],
-                            date_event=row["date_event"],
-                            capacite_max=row["capacite_max"],
-                            created_by=row["created_by"],
-                            created_at=row["created_at"],
-                            tarif=float(row["tarif"]),
-                        )
-                        evenements.append(evenement)
-                    
-                    return evenements
-        except Exception as e:
-            print(f"Erreur lors de la récupération des événements passés : {e}")
-            return []
+            print(f"Erreur lors de la mise à jour du statut : {e}")
+            return False

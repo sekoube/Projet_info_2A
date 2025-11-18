@@ -29,27 +29,23 @@ class BusDAO:
         return bus
     
     @staticmethod
-    def get_by_event(id_event: int) -> Bus | None:
-        """Recherche les bus affectés à un évènement."""
-        query = "SELECT * FROM bus WHERE id_event = %s"
+    def get_by_field(self, field: str, value) -> Bus | None:
+        """Retourne un Bus selon un champ donné."""
+
+        # Sécurité : liste blanche des champs autorisés
+        allowed_fields = {"id_bus", "id_event", "sens, description", "heure_depart", "capacite_max"}
+        if field not in allowed_fields:
+            raise ValueError(f"Champ non autorisé : {field}")
+
+        query = f"SELECT * FROM bus WHERE {field} = %s"
+
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
-                cursor.execute(query, (id_event,))
+                cursor.execute(query, (value,))
                 row = cursor.fetchone()
-                if row:
-                    return Bus.from_dict(row)
-                return None
 
-    def get_by_id(id_bus: int) -> Bus | None:
-        """Recheche un bus d'après son identifiant"""
-        query = "SELECT * FROM bus WHERE id_bus = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor as cursor:
-                cursor.execute(query, (id_bus,))
-                row = cursor.fetchone()
-                if row:
-                    return Bus.from_dict(row)
-                return None
+                return Bus.from_dict(row) if row else None
+
 
     @staticmethod
     def lister_tous() -> list[Bus]:

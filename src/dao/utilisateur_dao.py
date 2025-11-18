@@ -11,7 +11,7 @@ class UtilisateurDAO:
     @staticmethod
     def creer(utilisateur: Utilisateur) -> Utilisateur:
         query = """
-            INSERT INTO projet.utilisateur (pseudo, nom, prenom, email, mot_de_passe, role, date_creation)
+            INSERT INTO projet.utilisateur (nom, prenom, email, mot_de_passe, role, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id_utilisateur;
         """
@@ -21,13 +21,12 @@ class UtilisateurDAO:
                     cursor.execute(
                         query,
                         (
-                            utilisateur.pseudo,
                             utilisateur.nom,
                             utilisateur.prenom,
                             utilisateur.email,
                             utilisateur.mot_de_passe,
                             utilisateur.role,
-                            utilisateur.date_creation,
+                            utilisateur.created_at,
                         ),
                     )
                     utilisateur.id_utilisateur = cursor.fetchone()["id_utilisateur"]
@@ -36,21 +35,6 @@ class UtilisateurDAO:
             # Gestion des contraintes d'unicité
             if "utilisateur_email_key" in str(e):
                 raise ValueError(f"Un utilisateur avec l'email '{utilisateur.email}' existe déjà")
-            elif "utilisateur_pseudo_key" in str(e):
-                raise ValueError(f"Un utilisateur avec le pseudo '{utilisateur.pseudo}' existe déjà")
-            else:
-                raise
-
-    @staticmethod
-    def get_by_id(id_utilisateur: int) -> Optional[Utilisateur]:
-        query = "SELECT * FROM utilisateur WHERE id_utilisateur = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (id_utilisateur,))
-                row = cursor.fetchone()
-                if row:
-                    return Utilisateur.from_dict(row)
-                return None
 
     @staticmethod
     def lister_tous() -> List[Utilisateur]:
@@ -62,34 +46,6 @@ class UtilisateurDAO:
                 return [Utilisateur.from_dict(row) for row in rows]
 
     @staticmethod
-    def modifier(utilisateur: Utilisateur) -> bool:
-        query = """
-            UPDATE utilisateur
-            SET pseudo = %s,
-                nom = %s,
-                prenom = %s,
-                email = %s,
-                mot_de_passe = %s,
-                role = %s
-            WHERE id_utilisateur = %s
-        """
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    query,
-                    (
-                        utilisateur.pseudo,
-                        utilisateur.nom,
-                        utilisateur.prenom,
-                        utilisateur.email,
-                        utilisateur.mot_de_passe,
-                        utilisateur.role,
-                        utilisateur.id_utilisateur,
-                    ),
-                )
-                return cursor.rowcount > 0
-
-    @staticmethod
     def supprimer(id_utilisateur: int) -> bool:
         query = "DELETE FROM utilisateur WHERE id_utilisateur = %s"
         with DBConnection().connection as connection:
@@ -97,33 +53,19 @@ class UtilisateurDAO:
                 cursor.execute(query, (id_utilisateur,))
                 return cursor.rowcount > 0
 
-    @staticmethod
-    def email_existe(email: str) -> bool:
-        query = "SELECT COUNT(*) as count FROM utilisateur WHERE email = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (email,))
-                result = cursor.fetchone()
-                return result["count"] > 0
+    def get_by_field(self, field: str, value) ->  Utilisateur | None:
+        """Retourne un Utilisateur selon un champ donné."""
 
-    @staticmethod
-    def pseudo_existe(pseudo: str) -> bool:
-        query = "SELECT COUNT(*) as count FROM utilisateur WHERE pseudo = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (pseudo,))
-                result = cursor.fetchone()
-                return result["count"] > 0
+        # Sécurité : liste blanche des champs autorisés
+        allowed_fields = {"nom", "prenom", "email", "mot_de_passe", "role", "created_at", "id_utilisateur"}
+        if field not in allowed_fields:
+            raise ValueError(f"Champ non autorisé : {field}")
 
-    @staticmethod
-    def trouver_par_email(email: str) -> Optional[Utilisateur]:
-        query = "SELECT * FROM utilisateur WHERE email = %s"
+        query = f"SELECT * FROM utilisateur WHERE {field} = %s"
+
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
-                cursor.execute(query, (email,))
+                cursor.execute(query, (value,))
                 row = cursor.fetchone()
-                if row:
-                    return Utilisateur.from_dict(row)
-                return None
 
-
+                return Utilisateur.from_dict(row) if row else None
