@@ -72,194 +72,35 @@ class EvenementService:
             print(f"Erreur de validation : {e}")
             return None
 
-    def ajouter_bus_a_evenement(self, id_event: int, id_bus: int) -> bool:
+    def get_evenement_by_field(self, field: str, value) -> Optional[Evenement]:
         """
-        Associe un bus à un événement (aller ou retour selon le sens du bus).
+        Récupère un Evenement selon un champ donné.
 
-        id_event: ID de l'événement
-        id_bus: ID du bus
+        field : nom du champ
+        value : valeur à chercher
 
-        return: True si association réussie, False sinon
+        return : Bus ou None si non trouvé
         """
-        # Récupérer l'événement
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
-            print(f"Événement {id_event} introuvable.")
-            return False
-
-        # Récupérer le bus
-        bus = self.bus_dao.get_by_id(id_bus)
-        if not bus:
-            print(f"Bus {id_bus} introuvable.")
-            return False
-
-        # Associer le bus à l'événement
-        evenement.ajouter_bus(bus)
-
-        # Persister l'association en base (selon votre implémentation DAO)
-        # Cela pourrait être une mise à jour de l'événement ou une table de liaison
-        if self.evenement_dao.modifier(evenement):
-            print(f"Bus {id_bus} associé à l'événement {evenement.titre}.")
-            return True
-        else:
-            print("Erreur lors de l'association du bus.")
-            return False
-            
-#######################################################################################
-#optionnel
-#######################################################################################
-
-    def desinscrire_utilisateur(self, id_event: int, id_utilisateur: int) -> bool:
-        """
-        Désinscrit un utilisateur d'un événement.
-        Supprime l'inscription de la base de données.
-
-        id_event: ID de l'événement
-        id_utilisateur: ID de l'utilisateur
-
-        return: True si désinscription réussie, False sinon
-        """
-        # Récupérer l'événement et l'utilisateur
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
-            print(f"Événement {id_event} introuvable.")
-            return False
-
-        utilisateur = self.utilisateur_dao.get_by_id(id_utilisateur)
-        if not utilisateur:
-            print(f"Utilisateur {id_utilisateur} introuvable.")
-            return False
-
-        # Charger les inscriptions
-        evenement.inscriptions = self.inscription_dao.get_by_event(id_event)
-
-        # Trouver l'inscription correspondante
-        inscription_a_supprimer = None
-        for insc in evenement.inscriptions:
-            if insc.id_utilisateur == id_utilisateur:
-                inscription_a_supprimer = insc
-                break
-
-        if not inscription_a_supprimer:
-            print(
-                f"{utilisateur.nom} {utilisateur.prenom} n'est pas inscrit à cet événement."
-            )
-            return False
-
-        # Supprimer de la base de données
-        if self.inscription_dao.delete(id_event, id_utilisateur):
-            print(
-                f"{utilisateur.nom} {utilisateur.prenom} est désinscrit de {evenement.titre}."
-            )
-            return True
-        else:
-            print("Erreur lors de la suppression de l'inscription.")
-            return False
-
-    def get_participants(self, id_event: int) -> List:
-        """
-        Retourne la liste complète des utilisateurs inscrits à un événement.
-        Charge les objets Utilisateur depuis la base de données.
-
-        id_event: ID de l'événement
-
-        return: Liste des objets Utilisateur inscrits
-        """
-        # Récupérer toutes les inscriptions pour cet événement
-        inscriptions = self.inscription_dao.get_by_event(id_event)
-
-        # Charger les utilisateurs correspondants
-        participants = []
-        for inscription in inscriptions:
-            utilisateur = self.utilisateur_dao.get_by_id(inscription.id_utilisateur)
-            if utilisateur:
-                participants.append(utilisateur)
-
-        return participants
-
-    def get_evenement_avec_inscriptions(self, id_event: int) -> Optional[Evenement]:
-        """
-        Récupère un événement avec toutes ses inscriptions chargées.
-
-        id_event: ID de l'événement
-
-        return: Objet Evenement avec inscriptions ou None
-        """
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if evenement:
-            evenement.inscriptions = self.inscription_dao.get_by_event(id_event)
-        return evenement
-
-    def get_evenement_avec_relations(self, id_event: int) -> Optional[Evenement]:
-        """
-        Récupère un événement avec toutes ses relations chargées :
-        - Inscriptions
-        - Bus aller et retour
-        - Créateur
-
-        id_event: ID de l'événement
-
-        return: Objet Evenement complet ou None
-        """
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
+        try:
+            return self.evenement_dao.get_by_field(field, value)
+        except ValueError as ve:
+            # Capture la validation du champ
+            print(f"Champ non autorisé : {ve}")
+            return None
+        except Exception as e:
+            # Autres erreurs (connexion, SQL, etc.)
+            print(f"Erreur lors de la récupération de l'evenement : {e}")
             return None
 
-        # Charger les inscriptions
-        evenement.inscriptions = self.inscription_dao.get_by_event(id_event)
 
-        # Charger le créateur
-        if evenement.created_by:
-            evenement.createur = self.utilisateur_dao.get_by_id(evenement.created_by)
-
-        # Charger les bus (si vous avez une méthode pour récupérer les bus d'un événement)
-        # bus_list = self.bus_dao.get_by_event(id_event)
-        # for bus in bus_list:
-        #     evenement.ajouter_bus(bus)
-
-        return evenement
-
-    def get_evenements_futurs(self) -> List[Evenement]:
-        """
-        Récupère tous les événements futurs (non passés).
-
-        return: Liste des événements à venir
-        """
-        tous_evenements = self.evenement_dao.lister_tous()
-        return [evt for evt in tous_evenements if not evt.est_passe()]
-
-    def get_evenements_disponibles(self) -> List[Evenement]:
-        """
-        Récupère tous les événements futurs qui ne sont pas complets.
-
-        return: Liste des événements disponibles pour inscription
-        """
-        evenements_futurs = self.get_evenements_futurs()
-        
-        evenements_disponibles = []
-        for evenement in evenements_futurs:
-            # Charger les inscriptions pour vérifier la disponibilité
-            evenement.inscriptions = self.inscription_dao.get_by_event(evenement.id_event)
-            if not evenement.est_complet():
-                evenements_disponibles.append(evenement)
-        
-        return evenements_disponibles
-
-    def modifier_evenement(self, evenement: Evenement) -> bool:
-        """
-        Modifie un événement existant.
-
-        evenement: Objet Evenement avec les modifications
-
-        return: True si modification réussie, False sinon
-        """
-        if self.evenement_dao.modifier(evenement):
-            print(f"Événement '{evenement.titre}' modifié avec succès.")
-            return True
-        else:
-            print("Erreur lors de la modification de l'événement.")
-            return False
-
+    def get_tous_les_evenement(self) -> list[Evenement]:
+        """Récupère tous les bus."""
+        try:
+            return self.evenement_dao.lister_tous()
+        except Exception as e:
+            print(f"Erreur lors de la récupération des evenements : {e}")
+            return []
+            
     def supprimer_evenement(self, id_event: int) -> bool:
         """
         Supprime un événement et toutes ses inscriptions associées.
@@ -276,3 +117,4 @@ class EvenementService:
         else:
             print("Erreur lors de la suppression de l'événement.")
             return False
+
