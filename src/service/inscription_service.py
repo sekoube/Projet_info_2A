@@ -7,7 +7,7 @@ from business_object.utilisateur import Utilisateur
 import random
 import string
 import random
-from utils.email_utils import send_email_brevo
+from utils.api_brevo import send_email_brevo
 
 
 class InscriptionService:
