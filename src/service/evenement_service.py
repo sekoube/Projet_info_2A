@@ -2,6 +2,7 @@ from typing import Optional, List
 from business_object.evenement import Evenement
 from business_object.inscription import Inscription
 from business_object.utilisateur import Utilisateur
+from datetime import date
 import random
 STATUTS_VALIDES = ['en_cours', 'complet', 'passe']
 
@@ -131,56 +132,41 @@ class EvenementService:
 
     def modifier_statut(self, id_event: int) -> bool:
         """
-        Détermine et met à jour automatiquement le statut d'un événement
-        en fonction de la date et de la capacité.
-
-        :param id_event: Identifiant de l'événement.
-        :return: True si la mise à jour a réussi, False sinon.
+        Met automatiquement à jour le statut d’un événement selon :
+        - la date (passé)
+        - la capacité (complet)
+        - sinon en cours
         """
 
-        # 1. Récupérer les détails de l'événement (nécessite la méthode dans EvenementDAO)
-        # Assurez-vous que EvenementDAO.recuperer_details_evenement(id_event) 
-        # retourne un dictionnaire avec 'capacite_max' (int) et 'date_event' (date).
-        details_event = self.evenement_dao.recuperer_details_evenement(id_event)
+        # 1. Charger l’événement
+        evenement = self.evenement_dao.get_by("id_event", id_event)
 
-        if not details_event:
-            print(f"Erreur : Événement avec l'ID {id_event} introuvable.")
+        if not evenement:
+            print(f"❌ Impossible de modifier le statut : événement {id_event} introuvable.")
             return False
 
-        capacite_max = details_event.get("capacite_max")
-        date_event = details_event.get("date_event")
+        evenement = evenement[0]
 
-        statut_a_appliquer = None
+        # 2. Récupérer les infos
+        capacite_max = evenement.capacite_max
+        date_event = evenement.date_event
 
-        # 2. Logique de détermination du nouveau statut
-
-        # A. Statut 'passe' (Priorité la plus haute)
-        if date_event and date_event < date.today():
-            statut_a_appliquer = 'passe'
-
-        # B. Statut 'complet'
-        elif capacite_max is not None and capacite_max > 0:
-            nombre_inscriptions = self.inscription_dao.compter_par_evenement(id_event)
-
-            if nombre_inscriptions >= capacite_max:
-                statut_a_appliquer = 'complet'
-            else:
-                # C. Statut par défaut si ni passé ni complet
-                statut_a_appliquer = 'en_cours'
+        # 3. Déterminer nouveau statut
+        if date_event < date.today():
+            nouveau_statut = "passe"
 
         else:
-            # Si aucune capacité maximale n'est définie (ex: capacite_max = None ou <= 0)
-            # et que l'événement n'est pas passé.
-            statut_a_appliquer = 'en_cours'
+            nb_inscrits = self.inscription_dao.compter_par_evenement(id_event)
 
+            if nb_inscrits >= capacite_max:
+                nouveau_statut = "complet"
+            else:
+                nouveau_statut = "en_cours"
 
-        # 3. Appel à la DAO pour la mise à jour
-        if statut_a_appliquer:
-            mise_a_jour_reussie = self.evenement_dao.modifier_statut(id_event, statut_a_appliquer)
+        # 4. Appliquer si changement
+        if evenement.statut != nouveau_statut:
+            self.evenement_dao.modifier_statut(id_event, nouveau_statut)
+            print(f"✔️ Statut mis à jour : {evenement.statut} → {nouveau_statut}")
+            return True
 
-            if mise_a_jour_reussie:
-                print(f"Statut de l'événement {id_event} mis à jour vers : **{statut_a_appliquer}**.")
-
-            return mise_a_jour_reussie
-
-        return False
+        return True

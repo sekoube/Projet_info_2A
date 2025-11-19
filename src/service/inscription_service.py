@@ -41,44 +41,46 @@ class InscriptionService:
         self,
         boit: bool,
         mode_paiement: str,
-        id_event: str,
+        id_event: int,
         nom_event: str,
         id_bus_aller: int,
         id_bus_retour: int,
-        created_by: int  # on passe maintenant directement l'ID utilisateur
+        created_by: int
     ) -> Optional[Inscription]:
         """
-        Crée une nouvelle inscription avec validations métier.
-
-        return: Inscription créée ou None si échec
+        Crée une nouvelle inscription avec validations métier
+        et met à jour le statut de l’événement.
         """
-        # Validation : l'utilisateur existe-t-il ?
+
+        # 1. Validation : l'utilisateur existe
         utilisateur = self.utilisateur_dao.get_by("id_utilisateur", created_by)
         if not utilisateur:
-            print(f"Erreur : Utilisateur {created_by} introuvable")
+            print(f"❌ Erreur : Utilisateur {created_by} introuvable.")
             return None
 
-        # Validation : l'événement existe-t-il ?
-        evenement = self.evenement_dao.get_by("id_event", id_event)
-        if not evenement:
-            print(f"Erreur : Événement {id_event} introuvable")
+        # 2. Validation : l'événement existe
+        evenement_list = self.evenement_dao.get_by("id_event", id_event)
+        if not evenement_list:
+            print(f"❌ Erreur : Événement {id_event} introuvable.")
             return None
 
-        # Validation : l'événement est-il complet ?
+        evenement = evenement_list[0]  # extraction de l’objet Evenement
+
+        # 3. Validation : capacité disponible ?
         nb_inscrits = self.inscription_dao.compter_par_evenement(id_event)
-        if hasattr(evenement, 'capacite_max') and nb_inscrits >= evenement.capacite_max:
-            print(f"Erreur : Événement {nom_event} complet ({nb_inscrits}/{evenement.capacite_max})")
+        if nb_inscrits >= evenement.capacite_max:
+            print(f"❌ Erreur : Événement '{nom_event}' complet ({nb_inscrits}/{evenement.capacite_max}).")
             return None
 
-        # Validation : l'utilisateur est-il déjà inscrit ?
+        # 4. Validation : l'utilisateur est-il déjà inscrit ?
         if self.inscription_dao.est_deja_inscrit(created_by, id_event):
-            print(f"Erreur : L'utilisateur {created_by} est déjà inscrit à {nom_event}")
+            print(f"❌ Erreur : L'utilisateur {created_by} est déjà inscrit à {nom_event}.")
             return None
 
-        # Génération du code de réservation
+        # 5. Génération du code de réservation
         code_reservation = self.generer_code_reservation()
 
-        # Création de l'objet Inscription
+        # 6. Création de l'inscription
         try:
             inscription = Inscription(
                 code_reservation=code_reservation,
@@ -88,15 +90,25 @@ class InscriptionService:
                 nom_event=nom_event,
                 id_bus_aller=id_bus_aller,
                 id_bus_retour=id_bus_retour,
-                created_by=created_by  # on utilise directement l'ID
+                created_by=created_by
             )
 
-            # Enregistrement en base de données
-            return self.inscription_dao.creer(inscription)
+            # 7. Enregistrer en base
+            created = self.inscription_dao.creer(inscription)
+
+            if created:
+                # 8. Mise à jour automatique du statut de l’événement
+                try:
+                    self.evenement_service.modifier_statut(id_event)
+                except Exception as e:
+                    print(f"⚠️ Avertissement : mise à jour du statut impossible : {e}")
+
+            return created
 
         except ValueError as e:
-            print(f"Erreur de validation : {e}")
+            print(f"❌ Erreur de validation : {e}")
             return None
+
 
 
 
@@ -139,36 +151,43 @@ class InscriptionService:
             # de la transformer en une erreur de niveau Service/Application.
             raise e
 
-    def supprimer_inscription(self, code_reservation: str) -> bool:
+    def supprimer_inscription(self, code_reservation: str, id_utilisateur: int) -> bool:
         """
         Supprime une inscription à partir de son code de réservation.
-        Reconstruit un objet Inscription minimal pour la DAO.
+        Vérifie que l'utilisateur connecté est bien celui qui a créé l'inscription.
 
         Args:
-            code_reservation (str): Le code de réservation unique.
+            code_reservation (str): Le code unique de réservation.
+            id_utilisateur (int): ID de l'utilisateur actuellement connecté.
 
         Returns:
-            bool: True si la suppression a réussi, False sinon.
+            bool: True si suppression réussie, False sinon.
+
+        Raises:
+            ValueError: Si aucun code ou aucune inscription trouvée.
+            PermissionError: Si l'utilisateur n'est pas le propriétaire de l'inscription.
         """
 
-        # 1. Vérification des données
-        if not code_reservation or not isinstance(code_reservation, str):
-            raise ValueError("Un 'code_reservation' valide est requis pour supprimer une inscription.")
+        # 1. Vérification entrée
+        if not code_reservation:
+            raise ValueError("Un code de réservation valide est requis.")
 
-        # 2. Récupération de l'inscription correspondante
+        # 2. Récupération de l'inscription
         inscription_list = self.inscription_dao.get_by("code_reservation", code_reservation)
 
         if not inscription_list:
-            raise ValueError(f"Aucune inscription trouvée avec le code {code_reservation}")
+            raise ValueError(f"Aucune inscription trouvée avec le code {code_reservation}.")
 
-        # On récupère l'objet
         inscription = inscription_list[0]
 
-        # 3. Délégation à la DAO (elle attend toujours un objet Inscription)
-        suppression_reussie = self.inscription_dao.supprimer(inscription)
+        # 3. Sécurité : vérifier que l'utilisateur connecté est bien le créateur
+        if inscription.created_by != id_utilisateur:
+            raise PermissionError("Vous ne pouvez supprimer qu'une inscription que vous avez vous-même créée.")
 
-        # 4. Post-traitement / log
-        if suppression_reussie:
-            print(f"INFO : Inscription avec code {code_reservation} supprimée.")
-        
-        return suppression_reussie
+        # 4. Suppression
+        suppression_ok = self.inscription_dao.supprimer(inscription)
+
+        if suppression_ok:
+            print(f"INFO : Inscription {code_reservation} supprimée par l'utilisateur {id_utilisateur}.")
+
+        return suppression_ok

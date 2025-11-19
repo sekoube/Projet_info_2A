@@ -94,7 +94,8 @@ def page_utilisateur(utilisateur, evenement_service: EvenementService, inscripti
 
             # Appel du service — la méthode doit accepter un code_reservation (str)
             try:
-                resultat = inscription_service.supprimer_inscription(code_reservation)
+                resultat = inscription_service.supprimer_inscription(code_reservation, utilisateur.id_utilisateur)
+
                 if resultat:
                     print(f"✅ Inscription avec le code '{code_reservation}' supprimée avec succès.")
                 else:
