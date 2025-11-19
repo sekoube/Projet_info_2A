@@ -7,6 +7,7 @@ from business_object.utilisateur import Utilisateur
 import random
 import string
 import random
+from utils.email_utils import send_email_brevo
 
 
 class InscriptionService:
@@ -47,10 +48,6 @@ class InscriptionService:
         id_bus_retour: int,
         created_by: int
     ) -> Optional[Inscription]:
-        """
-        Crée une nouvelle inscription avec validations métier
-        et met à jour le statut de l’événement.
-        """
 
         # 1. Validation : l'utilisateur existe
         utilisateur = self.utilisateur_dao.get_by("id_utilisateur", created_by)
@@ -102,6 +99,21 @@ class InscriptionService:
                     self.evenement_service.modifier_statut(id_event)
                 except Exception as e:
                     print(f"⚠️ Avertissement : mise à jour du statut impossible : {e}")
+
+                # 9. Envoi email automatique
+                try:
+                    to_email = utilisateur.email  # supposons que l'objet Utilisateur a un attribut 'email'
+                    subject = f"Confirmation d'inscription à {nom_event}"
+                    message_text = (
+                        f"Bonjour {utilisateur.nom},\n\n"
+                        f"Votre inscription à l'événement '{nom_event}' a été confirmée.\n"
+                        f"Votre code de réservation : {code_reservation}\n\n"
+                        "Merci et à bientôt !"
+                    )
+                    send_email_brevo(to_email, subject, message_text)
+                    print(f"✅ Email de confirmation envoyé à {to_email}")
+                except Exception as e:
+                    print(f"⚠️ Échec de l'envoi de l'email : {e}")
 
             return created
 

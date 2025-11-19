@@ -19,7 +19,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
         print("1. Voir les événements disponibles")
         print("2. Créer un événement")
         print("3. Déconnexion")
-        print("4. Créer un bus")  # 🔹 Nouvelle option
+        print("4. Créer un bus")  
         print("5. Supprimer un événement")
         print("6. Voir les inscrits à un événement")
         choix = input("Choisissez une option : ").strip()
@@ -33,9 +33,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print("\nÉvénements disponibles :")
                 for evt in evenements:
                     places_restantes = (
-                        evt.capacite_max - len(evt.inscriptions)
-                        if hasattr(evt, "inscriptions")
-                        else evt.capacite_max
+                        evt.capacite_max - len(inscription_service.get_inscription_by("id_event", evt.id_event))
                     )
                     print(
                         f"- ID: {evt.id_event}, Titre: {evt.titre}, Lieu: {evt.lieu}, "
