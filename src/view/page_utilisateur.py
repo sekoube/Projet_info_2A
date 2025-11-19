@@ -8,13 +8,14 @@ import getpass
 def page_utilisateur(utilisateur, evenement_service: EvenementService, inscription_service: InscriptionService):
     """
     Sous-boucle pour un utilisateur connecté.
-    Permet de lister les événements et de s'inscrire.
+    Permet de lister les événements, de s'inscrire et d'annuler une inscription via son code de réservation.
     """
     while True:
         print("\n=== Espace Utilisateur ===")
         print("1. Voir les événements disponibles")
         print("2. S'inscrire à un événement")
         print("3. Déconnexion")
+        print("4. Annuler une inscription (code de réservation)")  # ← nouvelle option
         choix = input("Choisissez une option : ").strip()
 
         if choix == "1":
@@ -76,5 +77,36 @@ def page_utilisateur(utilisateur, evenement_service: EvenementService, inscripti
         elif choix == "3":
             print("🔒 Déconnexion...")
             break
+
+        elif choix == "4":
+            # Annulation d'une inscription à partir du code de réservation
+            print("\n=== Annulation d'une inscription ===")
+            code_reservation = input("Entrez le code de réservation à annuler : ").strip()
+            if not code_reservation:
+                print("❌ Code de réservation vide. Annulation.")
+                continue
+
+            # Demande de confirmation (sécurité UX)
+            confirmation = input(f"⚠️ Confirmez-vous l'annulation de l'inscription avec le code '{code_reservation}' ? (oui/non) : ").strip().lower()
+            if confirmation != "oui":
+                print("❌ Annulation de la suppression.")
+                continue
+
+            # Appel du service — la méthode doit accepter un code_reservation (str)
+            try:
+                resultat = inscription_service.supprimer_inscription(code_reservation)
+                if resultat:
+                    print(f"✅ Inscription avec le code '{code_reservation}' supprimée avec succès.")
+                else:
+                    # Si la méthode retourne False, on affiche un message générique
+                    print(f"❌ La suppression a échoué pour le code '{code_reservation}'.")
+            except ValueError as ve:
+                print(f"❌ Erreur : {ve}")
+            except PermissionError as pe:
+                print(f"🚫 Permission refusée : {pe}")
+            except Exception as e:
+                # Cas inattendu — utile pour debug
+                print(f"⚠️ Erreur inattendue lors de la suppression : {e}")
+
         else:
             print("❌ Option invalide, réessayez.")

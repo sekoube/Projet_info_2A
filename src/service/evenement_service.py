@@ -101,20 +101,32 @@ class EvenementService:
             
     def supprimer_evenement(self, id_event: int) -> bool:
         """
-        Supprime un événement et toutes ses inscriptions associées.
+        Supprime un événement et toutes ses données associées.
 
-        id_event: ID de l'événement à supprimer
-
-        return: True si suppression réussie, False sinon
+        :param id_event: ID de l'événement à supprimer.
+        :return: True si la suppression a réussi, False sinon.
         """
 
-        # Supprimer l'événement
-        if self.evenement_dao.supprimer(id_event):
-            print(f"Événement {id_event} supprimé avec succès.")
-            return True
-        else:
-            print("Erreur lors de la suppression de l'événement.")
+        # --- 1. Récupérer l'événement ---
+        evenement = self.evenement_dao.get_by("id_event", id_event)
+        if evenement is None:
+            print(f"❌ Impossible de supprimer : aucun événement avec id {id_event}.")
             return False
+
+        # --- 2. Appeler la DAO pour supprimer l'objet ---
+        try:
+            succes = self.evenement_dao.supprimer(evenement[0])
+            if succes:
+                print(f"✔️ Événement {id_event} supprimé avec succès.")
+                return True
+            else:
+                print("❌ Erreur lors de la suppression de l'événement.")
+                return False
+
+        except Exception as e:
+            print(f"❌ Exception lors de la suppression : {e}")
+            return False
+
 
 
     def modifier_statut(self, id_event: int) -> bool:

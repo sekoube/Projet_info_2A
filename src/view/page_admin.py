@@ -12,6 +12,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
     Permet de gérer les événements et les bus.
     """
     bus_service = BusService()
+    utilisateur_service = UtilisateurService()
 
     while True:
         print("\n=== Espace Admin ===")
@@ -20,6 +21,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
         print("3. Déconnexion")
         print("4. Créer un bus")  # 🔹 Nouvelle option
         print("5. Supprimer un événement")
+        print("6. Voir les inscrits à un événement")
         choix = input("Choisissez une option : ").strip()
 
         # ---- OPTION 1 : Liste des événements ----
@@ -145,7 +147,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
             print("\n=== Suppression d’un événement ===")
 
             # Récupérer les événements disponibles
-            evenements = evenement_service.get_evenements_disponibles()
+            evenements = evenement_service.get_evenement_by("statut", "en_cours")
             if not evenements:
                 print("❌ Aucun événement disponible à supprimer.")
                 continue
@@ -161,13 +163,13 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 continue
 
             # Vérifier que l'événement existe
-            evenement_a_supprimer = evenement_service.evenement_dao.get_by_id(id_event)
+            evenement_a_supprimer = evenement_service.evenement_dao.get_by("id_event", id_event)
             if not evenement_a_supprimer:
                 print(f"❌ L'événement avec l'ID {id_event} n'existe pas.")
                 continue
 
             confirmation = input(
-                f"⚠️ Êtes-vous sûr de vouloir supprimer l'événement '{evenement_a_supprimer.titre}' ? (oui/non) : "
+                f"⚠️ Êtes-vous sûr de vouloir supprimer l'événement '{evenement_a_supprimer[0].titre}' ? (oui/non) : "
             ).strip().lower()
 
             if confirmation != "oui":
@@ -179,6 +181,52 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print(f"✅ Événement {id_event} supprimé avec succès.")
             else:
                 print("❌ La suppression a échoué.")
+            
+
+                # ---- OPTION 6 : Voir les inscrits à un événement ----
+        elif choix == "6":
+            print("\n=== Liste des inscrits à un événement ===")
+
+            # Récupération des événements disponibles
+            evenements = evenement_service.get_evenement_by("statut", "en_cours")
+            if not evenements:
+                print("❌ Aucun événement disponible.")
+                continue
+
+            print("\nÉvénements disponibles :")
+            for evt in evenements:
+                print(f"- ID: {evt.id_event}, Titre: {evt.titre}, Date: {evt.date_event}")
+
+            # Demande ID événement
+            try:
+                id_event = int(input("ID de l'événement : ").strip())
+            except ValueError:
+                print("❌ ID invalide.")
+                continue
+
+            # Vérifie si l’événement existe
+            evenement = evenement_service.evenement_dao.get_by("id_event", id_event)
+            if not evenement:
+                print("❌ Aucun événement trouvé avec cet ID.")
+                continue
+
+            # Récupération des inscriptions
+            inscriptions = inscription_service.get_inscription_by("id_event", id_event)
+
+            if not inscriptions:
+                print(f"ℹ️ Aucun inscrit pour l'événement {id_event}.")
+                continue
+
+            print(f"\n👥 Liste des inscrits pour l'événement {id_event} :")
+            for ins in inscriptions:
+                user = utilisateur_service.get_utilisateur_by("id_utilisateur", ins.created_by)[0]
+
+                if user:
+                    print(f"- {user.nom} {user.prenom} (ID: {user.id_utilisateur})")
+                else:
+                    # Cas improbable mais propre
+                    print(f"- Utilisateur inconnu (ID: {ins.created_by})")
+
 
 
         else:

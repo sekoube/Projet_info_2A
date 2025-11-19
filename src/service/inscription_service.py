@@ -139,35 +139,36 @@ class InscriptionService:
             # de la transformer en une erreur de niveau Service/Application.
             raise e
 
-    def supprimer_inscription(self, inscription: Inscription) -> bool:
+    def supprimer_inscription(self, code_reservation: str) -> bool:
         """
-        Gère la suppression d'une inscription, en appliquant toute logique métier
-        nécessaire avant de déléguer à la DAO.
+        Supprime une inscription à partir de son code de réservation.
+        Reconstruit un objet Inscription minimal pour la DAO.
 
         Args:
-            inscription (Inscription): L'objet Inscription à supprimer.
-                                       Il doit contenir 'code_reservation'.
+            code_reservation (str): Le code de réservation unique.
 
         Returns:
-            bool: True si l'inscription a été supprimée avec succès, False sinon.
+            bool: True si la suppression a réussi, False sinon.
         """
-        # 1. Vérification des données (Logique métier)
-        if not inscription.code_reservation:
-            # Lever une erreur si la clé de suppression est manquante
-            raise ValueError("L'objet Inscription doit contenir un 'code_reservation' valide pour la suppression.")
 
-        # 2. Logique de vérification supplémentaire (Exemple : Statut)
-        # Supposons qu'on ne puisse supprimer que les inscriptions dont le statut est 'Annulée'
-        # if inscription.statut != 'Annulée':
-        #     raise PermissionError("Seules les inscriptions annulées peuvent être supprimées définitivement.")
-        
-        # 3. Délégation à la DAO
-        # On appelle la méthode de la DAO et on retourne son résultat.
+        # 1. Vérification des données
+        if not code_reservation or not isinstance(code_reservation, str):
+            raise ValueError("Un 'code_reservation' valide est requis pour supprimer une inscription.")
+
+        # 2. Récupération de l'inscription correspondante
+        inscription_list = self.inscription_dao.get_by("code_reservation", code_reservation)
+
+        if not inscription_list:
+            raise ValueError(f"Aucune inscription trouvée avec le code {code_reservation}")
+
+        # On récupère l'objet
+        inscription = inscription_list[0]
+
+        # 3. Délégation à la DAO (elle attend toujours un objet Inscription)
         suppression_reussie = self.inscription_dao.supprimer(inscription)
-        
-        # 4. Logique post-opération (Exemple : Journalisation)
-        if suppression_reussie:
-            print(f"INFO: Inscription avec code {inscription.code_reservation} supprimée par le service.")
-            # self.log_service.enregistrer_evenement("SUPPRESSION", inscription.code_reservation)
 
+        # 4. Post-traitement / log
+        if suppression_reussie:
+            print(f"INFO : Inscription avec code {code_reservation} supprimée.")
+        
         return suppression_reussie

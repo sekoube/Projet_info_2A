@@ -18,6 +18,7 @@ class Inscription:
         boit: bool = False,
         mode_paiement: str = "",
         nom_event: str = "",
+        created_at: Optional[datetime] = None,
         created_by: Optional[int] = None
     ):
         """
@@ -92,21 +93,21 @@ class Inscription:
             "created_at": self.created_at.isoformat(),
         }
 
-@staticmethod
-def from_dict(data: dict) -> "Inscription":
+    @staticmethod
+    def from_dict(data: dict) -> "Inscription":
 
-    created_at = data.get("created_at")
-    if isinstance(created_at, str):
-        created_at = datetime.fromisoformat(created_at)
+        created_at = data.get("created_at")
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
 
-    return Inscription(
-        code_reservation=data.get("code_reservation"),
-        boit=data.get("boit", False),
-        created_by=data.get("created_by"),
-        mode_paiement=data.get("mode_paiement", ""),
-        id_event=data.get("id_event", ""),
-        nom_event=data.get("nom_event", ""),
-        created_at=created_at,
-        id_bus_aller=data.get("id_bus_aller", ""),
-        id_bus_retour=data.get("id_bus_retour", ""),
-    )
+        return Inscription(
+            code_reservation=data.get("code_reservation"),
+            boit=data.get("boit", False),
+            created_by=data.get("created_by"),
+            mode_paiement=data.get("mode_paiement", ""),
+            id_event=data.get("id_event", ""),
+            nom_event=data.get("nom_event", ""),
+            created_at=created_at,
+            id_bus_aller=data.get("id_bus_aller", ""),
+            id_bus_retour=data.get("id_bus_retour", ""),
+        )
