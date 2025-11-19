@@ -29,8 +29,8 @@ CREATE TABLE projet.evenement (
     capacite_max          INT CHECK (capacite_max > 0),
     created_by            INT NOT NULL REFERENCES projet.utilisateur(id_utilisateur) ON DELETE SET NULL,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tarif                 NUMERIC(10,2) CHECK (tarif >= 0)
-    statut                TEXT,
+    tarif                 NUMERIC(10,2) CHECK (tarif >= 0),
+    statut                TEXT
 );
 
 
@@ -40,7 +40,7 @@ CREATE TABLE projet.evenement (
 CREATE TABLE projet.bus (
     id_bus          SERIAL PRIMARY KEY,
     id_event        INT NOT NULL,
-    sens            BOOLEAN NOT NULL,
+    sens            TEXT,
     description     TEXT,
     capacite_max    INT NOT NULL,
     heure_depart    TIME,

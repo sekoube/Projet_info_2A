@@ -50,10 +50,6 @@ class Inscription:
         # =================================================================
 
         # ========================== INITIALISATION ==========================
-        if nom_event not in Inscription._compteurs:
-            Inscription._compteurs[nom_event] = 0
-        Inscription._compteurs[nom_event] += 1
-
         self.code_reservation = code_reservation
         self.boit = boit
         self.mode_paiement = mode_paiement

@@ -2,7 +2,8 @@ from typing import List, Optional
 from dao.db_connection import DBConnection
 from business_object.evenement import Evenement
 from utils.singleton import Singleton
-
+from datetime import datetime
+from datetime import date
 
 class EvenementDAO(metaclass=Singleton):
     """
@@ -27,11 +28,11 @@ class EvenementDAO(metaclass=Singleton):
                         INSERT INTO evenement (
                             titre, description_event, lieu, 
                             date_event, capacite_max, created_by, 
-                            created_at, tarif
+                            created_at, tarif, statut
                         )
                         VALUES (%(titre)s, %(description_event)s, %(lieu)s, 
                                 %(date_event)s, %(capacite_max)s, %(created_by)s,
-                                %(created_at)s, %(tarif)s)
+                                %(created_at)s, %(tarif)s, %(statut)s)
                         RETURNING id_event;
                         """,
                         {
@@ -43,6 +44,7 @@ class EvenementDAO(metaclass=Singleton):
                             "created_by": evenement.created_by,
                             "created_at": evenement.created_at,
                             "tarif": float(evenement.tarif),
+                            "statut": evenement.statut,
                         },
                     )
                     result = cursor.fetchone()
@@ -55,64 +57,68 @@ class EvenementDAO(metaclass=Singleton):
             return False
 
     def lister_tous(self) -> List[Evenement]:
-        """
-        Liste tous les événements de la base de données.
-
-        return: Liste d'objets Evenement
-        ------
-        """
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
                         SELECT id_event, titre, description_event, lieu,
-                               date_event, capacite_max, created_by,
-                               created_at, tarif
+                            date_event, capacite_max, created_by,
+                            created_at, tarif, statut
                         FROM evenement
                         ORDER BY date_event DESC;
                         """
                     )
-                    results = cursor.fetchall()
-                    
+                    rows = cursor.fetchall()
+
                     evenements = []
-                    for row in results:
-                        evenement = Evenement(
-                            id_event=row["id_event"],
-                            titre=row["titre"],
-                            description_event=row["description_event"],
-                            lieu=row["lieu"],
-                            date_event=row["date_event"],
-                            capacite_max=row["capacite_max"],
-                            created_by=row["created_by"],
-                            created_at=row["created_at"],
-                            tarif=float(row["tarif"]),
-                        )
-                        evenements.append(evenement)
+                    for row in rows:
+                        # transformer chaque tuple SQL en dict
+                        columns = [desc[0] for desc in cursor.description]
+                        row_dict = dict(zip(columns, row))
+
+                        # reconstruire proprement l'objet métier
+                        evenements.append(Evenement.from_dict(row_dict))
 
                     return evenements
+
         except Exception as e:
             print(f"Erreur lors de la récupération des événements : {e}")
             return []
 
-    def get_by_field(self, field: str, value) ->  Evenement | None:
-        """Retourne un Evenement selon un champ donné."""
+    def get_by(self, column: str, value) -> list[Evenement]:
+        # Liste blanche pour éviter les injections SQL via le nom de colonne
+        allowed_columns = {
+            "id_event",
+            "titre",
+            "description_event",
+            "lieu",
+            "date_event",
+            "capacite_max",
+            "created_by",
+            "created_at",
+            "tarif",
+            "statut"
+        }
 
-        # Sécurité : liste blanche des champs autorisés
-        allowed_fields = {"id_event", "titre", "description_event", "lieu",
-                               "date_event", "capacite_max", "created_by",
-                               "created_at, tarif", "statut"}
-        if field not in allowed_fields:
-            raise ValueError(f"Champ non autorisé : {field}")
+        if column not in allowed_columns:
+            raise ValueError(f"Colonne '{column}' non autorisée.")
 
-        query = f"SELECT * FROM evenement WHERE {field} = %s"
+        query = f"""
+            SELECT id_event, titre, description_event, lieu,
+                date_event, capacite_max, created_by,
+                created_at, tarif, statut
+            FROM evenement
+            WHERE {column} = %(value)s;
+        """
 
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (value,))
-                row = cursor.fetchone()
+        with DBConnection().connection.cursor() as cursor:
+            cursor.execute(query, {"value": value})
+            rows = cursor.fetchall()
 
-                return Evenement.from_dict(row) if row else None
+        # Chaque ligne est convertie avec ton from_dict
+        return [Evenement.from_dict(row) for row in rows]
+
 
     def supprimer(self, evenement: Evenement) -> bool:
         """

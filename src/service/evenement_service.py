@@ -1,6 +1,7 @@
 from typing import Optional, List
 from business_object.evenement import Evenement
 from business_object.inscription import Inscription
+from business_object.utilisateur import Utilisateur
 import random
 STATUTS_VALIDES = ['en_cours', 'complet', 'passe']
 
@@ -33,7 +34,8 @@ class EvenementService:
         date_event,
         capacite_max: int,
         description_event: str = "",
-        tarif: float = 0.00
+        tarif: float = 0.00,
+        created_by: int = None  # on passe maintenant l'ID utilisateur directement
     ) -> Optional[Evenement]:
         """
         Crée un nouvel événement et le persiste en base de données.
@@ -47,6 +49,12 @@ class EvenementService:
 
         return: Objet Evenement créé ou None en cas d'erreur
         """
+        # Validation : l'utilisateur existe-t-il ?
+        utilisateur = self.utilisateur_dao.get_by("id_utilisateur", created_by)
+        if not utilisateur:
+            print(f"Erreur : Utilisateur {created_by} introuvable")
+            return None
+
         try:
             # Créer l'objet métier (les validations sont faites dans le constructeur)
             nouvel_evenement = Evenement(
@@ -55,7 +63,8 @@ class EvenementService:
                 date_event=date_event,
                 capacite_max=capacite_max,
                 description_event=description_event,
-                tarif=tarif
+                tarif=tarif,
+                created_by=created_by  # on utilise directement l'ID
             )
 
             # Persister en base de données
@@ -70,25 +79,16 @@ class EvenementService:
             print(f"Erreur de validation : {e}")
             return None
 
-    def get_evenement_by_field(self, field: str, value) -> Optional[Evenement]:
-        """
-        Récupère un Evenement selon un champ donné.
 
-        field : nom du champ
-        value : valeur à chercher
-
-        return : Bus ou None si non trouvé
-        """
+    def get_evenement_by(self, field: str, value) -> list[Evenement]:
         try:
-            return self.evenement_dao.get_by_field(field, value)
+            return self.evenement_dao.get_by(field, value)
         except ValueError as ve:
-            # Capture la validation du champ
             print(f"Champ non autorisé : {ve}")
-            return None
+            return []
         except Exception as e:
-            # Autres erreurs (connexion, SQL, etc.)
             print(f"Erreur lors de la récupération de l'evenement : {e}")
-            return None
+            return []
 
 
     def get_tous_les_evenement(self) -> list[Evenement]:

@@ -3,6 +3,7 @@ from business_object.inscription import Inscription
 from dao.inscription_dao import InscriptionDAO
 from dao.evenement_dao import EvenementDAO
 from dao.utilisateur_dao import UtilisateurDAO
+from business_object.utilisateur import Utilisateur
 import random
 import string
 import random
@@ -33,7 +34,7 @@ class InscriptionService:
             code = int(random.randint(10**(longueur - 1), 10**longueur - 1))
 
             # Vérifie l'unicité via la base de données / DAO
-            if not self.inscription_dao.trouver_par_code_reservation(code):
+            if not self.inscription_dao.get_by("code_reservation", code):
                 return code
 
     def creer_inscription(
@@ -43,21 +44,22 @@ class InscriptionService:
         id_event: str,
         nom_event: str,
         id_bus_aller: int,
-        id_bus_retour: int
+        id_bus_retour: int,
+        created_by: int  # on passe maintenant directement l'ID utilisateur
     ) -> Optional[Inscription]:
         """
         Crée une nouvelle inscription avec validations métier.
-        
+
         return: Inscription créée ou None si échec
         """
         # Validation : l'utilisateur existe-t-il ?
-        utilisateur = self.utilisateur_dao.get_by_id(created_by)
+        utilisateur = self.utilisateur_dao.get_by("id_utilisateur", created_by)
         if not utilisateur:
             print(f"Erreur : Utilisateur {created_by} introuvable")
             return None
 
         # Validation : l'événement existe-t-il ?
-        evenement = self.evenement_dao.get_by_id(id_event)
+        evenement = self.evenement_dao.get_by("id_event", id_event)
         if not evenement:
             print(f"Erreur : Événement {id_event} introuvable")
             return None
@@ -69,7 +71,7 @@ class InscriptionService:
             return None
 
         # Validation : l'utilisateur est-il déjà inscrit ?
-        if self.est_deja_inscrit(created_by, id_event):
+        if self.inscription_dao.est_deja_inscrit(created_by, id_event):
             print(f"Erreur : L'utilisateur {created_by} est déjà inscrit à {nom_event}")
             return None
 
@@ -85,7 +87,8 @@ class InscriptionService:
                 id_event=id_event,
                 nom_event=nom_event,
                 id_bus_aller=id_bus_aller,
-                id_bus_retour=id_bus_retour
+                id_bus_retour=id_bus_retour,
+                created_by=created_by  # on utilise directement l'ID
             )
 
             # Enregistrement en base de données
@@ -96,6 +99,7 @@ class InscriptionService:
             return None
 
 
+
     def lister_toutes_inscriptions(self) -> List[Inscription]:
         """
         Liste toutes les inscriptions.
@@ -104,7 +108,7 @@ class InscriptionService:
         """
         return self.inscription_dao.lister_toutes()
 
-    def get_inscription_by_field(self, field: str, value) -> Optional[Inscription]:
+    def get_inscription_by(self, field: str, value) -> Optional[Inscription]:
         """
         Récupère une Inscription en fonction d'un champ et de sa valeur.
 
@@ -121,7 +125,7 @@ class InscriptionService:
         # Le service délègue la validation des champs et la logique de base de données 
         # directement à la DAO.
         try:
-            inscription = self.inscription_dao.get_by_field(field, value)
+            inscription = self.inscription_dao.get_by(field, value)
             
             # Ici, vous pourriez ajouter de la logique métier supplémentaire 
             # si nécessaire (ex: vérifier des permissions, journaliser l'accès, 

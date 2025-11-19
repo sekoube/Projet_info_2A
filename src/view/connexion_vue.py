@@ -13,7 +13,7 @@ def connexion_terminal(service_utilisateur: UtilisateurService, evenement_servic
 
     utilisateur = service_utilisateur.authentifier(email, mot_de_passe)
     if utilisateur:
-        print(f"✅ Bienvenue {utilisateur.pseudo} !")
+        print(f"✅ Bienvenue {utilisateur.prenom}, {utilisateur.nom}!")
         if not utilisateur.role:  # Utilisateur simple
             page_utilisateur(utilisateur, evenement_service, inscription_service)
         else:

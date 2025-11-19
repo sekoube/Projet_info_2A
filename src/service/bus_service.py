@@ -1,8 +1,8 @@
-# src/service/bus_service.py
 from typing import Optional
 from business_object.bus import Bus
 from dao.bus_dao import BusDAO
 from dao.evenement_dao import EvenementDAO
+from time import time
 
 
 class BusService:
@@ -87,7 +87,7 @@ class BusService:
             return False
 
 
-    def get_bus_by_field(self, field: str, value) -> Optional[Bus]:
+    def get_bus_by(self, field: str, value) -> Optional[Bus]:
         """
         Récupère un Bus selon un champ donné.
 
@@ -97,7 +97,7 @@ class BusService:
         return : Bus ou None si non trouvé
         """
         try:
-            return self.bus_dao.get_by_field(field, value)
+            return self.bus_dao.get_by(field, value)
         except ValueError as ve:
             # Capture la validation du champ
             print(f"Champ non autorisé : {ve}")

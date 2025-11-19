@@ -3,12 +3,10 @@ from service.utilisateur_service import UtilisateurService
 from service.evenement_service import EvenementService
 from service.inscription_service import InscriptionService
 import getpass
+import traceback
 
 def creer_compte_terminal(service: UtilisateurService):
     print("\n=== Création de compte ===")
-    pseudo = input("Pseudo : ").strip()
-    while not pseudo:
-        pseudo = input("Pseudo obligatoire, réessayez : ").strip()
 
     nom = input("Nom : ").strip()
     while not nom:
@@ -30,7 +28,8 @@ def creer_compte_terminal(service: UtilisateurService):
     role = role_input == "oui"
 
     try:
-        service.creer_compte(pseudo, nom, prenom, email, mot_de_passe, role)
+        service.creer_utilisateur(nom, prenom, email, mot_de_passe, role)
         print("✅ Compte créé avec succès !")
     except Exception as e:
-        print(f"❌ Erreur lors de la création du compte : {e}")
+        print("❌ Erreur lors de la création du compte :")
+        traceback.print_exc()

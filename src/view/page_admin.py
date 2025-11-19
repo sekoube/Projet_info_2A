@@ -24,7 +24,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
 
         # ---- OPTION 1 : Liste des événements ----
         if choix == "1":
-            evenements = evenement_service.get_evenements_disponibles()
+            evenements = evenement_service.get_evenement_by("statut", "en_cours")
             if not evenements:
                 print("Aucun événement disponible pour le moment.")
             else:
@@ -65,9 +65,9 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 lieu=lieu,
                 date_event=date_event,
                 capacite_max=capacite_max,
-                created_by=utilisateur.id_utilisateur,  # ID de l'admin
                 description_event=description,
-                tarif=tarif
+                tarif=tarif,
+                created_by=utilisateur.id_utilisateur,
             )
 
             if nouvel_evenement:
@@ -85,7 +85,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
             print("\n=== Création d’un bus ===")
 
             # Liste les événements pour que l'admin choisisse l’un d’eux
-            evenements = evenement_service.get_evenements_disponibles()
+            evenements = evenement_service.get_evenement_by("statut", "en_cours")
             if not evenements:
                 print("❌ Aucun événement disponible, impossible de créer un bus.")
                 continue
@@ -121,18 +121,14 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print(f"❌ Erreur dans les données saisies : {e}")
                 continue
 
-            # Création de l'objet Bus
-            bus = Bus(
-                id_bus=None,
+            try:
+                nouveau_bus = bus_service.creer_bus(
                 id_event=id_event,
                 sens=sens,
                 description=description,
                 heure_depart=heure_depart,
-                capacite_max=capacite
-            )
-
-            try:
-                nouveau_bus = bus_service.creer_bus(bus, utilisateur)
+                capacite_max=capacite)
+                
                 if nouveau_bus:
                     print(f"✅ Bus créé avec succès pour l'événement {id_event} !")
                 else:

@@ -44,23 +44,35 @@ class InscriptionDAO:
             print(f"Erreur lors de la création de l'inscription : {e}")
             return None
 
-    def get_by_field(self, field: str, value) ->  Inscription | None:
-        """Retourne une Inscription selon un champ donné."""
+    def get_by(self, column: str, value) -> list[Inscription]:
+        # Liste blanche pour éviter les injections SQL via le nom de colonne
+        allowed_columns = {
+            "code_reservation",
+            "boit",
+            "created_by",
+            "mode_paiement",
+            "id_event",
+            "id_bus_aller",
+            "id_bus_retour",
+            "created_at"
+        }
 
-        # Sécurité : liste blanche des champs autorisés
-        allowed_fields = {"code_reservation", "boit", "created_by", "mode_paiement", 
-                        "id_event", "id_bus_retour", "id_bus_aller", "created_at"}
-        if field not in allowed_fields:
-            raise ValueError(f"Champ non autorisé : {field}")
+        if column not in allowed_columns:
+            raise ValueError(f"Colonne '{column}' non autorisée.")
 
-        query = f"SELECT * FROM inscription WHERE {field} = %s"
+        query = f"""
+            SELECT code_reservation, boit, created_by, mode_paiement, 
+                id_event, id_bus_aller, id_bus_retour, created_at
+            FROM inscription
+            WHERE {column} = %(value)s;
+        """
 
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (value,))
-                row = cursor.fetchone()
+        with DBConnection().connection.cursor() as cursor:
+            cursor.execute(query, {"value": value})
+            rows = cursor.fetchall()
 
-                return Inscription.from_dict(row) if row else None
+        # Chaque ligne est convertie avec ton from_dict
+        return [Inscription.from_dict(row) for row in rows]
 
 
     def lister_toutes(self) -> List[Inscription]:
@@ -140,4 +152,32 @@ class InscriptionDAO:
 
         except Exception as e:
             print(f"Erreur lors de la suppression de l'inscription : {e}")
+            return False
+
+    def est_deja_inscrit(self, created_by: int, id_event: int) -> bool:
+        """
+        Vérifie si un utilisateur est déjà inscrit à un événement.
+
+        created_by : ID de l'utilisateur
+        id_event   : ID de l'événement
+
+        return : True si l'utilisateur est déjà inscrit, False sinon
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT 1
+                        FROM inscription
+                        WHERE created_by = %(created_by)s
+                        AND id_event = %(id_event)s
+                        LIMIT 1;
+                        """,
+                        {"created_by": created_by, "id_event": id_event}
+                    )
+                    return cursor.fetchone() is not None
+
+        except Exception as e:
+            print(f"Erreur lors de la vérification de l'inscription : {e}")
             return False

@@ -3,6 +3,7 @@ from typing import Optional, List
 from psycopg2.errors import UniqueViolation
 from business_object.utilisateur import Utilisateur
 from dao.db_connection import DBConnection
+from datetime import datetime
 
 
 class UtilisateurDAO:
@@ -12,7 +13,7 @@ class UtilisateurDAO:
     def creer(utilisateur: Utilisateur) -> Utilisateur:
         query = """
             INSERT INTO projet.utilisateur (nom, prenom, email, mot_de_passe, role, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id_utilisateur;
         """
         try:
@@ -53,19 +54,30 @@ class UtilisateurDAO:
                 cursor.execute(query, (id_utilisateur,))
                 return cursor.rowcount > 0
 
-    def get_by_field(self, field: str, value) ->  Utilisateur | None:
-        """Retourne un Utilisateur selon un champ donné."""
+    def get_by(self, column: str, value) -> list[Utilisateur]:
+        # Liste blanche pour éviter les injections SQL via le nom de colonne
+        allowed_columns = {
+            "id_utilisateur",
+            "nom",
+            "prenom",
+            "email",
+            "mot_de_passe",
+            "role",
+            "created_at"
+        }
 
-        # Sécurité : liste blanche des champs autorisés
-        allowed_fields = {"nom", "prenom", "email", "mot_de_passe", "role", "created_at", "id_utilisateur"}
-        if field not in allowed_fields:
-            raise ValueError(f"Champ non autorisé : {field}")
+        if column not in allowed_columns:
+            raise ValueError(f"Colonne '{column}' non autorisée.")
 
-        query = f"SELECT * FROM utilisateur WHERE {field} = %s"
+        query = f"""
+            SELECT id_utilisateur, nom, prenom, email, mot_de_passe, role, created_at
+            FROM projet.utilisateur
+            WHERE {column} = %(value)s;
+        """
 
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (value,))
-                row = cursor.fetchone()
+        with DBConnection().connection.cursor() as cursor:
+            cursor.execute(query, {"value": value})
+            rows = cursor.fetchall()
 
-                return Utilisateur.from_dict(row) if row else None
+        # Chaque ligne est convertie avec ton from_dict
+        return [Utilisateur.from_dict(row) for row in rows]

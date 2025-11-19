@@ -39,7 +39,11 @@ def menu():
         if choix == "1":
             creer_compte_terminal(service_utilisateur)
         elif choix == "2":
-            connexion_terminal(service_utilisateur, evenement_service, inscription_service)
+            connexion_terminal(
+                service_utilisateur,
+                evenement_service,
+                inscription_service
+            )
         elif choix == "3":
             print("👋 Au revoir !")
             break

@@ -88,14 +88,6 @@ class Evenement:
 
     # ************************ Méthodes ***********************************************
 
-    def est_passe(self) -> bool:
-        """
-        Vérifie si l'événement est déjà passé.
-
-        return: True si la date de l'événement est antérieure à aujourd'hui
-        ------
-        """
-        return self.date_event < date.today()
 
     def __str__(self) -> str:
         """
@@ -141,32 +133,32 @@ class Evenement:
 
     @staticmethod
     def from_dict(data: dict) -> "Evenement":
-        """
-        Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier.
+        """Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier."""
+        
+        date_created_at = data.get("created_at", datetime.now())
+        
+        # Si la date est une chaîne ISO, on la retransforme en datetime
+        if isinstance(date_created_at, str):
+            try:
+                date_created_at = datetime.fromisoformat(date_created_at)
+            except ValueError:
+                date_created_at = datetime.now()
 
-        data: Dictionnaire contenant les champs d'un événement
-
-        return: Instance de Evenement
-        ------
-        """
-        # Conversion de la date si elle est en format string
-        date_event = data.get("date_event")
-        if isinstance(date_event, str):
-            date_event = datetime.fromisoformat(date_event).date()
-
-        created_at = data.get("created_at")
-        if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at)
-
+        date_date_event = data.get("date_event")
+        
+        # Si la date est une chaîne ISO, on la retransforme en datetime
+        if isinstance(date_date_event, str):
+                date_date_event = datetime.fromisoformat(date_date_event)
+        
         return Evenement(
             id_event=data.get("id_event"),
             titre=data.get("titre", ""),
             description_event=data.get("description_event", ""),
             lieu=data.get("lieu", ""),
-            date_event=date_event,
+            date_event=date_date_event,
             capacite_max=data.get("capacite_max", 0),
+            created_at=date_created_at,
             created_by=data.get("created_by"),
-            created_at=created_at,
-            tarif=data.get("tarif", 0.00),
-            statut=data.get("statut", "en_cours"),
+            tarif=data.get("tarif", 0),
+            statut=data.get("statut", "en_cours")
         )

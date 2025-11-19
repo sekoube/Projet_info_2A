@@ -1,7 +1,8 @@
 from business_object.utilisateur import Utilisateur
 from dao.utilisateur_dao import UtilisateurDAO
 from utils.mdp import hash_password
-
+from typing import Optional
+from datetime import datetime
 
 class UtilisateurService:
     """
@@ -27,7 +28,7 @@ class UtilisateurService:
         """
 
         # Vérifier unicité e-mail
-        if self.utilisateur_dao.email_existe(email):
+        if self.get_utilisateur_by("email", email):
             print("Cet email est déjà utilisé.")
             return None
 
@@ -63,14 +64,17 @@ class UtilisateurService:
 
         return: Utilisateur si authentification réussie, None sinon
         """
-        utilisateur = self.utilisateur_dao.trouver_par_email(email)
-        if not utilisateur:
-            print("Aucun compte trouvé avec cet email.")
-            return None
+        utilisateurs = self.get_utilisateur_by('email', email)
 
-        if not utilisateur.verify_password(mot_de_passe):
-            print("Mot de passe incorrect.")
-            return None
+        #if not utilisateur.verify_password(mot_de_passe):
+            #print("Mot de passe incorrect.")
+            #return None
+
+        if utilisateurs:
+            utilisateur = utilisateurs[0]
+            print(f"Connexion réussie : {utilisateur.prenom}, {utilisateur.nom}")
+        else:
+            print("Utilisateur introuvable")
 
         print(f"Connexion réussie : {utilisateur.prenom}, {utilisateur.nom}")
         return utilisateur
@@ -118,7 +122,7 @@ class UtilisateurService:
             print("Erreur lors de la suppression de l'utilisateur.")
         return suppression_ok
 
-    def get_utilisateur_by_field(self, field: str, value) -> Optional[Utilisateur]:
+    def get_utilisateur_by(self, field: str, value) -> Optional[Utilisateur]:
         """
         Récupère un Utilisateur en fonction d'un champ et de sa valeur.
 
@@ -141,7 +145,7 @@ class UtilisateurService:
         try:
             # La DAO est responsable de l'exécution de la requête et de la validation
             # des champs autorisés (liste blanche).
-            utilisateur = self.utilisateur_dao.get_by_field(field, value)
+            utilisateur = self.utilisateur_dao.get_by(field, value)
             
             # 3. Logique post-récupération (si nécessaire)
             # Par exemple, masquer le champ 'mot_de_passe' avant de retourner l'objet, 

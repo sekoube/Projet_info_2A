@@ -18,7 +18,7 @@ def page_utilisateur(utilisateur, evenement_service: EvenementService, inscripti
         choix = input("Choisissez une option : ").strip()
 
         if choix == "1":
-            evenements = evenement_service.get_evenements_disponibles()
+            evenements = evenement_service.get_evenement_by("statut", "en_cours")
             if not evenements:
                 print("Aucun événement disponible pour le moment.")
             else:

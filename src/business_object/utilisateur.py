@@ -101,6 +101,7 @@ class Utilisateur:
     @staticmethod
     def from_dict(data: dict) -> "Utilisateur":
         """Transformation d'un dict (provenant de la DAO ou de l'API) vers un objet métier."""
+        
         date_value = data.get("created_at", datetime.now())
         
         # Si la date est une chaîne ISO, on la retransforme en datetime
@@ -119,6 +120,7 @@ class Utilisateur:
             role=data.get("role", False),
             created_at=date_value,
         )
+
 
     @property
     def is_admin(self) -> bool:
