@@ -66,9 +66,7 @@ class Bus:
         # Assignation des attributs
         self.id_bus = id_bus
         self.id_event = id_event
-        
-        # Conversion du sens en booléen (True = Aller, False = Retour)
-        self.sens = sens
+        self.sens = sens_normalise
         
         self.description = description
         
