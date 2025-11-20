@@ -3,8 +3,22 @@ Point d'entrée principal de l'application de gestion d'événements.
 Lance l'interface utilisateur et initialise les services.
 """
 
-from view.menu_principal import MenuPrincipal
 from dao.db_connection import DBConnection
+
+# Import des DAO
+from dao.evenement_dao import EvenementDAO
+from dao.inscription_dao import InscriptionDAO
+from dao.utilisateur_dao import UtilisateurDAO
+from dao.bus_dao import BusDAO
+
+# Import des services
+from service.utilisateur_service import UtilisateurService
+from service.evenement_service import EvenementService
+from service.inscription_service import InscriptionService
+
+# Import des vues
+from view.menu_principal import MenuPrincipal
+
 
 def main():
     """
@@ -22,9 +36,34 @@ def main():
         print(f"✗ Erreur de connexion à la base de données : {e}")
         return
 
-    # Lancer le menu principal
-    menu = MenuPrincipal()
+    # ==== Initialisation des DAO ====
+    evenement_dao = EvenementDAO()
+    inscription_dao = InscriptionDAO()
+    utilisateur_dao = UtilisateurDAO()
+    bus_dao = BusDAO()
+
+    # ==== Initialisation des Services ====
+    service_utilisateur = UtilisateurService()
+    service_evenement = EvenementService(
+        evenement_dao,
+        inscription_dao,
+        utilisateur_dao,
+        bus_dao
+    )
+    service_inscription = InscriptionService(
+        inscription_dao,
+        evenement_dao,
+        utilisateur_dao
+    )
+
+    # ==== Lancer le menu principal ====
+    menu = MenuPrincipal(
+        service_utilisateur,
+        service_evenement,
+        service_inscription
+    )
     menu.afficher()
+
 
 if __name__ == "__main__":
     main()

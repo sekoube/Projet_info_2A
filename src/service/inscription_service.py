@@ -16,7 +16,7 @@ class InscriptionService:
     Fait le lien entre les DAO et la couche de présentation.
     """
 
-    def __init__(self):
+    def __init__(self, inscription_dao, evenement_dao, utilisateur_dao):
         self.inscription_dao = InscriptionDAO()
         self.evenement_dao = EvenementDAO()
         self.utilisateur_dao = UtilisateurDAO()
