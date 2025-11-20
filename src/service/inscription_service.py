@@ -102,10 +102,10 @@ class InscriptionService:
 
                 # 9. Envoi email automatique
                 try:
-                    to_email = utilisateur.email  # supposons que l'objet Utilisateur a un attribut 'email'
+                    to_email = utilisateur[0].email  # supposons que l'objet Utilisateur a un attribut 'email'
                     subject = f"Confirmation d'inscription à {nom_event}"
                     message_text = (
-                        f"Bonjour {utilisateur.nom},\n\n"
+                        f"Bonjour {utilisateur[0].nom},\n\n"
                         f"Votre inscription à l'événement '{nom_event}' a été confirmée.\n"
                         f"Votre code de réservation : {code_reservation}\n\n"
                         "Merci et à bientôt !"
