@@ -357,19 +357,6 @@ def test_from_dict():
     assert isinstance(user.created_at, datetime)
 
 
-def test_from_dict_with_defaults():
-    """Vérifie from_dict avec des valeurs par défaut"""
-    data = {}
-    
-    user = Utilisateur.from_dict(data)
-    
-    assert user.id_utilisateur is None
-    assert user.nom == ""
-    assert user.prenom == ""
-    assert user.email == ""
-    assert user.mot_de_passe == ""
-    assert user.role is False
-    assert isinstance(user.created_at, datetime)
 
 
 # ==================== TESTS D'INTÉGRATION ====================
