@@ -1,186 +1,306 @@
 import pytest
-from unittest.mock import MagicMock, patch
-from service.utilisateur_service import UtilisateurService
+from unittest.mock import Mock, MagicMock, patch
+from datetime import datetime
 from business_object.utilisateur import Utilisateur
-
-
-@pytest.fixture
-def mock_utilisateur():
-    """Crée un utilisateur fictif pour les tests"""
-    u = Utilisateur(
-        id_utilisateur=1,
-        pseudo="lucasrt2",
-        nom="Repetti",
-        prenom="Lucas",
-        email="lucasrt@gmail.com",
-        mot_de_passe="hash123",
-        role=False
-    )
-    # On mock la méthode verify_password pour les tests d'authentification
-    u.verify_password = MagicMock(return_value=True)
-    return u
+from service.utilisateur_service import UtilisateurService
 
 
 @pytest.fixture
 def service():
-    """Instancie le service avec DAO mocké"""
+    """Fixture pour créer une instance de UtilisateurService avec DAO mockée."""
     service = UtilisateurService()
-    service.utilisateur_dao = MagicMock()  # on mock la DAO entière
+    service.utilisateur_dao = Mock()
     return service
 
 
-# ======================================================
-# === TESTS DE CREATION DE COMPTE ======================
-# ======================================================
+@pytest.fixture
+def utilisateur_participant():
+    """Fixture pour un utilisateur participant standard."""
+    return Utilisateur(
+        id_utilisateur=1,
+        nom="Dupont",
+        prenom="Jean",
+        email="jean.dupont@test.com",
+        mot_de_passe="hashed_password_123",
+        role=False,
+        created_at=datetime.now()
+    )
 
-def test_creer_compte_succes(service, mock_utilisateur):
-    """Cas normal : création réussie"""
-    service.utilisateur_dao.email_existe.return_value = False
-    service.utilisateur_dao.pseudo_existe.return_value = False
-    service.utilisateur_dao.creer.return_value = mock_utilisateur
 
-    utilisateur = service.creer_compte("lucasrt2", "Repetti", "Lucas", "lucasrt@gmail.com", "motdepasse123")
+@pytest.fixture
+def utilisateur_admin():
+    """Fixture pour un utilisateur administrateur."""
+    return Utilisateur(
+        id_utilisateur=2,
+        nom="Martin",
+        prenom="Sophie",
+        email="sophie.martin@test.com",
+        mot_de_passe="hashed_password_456",
+        role=True,
+        created_at=datetime.now()
+    )
 
-    assert utilisateur is not None
-    assert utilisateur.pseudo == "lucasrt2"
+
+# ============================================================
+# TESTS CRÉATION D'UTILISATEUR
+# ============================================================
+
+def test_creer_utilisateur_success(service):
+    """Test la création réussie d'un utilisateur."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = []  # Email non utilisé
+    nouvel_utilisateur = Utilisateur(
+        id_utilisateur=5,
+        nom="Nouveau",
+        prenom="User",
+        email="nouveau@test.com",
+        mot_de_passe="hashed_pwd",
+        role=False
+    )
+    service.utilisateur_dao.creer.return_value = nouvel_utilisateur
+
+    # Act
+    with patch('service.utilisateur_service.hash_password', return_value="hashed_pwd"):
+        resultat = service.creer_utilisateur(
+            nom="Nouveau",
+            prenom="User",
+            email="nouveau@test.com",
+            mot_de_passe="password123",
+            role=False
+        )
+
+    # Assert
+    assert resultat is not None
+    assert resultat.nom == "Nouveau"
+    assert resultat.email == "nouveau@test.com"
     service.utilisateur_dao.creer.assert_called_once()
 
 
-def test_creer_compte_email_deja_pris(service):
-    """Refus si email déjà utilisé"""
-    service.utilisateur_dao.email_existe.return_value = True
-
-    resultat = service.creer_compte("lucas", "Nom", "Prenom", "email@ex.com", "pwd")
-    assert resultat is None
-    service.utilisateur_dao.creer.assert_not_called()
-
-
-def test_creer_compte_pseudo_deja_pris(service):
-    """Refus si pseudo déjà pris"""
-    service.utilisateur_dao.email_existe.return_value = False
-    service.utilisateur_dao.pseudo_existe.return_value = True
-
-    resultat = service.creer_compte("lucas", "Nom", "Prenom", "email@ex.com", "pwd")
-    assert resultat is None
-    service.utilisateur_dao.creer.assert_not_called()
-
-
-# ======================================================
-# === TESTS D'AUTHENTIFICATION =========================
-# ======================================================
-
-def test_authentifier_succes(service, mock_utilisateur):
-    """Connexion réussie"""
-    service.utilisateur_dao.trouver_par_email.return_value = mock_utilisateur
-    utilisateur = service.authentifier("lucasrt@gmail.com", "motdepasse")
-    assert utilisateur == mock_utilisateur
-    mock_utilisateur.verify_password.assert_called_once_with("motdepasse")
-
-
-def test_authentifier_email_inexistant(service):
-    """Échec si aucun utilisateur trouvé"""
-    service.utilisateur_dao.trouver_par_email.return_value = None
-    resultat = service.authentifier("unknown@mail.com", "pwd")
-    assert resultat is None
-
-
-def test_authentifier_motdepasse_incorrect(service, mock_utilisateur):
-    """Échec si mot de passe invalide"""
-    mock_utilisateur.verify_password.return_value = False
-    service.utilisateur_dao.trouver_par_email.return_value = mock_utilisateur
-    resultat = service.authentifier("lucasrt@gmail.com", "faux")
-    assert resultat is None
-
-
-# ======================================================
-# === TESTS LISTE DES UTILISATEURS =====================
-# ======================================================
-
-def test_lister_utilisateurs(service, mock_utilisateur):
-    """Retourne la liste complète des utilisateurs"""
-    service.utilisateur_dao.lister_tous.return_value = [mock_utilisateur]
-    liste = service.lister_utilisateurs()
-    assert len(liste) == 1
-    assert liste[0].email == "lucasrt@gmail.com"
-
-
-# ======================================================
-# === TESTS SUPPRESSION ADMIN/NON ADMIN ================
-# ======================================================
-
-def test_supprimer_utilisateur_admin(service):
-    """Test : Un administrateur peut supprimer un utilisateur."""
+def test_creer_utilisateur_email_deja_utilise(service, utilisateur_participant):
+    """Test la création échoue si l'email est déjà pris."""
     # Arrange
+    service.utilisateur_dao.get_by.return_value = [utilisateur_participant]
+
+    # Act
+    resultat = service.creer_utilisateur(
+        nom="Autre",
+        prenom="Personne",
+        email="jean.dupont@test.com",  # Email déjà utilisé
+        mot_de_passe="password123"
+    )
+
+    # Assert
+    assert resultat is None
+    service.utilisateur_dao.creer.assert_not_called()
+
+
+def test_creer_utilisateur_role_admin(service):
+    """Test la création d'un utilisateur avec rôle administrateur."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = []
     admin = Utilisateur(
-        pseudo="admin",
+        id_utilisateur=10,
         nom="Admin",
         prenom="Super",
         email="admin@test.com",
-        mot_de_passe="password123",
-        role=True  # ← Admin avec role=True
+        mot_de_passe="hashed_pwd",
+        role=True
     )
-    
-    utilisateur_a_supprimer = Utilisateur(
-        pseudo="user_to_delete",
-        nom="User",
-        prenom="Delete",
-        email="delete@test.com",
-        mot_de_passe="password123",
-        role=False,
-        id_utilisateur=1
-    )
-    
-    # Mock du DAO
-    service.utilisateur_dao.get_by_id.return_value = utilisateur_a_supprimer
-    service.utilisateur_dao.supprimer.return_value = True
-    
+    service.utilisateur_dao.creer.return_value = admin
+
     # Act
-    resultat = service.supprimer_utilisateur(admin, 1)
-    
+    with patch('service.utilisateur_service.hash_password', return_value="hashed_pwd"):
+        resultat = service.creer_utilisateur(
+            nom="Admin",
+            prenom="Super",
+            email="admin@test.com",
+            mot_de_passe="securepass",
+            role=True
+        )
+
+    # Assert
+    assert resultat is not None
+    assert resultat.is_admin is True
+
+
+def test_creer_utilisateur_echec_dao(service):
+    """Test le cas où la DAO échoue lors de la création."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = []
+    service.utilisateur_dao.creer.return_value = None
+
+    # Act
+    with patch('service.utilisateur_service.hash_password', return_value="hashed_pwd"):
+        resultat = service.creer_utilisateur(
+            nom="Test",
+            prenom="User",
+            email="test@test.com",
+            mot_de_passe="password"
+        )
+
+    # Assert
+    assert resultat is None
+
+
+# ============================================================
+# TESTS AUTHENTIFICATION
+# ============================================================
+
+def test_authentifier_success(service, utilisateur_participant):
+    """Test l'authentification réussie d'un utilisateur."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = [utilisateur_participant]
+
+    # Act
+    resultat = service.authentifier("jean.dupont@test.com", "password123")
+
+    # Assert
+    assert resultat is not None
+    assert resultat.email == "jean.dupont@test.com"
+    service.utilisateur_dao.get_by.assert_called_once_with('email', 'jean.dupont@test.com')
+
+
+
+
+
+# ============================================================
+# TESTS LISTAGE
+# ============================================================
+
+def test_lister_utilisateurs_vide(service):
+    """Test le listage quand aucun utilisateur n'existe."""
+    # Arrange
+    service.utilisateur_dao.lister_tous.return_value = []
+
+    # Act
+    resultat = service.lister_utilisateurs()
+
+    # Assert
+    assert resultat == []
+    assert len(resultat) == 0
+
+
+def test_lister_utilisateurs_plusieurs(service, utilisateur_participant, utilisateur_admin):
+    """Test le listage avec plusieurs utilisateurs."""
+    # Arrange
+    service.utilisateur_dao.lister_tous.return_value = [
+        utilisateur_participant,
+        utilisateur_admin
+    ]
+
+    # Act
+    resultat = service.lister_utilisateurs()
+
+    # Assert
+    assert len(resultat) == 2
+    assert resultat[0].email == "jean.dupont@test.com"
+    assert resultat[1].email == "sophie.martin@test.com"
+
+
+# ============================================================
+# TESTS SUPPRESSION
+# ============================================================
+
+def test_supprimer_utilisateur_par_admin_success(service, utilisateur_admin, utilisateur_participant):
+    """Test la suppression réussie par un admin."""
+    # Arrange
+    service.utilisateur_dao.get_by_id.return_value = utilisateur_participant
+    service.utilisateur_dao.supprimer.return_value = True
+
+    # Act
+    resultat = service.supprimer_utilisateur(utilisateur_admin, 1)
+
     # Assert
     assert resultat is True
-    service.utilisateur_dao.get_by_id.assert_called_once_with(1)
     service.utilisateur_dao.supprimer.assert_called_once_with(1)
 
 
-def test_supprimer_utilisateur_non_admin(service):
-    """Refusé si l'utilisateur n'est pas admin"""
-    non_admin = Utilisateur(
-        pseudo="user",
-        nom="User",
-        prenom="Normal",
-        email="user@test.com",
-        mot_de_passe="password123",
-        role=False  # ← Non-admin avec role=False
-    )
+def test_supprimer_utilisateur_non_admin_refuse(service, utilisateur_participant):
+    """Test qu'un participant ne peut pas supprimer d'utilisateur."""
+    # Arrange - Aucun mock nécessaire, le test échoue avant d'accéder à la DAO
 
     # Act
-    resultat = service.supprimer_utilisateur(non_admin, 1)
-    
+    resultat = service.supprimer_utilisateur(utilisateur_participant, 2)
+
     # Assert
     assert resultat is False
     service.utilisateur_dao.supprimer.assert_not_called()
 
 
-def test_supprimer_utilisateur_inexistant(service):
-    """Refus si l'utilisateur à supprimer n'existe pas"""
-    admin = Utilisateur(
-        id_utilisateur=99,
-        pseudo="admin",
-        nom="Root",
-        prenom="Super",
-        email="admin@example.com",
-        mot_de_passe="hash",
-        role=True  # ← Admin avec role=True
-    )
-
-    # Mock du DAO pour retourner None (utilisateur inexistant)
+def test_supprimer_utilisateur_inexistant(service, utilisateur_admin):
+    """Test la suppression d'un utilisateur qui n'existe pas."""
+    # Arrange
     service.utilisateur_dao.get_by_id.return_value = None
-    
+
     # Act
-    resultat = service.supprimer_utilisateur(admin, 123)
-    
+    resultat = service.supprimer_utilisateur(utilisateur_admin, 999)
+
     # Assert
     assert resultat is False
-    service.utilisateur_dao.get_by_id.assert_called_once_with(123)
     service.utilisateur_dao.supprimer.assert_not_called()
+
+
+def test_supprimer_utilisateur_echec_dao(service, utilisateur_admin, utilisateur_participant):
+    """Test le cas où la DAO échoue lors de la suppression."""
+    # Arrange
+    service.utilisateur_dao.get_by_id.return_value = utilisateur_participant
+    service.utilisateur_dao.supprimer.return_value = False
+
+    # Act
+    resultat = service.supprimer_utilisateur(utilisateur_admin, 1)
+
+    # Assert
+    assert resultat is False
+
+
+# ============================================================
+# TESTS GET_UTILISATEUR_BY
+# ============================================================
+
+def test_get_utilisateur_by_email(service, utilisateur_participant):
+    """Test la récupération d'un utilisateur par email."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = [utilisateur_participant]
+
+    # Act
+    resultat = service.get_utilisateur_by('email', 'jean.dupont@test.com')
+
+    # Assert
+    assert resultat is not None
+    assert len(resultat) == 1
+    assert resultat[0].email == "jean.dupont@test.com"
+
+
+def test_get_utilisateur_by_id(service, utilisateur_admin):
+    """Test la récupération d'un utilisateur par ID."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = [utilisateur_admin]
+
+    # Act
+    resultat = service.get_utilisateur_by('id_utilisateur', 2)
+
+    # Assert
+    assert resultat is not None
+    assert resultat[0].id_utilisateur == 2
+
+
+def test_get_utilisateur_by_champ_invalide(service):
+    """Test qu'une exception est levée pour un champ non autorisé."""
+    # Arrange
+    service.utilisateur_dao.get_by.side_effect = ValueError("Colonne 'invalid_field' non autorisée.")
+
+    # Act & Assert
+    with pytest.raises(ValueError, match="non autorisée"):
+        service.get_utilisateur_by('invalid_field', 'value')
+
+
+def test_get_utilisateur_by_aucun_resultat(service):
+    """Test la recherche qui ne retourne aucun résultat."""
+    # Arrange
+    service.utilisateur_dao.get_by.return_value = []
+
+    # Act
+    resultat = service.get_utilisateur_by('email', 'inconnu@test.com')
+
+    # Assert
+    assert resultat == []

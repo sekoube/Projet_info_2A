@@ -1,387 +1,392 @@
-# src/tests/tests_dao/test_evenement_dao.py
-from datetime import date, timedelta
+import unittest
+from unittest.mock import Mock, MagicMock, patch
+from datetime import datetime
 from dao.evenement_dao import EvenementDAO
 from business_object.evenement import Evenement
-import pytest
 
 
-# ==================== TESTS DE CRÉATION ====================
+class TestEvenementDAO(unittest.TestCase):
+    """Tests unitaires pour le DAO d'événement"""
 
-def test_creer_evenement_succes(utilisateur_test):
-    """Test la création d'un événement avec succès"""
-    evenement = Evenement(
-        titre="Concert Test",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description du concert test",
-        tarif=10.0
-    )
-    
-    resultat = EvenementDAO().creer(evenement)
-    assert resultat is True
-    assert evenement.id_event is not None  # Vérifie que l'ID a été généré
+    def setUp(self):
+        """Initialisation avant chaque test"""
+        self.dao = EvenementDAO()
+        self.mock_connection = MagicMock()
+        self.mock_cursor = MagicMock()
 
-
-# ==================== TESTS DE RÉCUPÉRATION ====================
-
-def test_get_by_id_existant(utilisateur_test):
-    """Test la récupération d'un événement existant"""
-    evenement = Evenement(
-        titre="Concert Test",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description du concert test",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere is not None
-    assert evenement_recupere.titre == "Concert Test"
-    assert evenement_recupere.lieu == "Paris"
-    assert evenement_recupere.capacite_max == 100
-    assert float(evenement_recupere.tarif) == 10.0
-
-
-
-
-# ==================== TESTS DE LISTAGE ====================
-
-def test_lister_tous_avec_plusieurs_evenements(utilisateur_test):
-    """Test le listage de plusieurs événements"""
-    # Créer 3 événements
-    for i in range(3):
+    def test_creer_evenement_succes(self):
+        """Test 1: Création réussie d'un événement"""
+        # Arrange
         evenement = Evenement(
-            titre=f"Événement {i+1}",
-            lieu=f"Lieu {i+1}",
-            date_event=date.today() + timedelta(days=10+i*10),
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0 * (i+1)
+            nom="Concert Rock",
+            date_event=datetime(2024, 6, 15, 20, 0),
+            lieu="Zénith",
+            description="Super concert",
+            capacite_max=500,
+            prix=45.0,
+            statut="ouvert",
+            created_by=1
         )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_tous()
-    assert len(evenements) == 3
+        
+        self.mock_cursor.fetchone.return_value = {"id_event": 10}
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.creer(evenement)
+        
+        # Assert
+        self.assertIsNotNone(resultat)
+        self.assertEqual(resultat.id_event, 10)
+        self.mock_cursor.execute.assert_called_once()
 
-
-def test_lister_futurs_evenements(utilisateur_test):
-    """Test la récupération des événements futurs uniquement"""
-    # Créer un événement futur
-    evenement_futur = Evenement(
-        titre="Concert Futur",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Concert dans le futur",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement_futur)
-    
-    # Créer un événement passé
-    evenement_passe = Evenement(
-        titre="Concert Passé",
-        lieu="Lyon",
-        date_event=date.today() - timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Concert passé",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement_passe)
-    
-    # Lister les événements futurs
-    evenements_futurs = EvenementDAO().lister_futurs()
-    
-    # Vérifier qu'on a bien que les événements futurs
-    assert len(evenements_futurs) >= 1
-    for evt in evenements_futurs:
-        assert evt.date_event >= date.today()
-
-
-def test_lister_par_createur(utilisateur_test):
-    """Test le listage des événements par créateur"""
-    # Créer 2 événements pour l'utilisateur de test
-    for i in range(2):
+    def test_creer_evenement_echec_exception(self):
+        """Test 2: Échec de création avec exception"""
+        # Arrange
         evenement = Evenement(
-            titre=f"Mon Événement {i+1}",
-            lieu=f"Lieu {i+1}",
-            date_event=date.today() + timedelta(days=10+i*10),
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
+            nom="Festival",
+            date_event=datetime(2024, 7, 20),
+            lieu="Parc",
+            description="Festival musique",
+            capacite_max=1000,
+            prix=30.0,
+            statut="ouvert",
+            created_by=1
         )
-        EvenementDAO().creer(evenement)
-    
-    # Lister les événements de cet utilisateur
-    evenements = EvenementDAO().lister_par_createur(utilisateur_test.id_utilisateur)
-    
-    assert len(evenements) == 2
-    for evt in evenements:
-        assert evt.created_by == utilisateur_test.id_utilisateur
+        
+        self.mock_cursor.execute.side_effect = Exception("Erreur DB")
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.creer(evenement)
+        
+        # Assert
+        self.assertIsNone(resultat)
 
+    def test_get_by_id_event(self):
+        """Test 3: Récupération par ID événement"""
+        # Arrange
+        mock_rows = [
+            {
+                "id_event": 5,
+                "nom": "Soirée Karaoké",
+                "date_event": datetime(2024, 8, 10, 19, 0),
+                "lieu": "Bar Central",
+                "description": "Karaoké fun",
+                "capacite_max": 50,
+                "prix": 15.0,
+                "statut": "ouvert",
+                "created_by": 2,
+                "created_at": datetime.now()
+            }
+        ]
+        
+        self.mock_cursor.fetchall.return_value = mock_rows
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+            resultat = self.dao.get_by("id_event", 5)
+        
+        # Assert
+        self.assertEqual(len(resultat), 1)
+        self.assertIsInstance(resultat[0], Evenement)
+        self.assertEqual(resultat[0].id_event, 5)
+        self.assertEqual(resultat[0].nom, "Soirée Karaoké")
 
-# ==================== TESTS DE MODIFICATION ====================
+    def test_get_by_nom_evenement(self):
+        """Test 4: Récupération par nom d'événement"""
+        # Arrange
+        mock_rows = [
+            {
+                "id_event": 1,
+                "nom": "Concert Rock",
+                "date_event": datetime(2024, 6, 15),
+                "lieu": "Zénith",
+                "description": "Rock show",
+                "capacite_max": 500,
+                "prix": 40.0,
+                "statut": "ouvert",
+                "created_by": 1,
+                "created_at": datetime.now()
+            }
+        ]
+        
+        self.mock_cursor.fetchall.return_value = mock_rows
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+            resultat = self.dao.get_by("nom", "Concert Rock")
+        
+        # Assert
+        self.assertEqual(len(resultat), 1)
+        self.assertEqual(resultat[0].nom, "Concert Rock")
 
-def test_modifier_evenement_succes(utilisateur_test):
-    """Test la modification d'un événement"""
-    # Créer un événement
-    evenement = Evenement(
-        titre="Titre Original",
-        lieu="Lieu Original",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description originale",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    
-    # Modifier l'événement
-    evenement.titre = "Titre Modifié"
-    evenement.lieu = "Nouveau Lieu"
-    evenement.capacite_max = 200
-    evenement.tarif = 15.0
-    
-    resultat = EvenementDAO().modifier(evenement)
-    assert resultat is True
-    
-    # Vérifier les modifications
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere.titre == "Titre Modifié"
-    assert evenement_recupere.lieu == "Nouveau Lieu"
-    assert evenement_recupere.capacite_max == 200
-    assert float(evenement_recupere.tarif) == 15.0
+    def test_get_by_colonne_non_autorisee(self):
+        """Test 5: Échec avec colonne non autorisée"""
+        # Act & Assert
+        with self.assertRaises(ValueError) as context:
+            self.dao.get_by("colonne_invalide", "valeur")
+        
+        self.assertIn("non autorisée", str(context.exception))
 
+    def test_get_by_aucun_resultat(self):
+        """Test 6: Recherche sans résultat"""
+        # Arrange
+        self.mock_cursor.fetchall.return_value = []
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+            resultat = self.dao.get_by("id_event", 999)
+        
+        # Assert
+        self.assertEqual(len(resultat), 0)
 
-def test_modifier_date_event(utilisateur_test):
-    """Test la modification de la date d'un événement"""
-    evenement = Evenement(
-        titre="Événement Report",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Événement qui sera reporté",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    
-    # Reporter l'événement de 30 jours
-    nouvelle_date = date.today() + timedelta(days=60)
-    evenement.date_event = nouvelle_date
-    
-    resultat = EvenementDAO().modifier(evenement)
-    assert resultat is True
-    
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere.date_event == nouvelle_date
+    def test_lister_tous_avec_resultats(self):
+        """Test 7: Lister tous les événements"""
+        # Arrange
+        mock_rows = [
+            {
+                "id_event": 1,
+                "nom": "Event 1",
+                "date_event": datetime(2024, 6, 15),
+                "lieu": "Lieu 1",
+                "description": "Desc 1",
+                "capacite_max": 100,
+                "prix": 20.0,
+                "statut": "ouvert",
+                "created_by": 1,
+                "created_at": datetime.now()
+            },
+            {
+                "id_event": 2,
+                "nom": "Event 2",
+                "date_event": datetime(2024, 7, 20),
+                "lieu": "Lieu 2",
+                "description": "Desc 2",
+                "capacite_max": 200,
+                "prix": 30.0,
+                "statut": "complet",
+                "created_by": 2,
+                "created_at": datetime.now()
+            }
+        ]
+        
+        self.mock_cursor.fetchall.return_value = mock_rows
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.lister_tous()
+        
+        # Assert
+        self.assertEqual(len(resultat), 2)
+        self.assertTrue(all(isinstance(e, Evenement) for e in resultat))
 
+    def test_lister_tous_vide(self):
+        """Test 8: Lister sans événement"""
+        # Arrange
+        self.mock_cursor.fetchall.return_value = []
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.lister_tous()
+        
+        # Assert
+        self.assertEqual(len(resultat), 0)
 
-# ==================== TESTS DE SUPPRESSION ====================
+    def test_lister_tous_erreur_exception(self):
+        """Test 9: Échec du listage avec exception"""
+        # Arrange
+        self.mock_cursor.execute.side_effect = Exception("Erreur DB")
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.lister_tous()
+        
+        # Assert
+        self.assertEqual(len(resultat), 0)
 
-def test_supprimer_evenement_succes(utilisateur_test):
-    """Test la suppression d'un événement"""
-    evenement = Evenement(
-        titre="Événement à Supprimer",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Sera supprimé",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    id_event = evenement.id_event
-    
-    # Supprimer l'événement
-    resultat = EvenementDAO().supprimer(evenement)
-    assert resultat is True
-    
-    # Vérifier que l'événement n'existe plus
-    evenement_recupere = EvenementDAO().get_by_id(id_event)
-    assert evenement_recupere is None
-
-def test_supprimer_puis_recreer(utilisateur_test):
-    """Test la suppression puis recréation d'un événement avec le même titre"""
-    evenement1 = Evenement(
-        titre="Événement Récurrent",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Première édition",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement1)
-    id_premier = evenement1.id_event
-    
-    # Supprimer
-    EvenementDAO().supprimer(evenement1)
-    
-    # Recréer avec le même titre
-    evenement2 = Evenement(
-        titre="Événement Récurrent",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=60),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Deuxième édition",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement2)
-    
-    # Vérifier que ce sont deux événements différents
-    assert evenement2.id_event != id_premier
-
-
-# ==================== TESTS D'ORDRE ET DE TRI ====================
-
-def test_lister_tous_ordre_decroissant(utilisateur_test):
-    """Test que lister_tous retourne les événements par date décroissante"""
-    dates = [
-        date.today() + timedelta(days=10),
-        date.today() + timedelta(days=30),
-        date.today() + timedelta(days=20)
-    ]
-    
-    for i, d in enumerate(dates):
+    def test_modifier_evenement_succes(self):
+        """Test 10: Modification réussie d'un événement"""
+        # Arrange
         evenement = Evenement(
-            titre=f"Événement {i+1}",
-            lieu="Paris",
-            date_event=d,
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
+            id_event=5,
+            nom="Concert Modifié",
+            date_event=datetime(2024, 9, 1),
+            lieu="Nouveau Lieu",
+            description="Nouvelle desc",
+            capacite_max=300,
+            prix=50.0,
+            statut="ouvert",
+            created_by=1
         )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_tous()
-    
-    # Vérifier l'ordre décroissant (le plus récent d'abord)
-    for i in range(len(evenements) - 1):
-        assert evenements[i].date_event >= evenements[i+1].date_event
+        
+        self.mock_cursor.rowcount = 1
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier(evenement)
+        
+        # Assert
+        self.assertTrue(resultat)
+        self.mock_cursor.execute.assert_called_once()
 
-
-def test_lister_futurs_ordre_croissant(utilisateur_test):
-    """Test que lister_futurs retourne les événements par date croissante"""
-    dates = [
-        date.today() + timedelta(days=30),
-        date.today() + timedelta(days=10),
-        date.today() + timedelta(days=20)
-    ]
-    
-    for i, d in enumerate(dates):
+    def test_modifier_evenement_inexistant(self):
+        """Test 11: Modification d'un événement inexistant"""
+        # Arrange
         evenement = Evenement(
-            titre=f"Événement Futur {i+1}",
-            lieu="Paris",
-            date_event=d,
+            id_event=999,
+            nom="Event Inexistant",
+            date_event=datetime(2024, 9, 1),
+            lieu="Lieu",
+            description="Desc",
             capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
+            prix=20.0,
+            statut="ouvert",
+            created_by=1
         )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_futurs()
-    
-    # Vérifier l'ordre croissant (le plus proche d'abord)
-    for i in range(len(evenements) - 1):
-        assert evenements[i].date_event <= evenements[i+1].date_event
+        
+        self.mock_cursor.rowcount = 0
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier(evenement)
+        
+        # Assert
+        self.assertFalse(resultat)
+
+    def test_modifier_erreur_exception(self):
+        """Test 12: Erreur lors de la modification"""
+        # Arrange
+        evenement = Evenement(
+            id_event=5,
+            nom="Event",
+            date_event=datetime(2024, 9, 1),
+            lieu="Lieu",
+            description="Desc",
+            capacite_max=100,
+            prix=20.0,
+            statut="ouvert",
+            created_by=1
+        )
+        
+        self.mock_cursor.execute.side_effect = Exception("Erreur DB")
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier(evenement)
+        
+        # Assert
+        self.assertFalse(resultat)
+
+    def test_supprimer_evenement_succes(self):
+        """Test 13: Suppression réussie"""
+        # Arrange
+        self.mock_cursor.rowcount = 1
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.supprimer(5)
+        
+        # Assert
+        self.assertTrue(resultat)
+        self.mock_cursor.execute.assert_called_once()
+
+    def test_supprimer_evenement_inexistant(self):
+        """Test 14: Suppression d'un événement inexistant"""
+        # Arrange
+        self.mock_cursor.rowcount = 0
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.supprimer(999)
+        
+        # Assert
+        self.assertFalse(resultat)
+
+    def test_supprimer_erreur_exception(self):
+        """Test 15: Erreur lors de la suppression"""
+        # Arrange
+        self.mock_cursor.execute.side_effect = Exception("Erreur DB")
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.supprimer(5)
+        
+        # Assert
+        self.assertFalse(resultat)
+
+    def test_modifier_statut_succes(self):
+        """Test 16: Modification de statut réussie"""
+        # Arrange
+        self.mock_cursor.rowcount = 1
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier_statut(5, "complet")
+        
+        # Assert
+        self.assertTrue(resultat)
+        # Vérifier que le statut "complet" est bien passé
+        call_args = self.mock_cursor.execute.call_args
+        self.assertIn("complet", str(call_args))
+
+    def test_modifier_statut_evenement_inexistant(self):
+        """Test 17: Modification de statut sur événement inexistant"""
+        # Arrange
+        self.mock_cursor.rowcount = 0
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier_statut(999, "complet")
+        
+        # Assert
+        self.assertFalse(resultat)
+
+    def test_modifier_statut_erreur_exception(self):
+        """Test 18: Erreur lors de la modification de statut"""
+        # Arrange
+        self.mock_cursor.execute.side_effect = Exception("Erreur DB")
+        self.mock_connection.cursor.return_value.__enter__.return_value = self.mock_cursor
+        
+        # Act
+        with patch('dao.evenement_dao.DBConnection') as mock_db:
+            mock_db.return_value.connection.__enter__.return_value = self.mock_connection
+            resultat = self.dao.modifier_statut(5, "complet")
+        
+        # Assert
+        self.assertFalse(resultat)
 
 
-# ==================== TESTS DE SCENARIOS COMPLEXES ====================
-
-def test_scenario_complet_cycle_vie_evenement(utilisateur_test):
-    """Test du cycle de vie complet d'un événement"""
-    # 1. Création
-    evenement = Evenement(
-        titre="Événement Complet",
-        lieu="Rennes",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Test cycle de vie",
-        tarif=20.0
-    )
-    
-    assert EvenementDAO().creer(evenement) is True
-    id_event = evenement.id_event
-    
-    # 2. Lecture
-    evt_lu = EvenementDAO().get_by_id(id_event)
-    assert evt_lu is not None
-    assert evt_lu.titre == "Événement Complet"
-    
-    # 3. Modification
-    evt_lu.titre = "Événement Modifié"
-    evt_lu.capacite_max = 150
-    assert EvenementDAO().modifier(evt_lu) is True
-    
-    # 4. Vérification modification
-    evt_modifie = EvenementDAO().get_by_id(id_event)
-    assert evt_modifie.titre == "Événement Modifié"
-    assert evt_modifie.capacite_max == 150
-    
-    # 5. Suppression
-    assert EvenementDAO().supprimer(evt_modifie) is True
-    
-    # 6. Vérification suppression
-    evt_supprime = EvenementDAO().get_by_id(id_event)
-    assert evt_supprime is None
-
-
-def test_plusieurs_utilisateurs_creent_evenements(utilisateur_test):
-    """Test avec plusieurs utilisateurs créant des événements"""
-    from dao.utilisateur_dao import UtilisateurDAO
-    from business_object.utilisateur import Utilisateur
-    
-    # Créer un deuxième utilisateur
-    utilisateur2 = Utilisateur(
-        pseudo="testuser2",
-        nom="Test2",
-        prenom="User2",
-        email="test2@example.com",
-        mot_de_passe="Password123!"
-    )
-    UtilisateurDAO().creer(utilisateur2)
-    
-    # Chaque utilisateur crée un événement
-    evt1 = Evenement(
-        titre="Événement User1",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Par user 1",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evt1)
-    
-    evt2 = Evenement(
-        titre="Événement User2",
-        lieu="Lyon",
-        date_event=date.today() + timedelta(days=20),
-        capacite_max=100,
-        created_by=utilisateur2.id_utilisateur,
-        description_event="Par user 2",
-        tarif=15.0
-    )
-    EvenementDAO().creer(evt2)
-    
-    # Vérifier que chaque utilisateur voit bien ses événements
-    evts_user1 = EvenementDAO().lister_par_createur(utilisateur_test.id_utilisateur)
-    evts_user2 = EvenementDAO().lister_par_createur(utilisateur2.id_utilisateur)
-    
-    assert len(evts_user1) >= 1
-    assert len(evts_user2) >= 1
-    assert all(e.created_by == utilisateur_test.id_utilisateur for e in evts_user1)
-    assert all(e.created_by == utilisateur2.id_utilisateur for e in evts_user2)
+if __name__ == "__main__":
+    unittest.main()

@@ -97,7 +97,7 @@ class TestBusService(unittest.TestCase):
     def test_supprimer_bus_existant(self):
         """
         Test 4: Suppression d'un bus existant
-        Vérifie que la suppression fonctionne correctement
+        Vérifie que la suppression fonctionne correctement avec get_by
         """
         # Arrange
         bus_mock = Bus(
@@ -108,18 +108,19 @@ class TestBusService(unittest.TestCase):
             description="Test",
             id_bus=1
         )
-        # Mock get_by_id qui est appelé par supprimer_bus dans le service
-        self.bus_service.bus_dao.get_by_id = Mock(return_value=bus_mock)
+    
+        # Mock get_by qui est appelé par supprimer_bus dans le service
+        self.bus_service.bus_dao.get_by = Mock(return_value=[bus_mock])
         self.bus_service.bus_dao.supprimer.return_value = True
-        
+
         # Act
         resultat = self.bus_service.supprimer_bus(1)
-        
+
         # Assert
         self.assertTrue(resultat)
-        self.bus_service.bus_dao.get_by_id.assert_called_once_with(1)
+        self.bus_service.bus_dao.get_by.assert_called_once_with("id_bus", 1)
         self.bus_service.bus_dao.supprimer.assert_called_once_with(1)
-    
+        
     def test_supprimer_bus_inexistant(self):
         """
         Test 5: Tentative de suppression d'un bus inexistant

@@ -97,7 +97,7 @@ class Bus:
         
         return cls(
             id_event=data.get("id_event"),
-            sens=data.get(sens),
+            sens=data.get("sens"),
             heure_depart=heure_depart,
             capacite_max=data.get("capacite_max"),
             description=data.get("description"),

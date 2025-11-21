@@ -1,338 +1,269 @@
-import pytest
-from datetime import date, timedelta
+import unittest
 from unittest.mock import Mock, MagicMock, patch
+from datetime import datetime
 from service.inscription_service import InscriptionService
+from business_object.inscription import Inscription
 from business_object.utilisateur import Utilisateur
 from business_object.evenement import Evenement
-from business_object.inscription import Inscription
-from business_object.bus import Bus
 
 
-class TestInscriptionService:
-    """Tests unitaires pour InscriptionService avec mocks des DAOs"""
+class TestInscriptionService(unittest.TestCase):
+    """Tests unitaires pour le service d'inscription"""
 
-    @pytest.fixture
-    def mock_daos(self):
-        """Crée les mocks des DAOs"""
-        return {
-            'inscription_dao': Mock(),
-            'evenement_dao': Mock(),
-            'utilisateur_dao': Mock()
-        }
-
-    @pytest.fixture
-    def inscription_service(self, mock_daos):
-        """Fixture pour créer une instance du service avec les DAOs mockés"""
-        return InscriptionService(
-            inscription_dao=mock_daos['inscription_dao'],
-            evenement_dao=mock_daos['evenement_dao'],
-            utilisateur_dao=mock_daos['utilisateur_dao']
+    def setUp(self):
+        """Initialisation avant chaque test"""
+        self.mock_inscription_dao = Mock()
+        self.mock_evenement_dao = Mock()
+        self.mock_utilisateur_dao = Mock()
+        
+        self.service = InscriptionService(
+            self.mock_inscription_dao,
+            self.mock_evenement_dao,
+            self.mock_utilisateur_dao
         )
+        self.service.inscription_dao = self.mock_inscription_dao
+        self.service.evenement_dao = self.mock_evenement_dao
+        self.service.utilisateur_dao = self.mock_utilisateur_dao
 
-    @pytest.fixture
-    def utilisateur_valide(self):
-        """Crée un utilisateur mock de test valide"""
-        user = Mock(spec=Utilisateur)
-        user.id_utilisateur = 1
-        user.nom = "Test"
-        user.prenom = "User"
-        user.email = "test@example.com"
-        return user
-
-    @pytest.fixture
-    def evenement_valide(self, utilisateur_valide):
-        """Crée un événement mock de test valide"""
-        evt = Mock(spec=Evenement)
-        evt.id_event = 1
-        evt.titre = "Soirée Test"
-        evt.description_event = "Event pour les tests"
-        evt.lieu = "Rennes"
-        evt.date_event = date.today() + timedelta(days=30)
-        evt.capacite_max = 50
-        evt.created_by = utilisateur_valide.id_utilisateur
-        evt.tarif = 15.0
-        return evt
-
-    @pytest.fixture
-    def params_inscription_valides(self, utilisateur_valide, evenement_valide):
-        """Paramètres valides pour créer une inscription"""
-        return {
-            "boit": True,
-            "created_by": utilisateur_valide.id_utilisateur,
-            "mode_paiement": "en ligne",
-            "id_event": evenement_valide.id_event,
-            "nom_event": evenement_valide.titre,
-            "id_bus_aller": 1,
-            "id_bus_retour": 2
-        }
-
-    # ==================== TESTS : Génération de code ====================
-
-    def test_generer_code_reservation_format(self, inscription_service):
-        """
-        Test : Le code de réservation a le bon format
-        WHEN on génère un code de réservation
-        THEN c'est un entier de 8 chiffres
-        """
-        inscription_service.inscription_dao.get_by.return_value = []
-
-        code = inscription_service.generer_code_reservation()
-
-        assert isinstance(code, int)
-        assert 10000000 <= code <= 99999999  # 8 chiffres
-        assert len(str(code)) == 8
-
-    def test_generer_code_reservation_unique(self, inscription_service):
-        """
-        Test : Les codes générés sont uniques
-        WHEN on génère plusieurs codes
-        THEN ils sont tous différents
-        """
-        inscription_service.inscription_dao.get_by.return_value = []
-
-        codes = [inscription_service.generer_code_reservation() for _ in range(10)]
-
-        assert len(codes) == len(set(codes))  # Tous uniques
-
-    def test_generer_code_reservation_evite_doublons(self, inscription_service):
-        """
-        Test : Un code déjà existant est rejeté et on en génère un nouveau
-        GIVEN un code déjà utilisé
-        WHEN on génère un code
-        THEN on n'obtient pas le code existant
-        """
-        code_existant = 12345678
-        inscription_service.inscription_dao.get_by.side_effect = [
-            [Mock()],  # Premier appel : le code existe
-            [],        # Deuxième appel : le nouveau code n'existe pas
-        ]
-
-        code = inscription_service.generer_code_reservation()
-
-        assert code != code_existant
-        assert inscription_service.inscription_dao.get_by.call_count == 2
-
-    # ==================== TESTS : Création d'inscription ====================
-
-    def test_creer_inscription_succes(self, inscription_service, mock_daos, 
-                                      utilisateur_valide, evenement_valide, 
-                                      params_inscription_valides):
-        """
-        Test : Création d'une inscription valide
-        GIVEN tous les paramètres valides
-        WHEN on crée une inscription
-        THEN l'inscription est créée avec succès
-        """
-        # Setup
-        mock_daos['utilisateur_dao'].get_by.return_value = utilisateur_valide
-        mock_daos['evenement_dao'].get_by.return_value = [evenement_valide]
-        mock_daos['inscription_dao'].compter_par_evenement.return_value = 0
-        mock_daos['inscription_dao'].est_deja_inscrit.return_value = False
-        mock_daos['inscription_dao'].get_by.return_value = []
-        mock_daos['inscription_dao'].creer.return_value = Inscription(
-            code_reservation=12345678,
-            boit=True,
-            mode_paiement="en ligne",
-            id_event=1,
-            nom_event="Soirée Test",
-            id_bus_aller=1,
-            id_bus_retour=2,
-            created_by=1
-        )
-
+    def test_generer_code_reservation_unique(self):
+        """Test 1: Génération d'un code de réservation unique"""
+        # Arrange
+        self.mock_inscription_dao.get_by.return_value = []
+        
         # Act
-        result = inscription_service.creer_inscription(**params_inscription_valides)
-
+        code = self.service.generer_code_reservation()
+        
         # Assert
-        assert result is not None
-        assert result.code_reservation == 12345678
-        mock_daos['inscription_dao'].creer.assert_called_once()
+        self.assertIsInstance(code, int)
+        self.assertEqual(len(str(code)), 8)
+        self.mock_inscription_dao.get_by.assert_called()
 
-    def test_creer_inscription_utilisateur_inexistant(self, inscription_service, mock_daos,
-                                                       params_inscription_valides):
-        """
-        Test : Création d'inscription avec un utilisateur inexistant
-        GIVEN un ID utilisateur inexistant
-        WHEN on crée une inscription
-        THEN la création échoue et retourne None
-        """
-        mock_daos['utilisateur_dao'].get_by.return_value = None
+    def test_generer_code_reservation_avec_collision(self):
+        """Test 2: Génération de code avec collision (doit regénérer)"""
+        # Arrange
+        # Premier appel retourne une collision, second appel est libre
+        self.mock_inscription_dao.get_by.side_effect = [
+            [Mock()],  # Code déjà utilisé
+            []         # Code libre
+        ]
+        
+        # Act
+        code = self.service.generer_code_reservation()
+        
+        # Assert
+        self.assertIsInstance(code, int)
+        self.assertEqual(self.mock_inscription_dao.get_by.call_count, 2)
 
-        result = inscription_service.creer_inscription(**params_inscription_valides)
+    def test_creer_inscription_succes(self):
+        """Test 3: Création d'inscription réussie"""
+        # Arrange
+        mock_utilisateur = Mock()
+        mock_utilisateur.email = "test@example.com"
+        mock_utilisateur.nom = "Dupont"
+        self.mock_utilisateur_dao.get_by.return_value = [mock_utilisateur]
+        
+        mock_evenement = Mock()
+        mock_evenement.capacite_max = 50
+        self.mock_evenement_dao.get_by.return_value = [mock_evenement]
+        
+        self.mock_inscription_dao.compter_par_evenement.return_value = 20
+        self.mock_inscription_dao.est_deja_inscrit.return_value = False
+        self.mock_inscription_dao.get_by.return_value = []
+        
+        mock_inscription_created = Mock(spec=Inscription)
+        self.mock_inscription_dao.creer.return_value = mock_inscription_created
+        
+        # Act
+        with patch('service.inscription_service.send_email_brevo'):
+            resultat = self.service.creer_inscription(
+                boit=True,
+                mode_paiement="en ligne",
+                id_event=1,
+                nom_event="Soirée Test",
+                id_bus_aller=1,
+                id_bus_retour=2,
+                created_by=1
+            )
+        
+        # Assert
+        self.assertIsNotNone(resultat)
+        self.mock_inscription_dao.creer.assert_called_once()
 
-        assert result is None
-        mock_daos['inscription_dao'].creer.assert_not_called()
-
-    def test_creer_inscription_evenement_inexistant(self, inscription_service, mock_daos,
-                                                     utilisateur_valide, 
-                                                     params_inscription_valides):
-        """
-        Test : Création d'inscription avec un événement inexistant
-        GIVEN un ID événement inexistant
-        WHEN on crée une inscription
-        THEN la création échoue et retourne None
-        """
-        mock_daos['utilisateur_dao'].get_by.return_value = utilisateur_valide
-        mock_daos['evenement_dao'].get_by.return_value = []
-
-        result = inscription_service.creer_inscription(**params_inscription_valides)
-
-        assert result is None
-        mock_daos['inscription_dao'].creer.assert_not_called()
-
-    def test_creer_inscription_evenement_complet(self, inscription_service, mock_daos,
-                                                  utilisateur_valide, evenement_valide,
-                                                  params_inscription_valides):
-        """
-        Test : Création d'inscription à un événement complet
-        GIVEN un événement avec capacité atteinte
-        WHEN on crée une inscription
-        THEN la création échoue
-        """
-        mock_daos['utilisateur_dao'].get_by.return_value = utilisateur_valide
-        mock_daos['evenement_dao'].get_by.return_value = [evenement_valide]
-        mock_daos['inscription_dao'].compter_par_evenement.return_value = 50  # Complet
-
-        result = inscription_service.creer_inscription(**params_inscription_valides)
-
-        assert result is None
-        mock_daos['inscription_dao'].creer.assert_not_called()
-
-    def test_creer_inscription_doublon(self, inscription_service, mock_daos,
-                                       utilisateur_valide, evenement_valide,
-                                       params_inscription_valides):
-        """
-        Test : Tentative de double inscription
-        GIVEN un utilisateur déjà inscrit à l'événement
-        WHEN on crée une nouvelle inscription
-        THEN la création échoue
-        """
-        mock_daos['utilisateur_dao'].get_by.return_value = utilisateur_valide
-        mock_daos['evenement_dao'].get_by.return_value = [evenement_valide]
-        mock_daos['inscription_dao'].compter_par_evenement.return_value = 0
-        mock_daos['inscription_dao'].est_deja_inscrit.return_value = True  # Déjà inscrit
-
-        result = inscription_service.creer_inscription(**params_inscription_valides)
-
-        assert result is None
-        mock_daos['inscription_dao'].creer.assert_not_called()
-
-    # ==================== TESTS : Suppression d'inscription ====================
-
-    def test_supprimer_inscription_succes(self, inscription_service, mock_daos):
-        """
-        Test : Suppression d'une inscription valide
-        GIVEN une inscription existante créée par l'utilisateur
-        WHEN on la supprime
-        THEN elle est supprimée
-        """
-        inscription = Inscription(
-            code_reservation=12345678,
-            boit=True,
-            mode_paiement="en ligne",
+    def test_creer_inscription_utilisateur_inexistant(self):
+        """Test 4: Échec - utilisateur inexistant"""
+        # Arrange
+        self.mock_utilisateur_dao.get_by.return_value = None
+        
+        # Act
+        resultat = self.service.creer_inscription(
+            boit=False,
+            mode_paiement="espece",
             id_event=1,
-            nom_event="Event",
+            nom_event="Test Event",
+            id_bus_aller=1,
+            id_bus_retour=2,
+            created_by=999
+        )
+        
+        # Assert
+        self.assertIsNone(resultat)
+        self.mock_inscription_dao.creer.assert_not_called()
+
+    def test_creer_inscription_evenement_inexistant(self):
+        """Test 5: Échec - événement inexistant"""
+        # Arrange
+        mock_utilisateur = Mock()
+        self.mock_utilisateur_dao.get_by.return_value = [mock_utilisateur]
+        self.mock_evenement_dao.get_by.return_value = []
+        
+        # Act
+        resultat = self.service.creer_inscription(
+            boit=False,
+            mode_paiement="espece",
+            id_event=999,
+            nom_event="Event Inexistant",
             id_bus_aller=1,
             id_bus_retour=2,
             created_by=1
         )
-        inscription_service.inscription_dao.get_by.return_value = [inscription]
-        inscription_service.inscription_dao.supprimer.return_value = True
+        
+        # Assert
+        self.assertIsNone(resultat)
+        self.mock_inscription_dao.creer.assert_not_called()
 
-        result = inscription_service.supprimer_inscription("12345678", 1)
+    def test_creer_inscription_evenement_complet(self):
+        """Test 6: Échec - événement à capacité maximale"""
+        # Arrange
+        mock_utilisateur = Mock()
+        self.mock_utilisateur_dao.get_by.return_value = [mock_utilisateur]
+        
+        mock_evenement = Mock()
+        mock_evenement.capacite_max = 50
+        self.mock_evenement_dao.get_by.return_value = [mock_evenement]
+        
+        self.mock_inscription_dao.compter_par_evenement.return_value = 50
+        
+        # Act
+        resultat = self.service.creer_inscription(
+            boit=False,
+            mode_paiement="espece",
+            id_event=1,
+            nom_event="Event Complet",
+            id_bus_aller=1,
+            id_bus_retour=2,
+            created_by=1
+        )
+        
+        # Assert
+        self.assertIsNone(resultat)
+        self.mock_inscription_dao.creer.assert_not_called()
 
-        assert result is True
-        inscription_service.inscription_dao.supprimer.assert_called_once()
-
-    def test_supprimer_inscription_non_existante(self, inscription_service, mock_daos):
-        """
-        Test : Suppression d'une inscription inexistante
-        GIVEN un code de réservation inexistant
-        WHEN on tente de la supprimer
-        THEN une ValueError est levée
-        """
-        mock_daos['inscription_dao'].get_by.return_value = []
-
-        with pytest.raises(ValueError, match="Aucune inscription trouvée"):
-            inscription_service.supprimer_inscription("99999999", 1)
-
-    def test_supprimer_inscription_pas_proprietaire(self, inscription_service, mock_daos):
-        """
-        Test : Suppression d'une inscription par un utilisateur qui ne l'a pas créée
-        GIVEN une inscription créée par utilisateur A
-        WHEN utilisateur B tente de la supprimer
-        THEN une PermissionError est levée
-        """
-        inscription = Inscription(
-            code_reservation=12345678,
+    def test_creer_inscription_utilisateur_deja_inscrit(self):
+        """Test 7: Échec - utilisateur déjà inscrit à l'événement"""
+        # Arrange
+        mock_utilisateur = Mock()
+        self.mock_utilisateur_dao.get_by.return_value = [mock_utilisateur]
+        
+        mock_evenement = Mock()
+        mock_evenement.capacite_max = 50
+        self.mock_evenement_dao.get_by.return_value = [mock_evenement]
+        
+        self.mock_inscription_dao.compter_par_evenement.return_value = 20
+        self.mock_inscription_dao.est_deja_inscrit.return_value = True
+        
+        # Act
+        resultat = self.service.creer_inscription(
             boit=True,
             mode_paiement="en ligne",
             id_event=1,
-            nom_event="Event",
+            nom_event="Event Test",
             id_bus_aller=1,
             id_bus_retour=2,
-            created_by=1  # Créée par utilisateur 1
+            created_by=1
         )
-        mock_daos['inscription_dao'].get_by.return_value = [inscription]
+        
+        # Assert
+        self.assertIsNone(resultat)
+        self.mock_inscription_dao.creer.assert_not_called()
 
-        with pytest.raises(PermissionError, match="ne pouvez supprimer"):
-            inscription_service.supprimer_inscription("12345678", 2)  # Tentée par utilisateur 2
+    def test_lister_toutes_inscriptions(self):
+        """Test 8: Lister toutes les inscriptions"""
+        # Arrange
+        mock_inscriptions = [Mock(spec=Inscription), Mock(spec=Inscription)]
+        self.mock_inscription_dao.lister_toutes.return_value = mock_inscriptions
+        
+        # Act
+        resultat = self.service.lister_toutes_inscriptions()
+        
+        # Assert
+        self.assertEqual(len(resultat), 2)
+        self.mock_inscription_dao.lister_toutes.assert_called_once()
 
-    def test_supprimer_inscription_code_vide(self, inscription_service, mock_daos):
-        """
-        Test : Suppression avec un code vide
-        GIVEN un code de réservation vide
-        WHEN on tente de supprimer
-        THEN une ValueError est levée
-        """
-        with pytest.raises(ValueError, match="code de réservation valide"):
-            inscription_service.supprimer_inscription("", 1)
+    def test_get_inscription_by_succes(self):
+        """Test 9: Récupérer une inscription par champ"""
+        # Arrange
+        mock_inscription = Mock(spec=Inscription)
+        self.mock_inscription_dao.get_by.return_value = [mock_inscription]
+        
+        # Act
+        resultat = self.service.get_inscription_by("code_reservation", 12345678)
+        
+        # Assert
+        self.assertIsNotNone(resultat)
+        self.mock_inscription_dao.get_by.assert_called_once_with("code_reservation", 12345678)
 
-    # ==================== TESTS : Récupération d'inscriptions ====================
+    def test_get_inscription_by_champ_invalide(self):
+        """Test 10: Récupérer inscription avec champ invalide"""
+        # Arrange
+        self.mock_inscription_dao.get_by.side_effect = ValueError("Colonne 'invalid' non autorisée.")
+        
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            self.service.get_inscription_by("invalid_field", "value")
 
-    def test_lister_toutes_inscriptions(self, inscription_service, mock_daos):
-        """
-        Test : Listage de toutes les inscriptions
-        WHEN on liste toutes les inscriptions
-        THEN on obtient la liste du DAO
-        """
-        inscriptions_mock = [
-            Mock(code_reservation=111),
-            Mock(code_reservation=222),
-            Mock(code_reservation=333),
-        ]
-        inscription_service.inscription_dao.lister_toutes.return_value = inscriptions_mock
+    def test_supprimer_inscription_succes(self):
+        """Test 11: Suppression d'inscription réussie"""
+        # Arrange
+        mock_inscription = Mock(spec=Inscription)
+        mock_inscription.created_by = 1
+        mock_inscription.code_reservation = 12345678
+        self.mock_inscription_dao.get_by.return_value = [mock_inscription]
+        self.mock_inscription_dao.supprimer.return_value = True
+        
+        # Act
+        resultat = self.service.supprimer_inscription("12345678", 1)
+        
+        # Assert
+        self.assertTrue(resultat)
+        self.mock_inscription_dao.supprimer.assert_called_once()
 
-        result = inscription_service.lister_toutes_inscriptions()
+    def test_supprimer_inscription_permission_refusee(self):
+        """Test 12: Échec suppression - utilisateur non propriétaire"""
+        # Arrange
+        mock_inscription = Mock(spec=Inscription)
+        mock_inscription.created_by = 1
+        mock_inscription.code_reservation = 12345678
+        self.mock_inscription_dao.get_by.return_value = [mock_inscription]
+        
+        # Act & Assert
+        with self.assertRaises(PermissionError):
+            self.service.supprimer_inscription("12345678", 2)
 
-        assert len(result) == 3
-        assert result == inscriptions_mock
+    def test_supprimer_inscription_code_invalide(self):
+        """Test 13: Échec suppression - code de réservation vide"""
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            self.service.supprimer_inscription("", 1)
 
-    def test_get_inscription_by_valide(self, inscription_service, mock_daos):
-        """
-        Test : Récupération d'une inscription par champ
-        GIVEN un champ et une valeur valides
-        WHEN on récupère l'inscription
-        THEN on obtient l'inscription
-        """
-        inscription_mock = Mock(code_reservation=12345678)
-        inscription_service.inscription_dao.get_by.return_value = inscription_mock
+    def test_supprimer_inscription_inexistante(self):
+        """Test 14: Échec suppression - inscription inexistante"""
+        # Arrange
+        self.mock_inscription_dao.get_by.return_value = []
+        
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            self.service.supprimer_inscription("99999999", 1)
 
-        result = inscription_service.get_inscription_by("code_reservation", 12345678)
 
-        assert result == inscription_mock
-        inscription_service.inscription_dao.get_by.assert_called_once_with(
-            "code_reservation", 12345678
-        )
-
-    def test_get_inscription_by_champ_invalide(self, inscription_service, mock_daos):
-        """
-        Test : Récupération avec un champ invalide
-        GIVEN un champ non autorisé
-        WHEN on récupère
-        THEN une ValueError est levée par le DAO
-        """
-        inscription_service.inscription_dao.get_by.side_effect = ValueError("Colonne non autorisée")
-
-        with pytest.raises(ValueError):
-            inscription_service.get_inscription_by("champ_invalide", "valeur")
+if __name__ == "__main__":
+    unittest.main()

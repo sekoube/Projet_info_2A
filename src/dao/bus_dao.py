@@ -29,7 +29,7 @@ class BusDAO:
         return bus
     
     @staticmethod
-    def get_by(self, column: str, value) -> list[Bus]:
+    def get_by(column: str, value) -> list[Bus]:
         # Liste blanche pour éviter les injections SQL via le nom de colonne
         allowed_columns = {
             "id_bus",
