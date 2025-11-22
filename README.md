@@ -36,20 +36,20 @@ Administrators can create events as well as buses associated with these events.
 
 ## Repository Files Overview
 
-| Item                  | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
-| `README.md`           | Provides useful information to present, install, and use the app     |
-| `requirements.txt`    | Lists required Python packages                                       |
-| `.vscode/settings.json` | Configured to run the code from the `src` directory               |
-| `.env`                | Must be created to configure PostgreSQL connection variables         |
+| Item                    | Description                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `README.md`             | Provides useful information to present, install, and use the application    |
+| `requirements.txt`      | Lists the required Python packages                                           |
+| `.vscode/settings.json` | Configured to run the code from the `src` directory                          |
+| `.env`                  | Must be created to configure PostgreSQL connection variables                 |
 
 
 ### Folders
 
-| Item     | Description                                                        |
+| Folder   | Description                                                        |
 | -------- | ------------------------------------------------------------------ |
 | `data`   | Contains SQL scripts (`init_db.sql`, `pop_db.sql`)                 |
-| `doc`    | UML diagrams, weekly reports                                       |
+| `doc`    | UML diagrams and weekly reports                                    |
 | `src`    | Python files using a layered architecture + all tests              |
 
 
@@ -59,7 +59,6 @@ Administrators can create events as well as buses associated with these events.
 
 ```bash
 pip install -r requirements.txt
-
 :arrow_forward: Environment variables
 
 At the root of the project:
@@ -77,6 +76,8 @@ POSTGRES_SCHEMA=your_schema
 
 :arrow_forward: Database Initialization
 
+To initialize the database:
+
 Create the database schema:
 
 psql -h <HOST> -p <PORT> -U <USER> -d <DATABASE> -f data/init_db.sql
@@ -88,7 +89,7 @@ psql -h <HOST> -p <PORT> -U <USER> -d <DATABASE> -f data/pop_db.sql
 
 :arrow_forward: Launch the CLI application
 
-To start the CLI application:
+To start the application:
 
 python src/main.py
 
@@ -127,11 +128,11 @@ inscription_dao.py	Registration management
 bus_dao.py	Bus management
 3. Services
 
-Contains business logic and coordinates DAO calls.
+Contains business logic and coordinates DAO calls to perform actions.
 
 4. View (Command-Line Interface)
 
-CLI modules that interact with the user:
+CLI modules interacting with the user:
 
 creer_compte_vue.py
 
@@ -151,10 +152,10 @@ src/tests/tests_dao/
 
 src/tests/tests_service/
 
-1. Run all tests
+Run all tests
 pytest -v --color=yes
 
-2. Run a specific test
+Run a specific test
 
 Example:
 
