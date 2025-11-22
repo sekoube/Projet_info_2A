@@ -9,13 +9,14 @@ from view.creer_compte_vue import creer_compte_terminal
 
 class MenuPrincipal:
 
-    def __init__(self, service_utilisateur, service_evenement, service_inscription):
+    def __init__(self, service_utilisateur, service_evenement, service_inscription, service_bus):
         """
         Constructeur : les services nécessaires sont injectés ici.
         """
         self.service_utilisateur = service_utilisateur
         self.service_evenement = service_evenement
         self.service_inscription = service_inscription
+        self.service_bus = service_bus
 
     def afficher(self):
         """
@@ -38,7 +39,8 @@ class MenuPrincipal:
                 connexion_terminal(
                     self.service_utilisateur,
                     self.service_evenement,
-                    self.service_inscription
+                    self.service_inscription,
+                    self.service_bus
                 )
 
             elif choix == "3":

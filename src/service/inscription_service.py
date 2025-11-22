@@ -2,6 +2,7 @@ from typing import Optional, List
 from business_object.inscription import Inscription
 from dao.inscription_dao import InscriptionDAO
 from dao.evenement_dao import EvenementDAO
+from service.evenement_service import EvenementService
 from dao.utilisateur_dao import UtilisateurDAO
 from business_object.utilisateur import Utilisateur
 import random
@@ -94,13 +95,8 @@ class InscriptionService:
             created = self.inscription_dao.creer(inscription)
 
             if created:
-                # 8. Mise à jour automatique du statut de l’événement
-                try:
-                    self.evenement_service.modifier_statut(id_event)
-                except Exception as e:
-                    print(f"⚠️ Avertissement : mise à jour du statut impossible : {e}")
 
-                # 9. Envoi email automatique
+                # 8. Envoi email automatique
                 try:
                     to_email = utilisateur[0].email  # supposons que l'objet Utilisateur a un attribut 'email'
                     subject = f"Confirmation d'inscription à {nom_event}"

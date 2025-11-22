@@ -3,6 +3,7 @@ from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime
 from business_object.utilisateur import Utilisateur
 from service.utilisateur_service import UtilisateurService
+from utils.mdp import hash_password
 
 
 @pytest.fixture
@@ -146,9 +147,12 @@ def test_creer_utilisateur_echec_dao(service):
 # TESTS AUTHENTIFICATION
 # ============================================================
 
+
 def test_authentifier_success(service, utilisateur_participant):
     """Test l'authentification réussie d'un utilisateur."""
+
     # Arrange
+    utilisateur_participant.mot_de_passe = hash_password("password123")
     service.utilisateur_dao.get_by.return_value = [utilisateur_participant]
 
     # Act
