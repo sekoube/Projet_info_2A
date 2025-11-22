@@ -1,59 +1,72 @@
-CLI Application for Managing ENSAI BDE Events
+# ENSAI BDE – CLI Application for Managing Events
 
-This project implements a command-line application used to manage events organized by the ENSAI Student Union (BDE).
+This project implements a command-line application used to manage events organized by the ENSAI Student Union (BDE).  
 It is built using an object-oriented layered architecture, a PostgreSQL database, and is fully tested with pytest.
 
-🎯 Project Objective
+🎯 **Project Objective**
 
-The application allows ENSAI students to browse and register for events organized by the BDE.
+The application allows ENSAI students to browse and register for events organized by the BDE.  
 Administrators can create events as well as buses associated with these events.
 
-▶️ Installation and Setup
-📁 Folders
 
-data — contains SQL scripts
+## :arrow_forward: Software and tools
 
-doc — contains UML diagrams and weekly reports
-
-src — contains Python files organized using a layered architecture. All source code and tests are located in the src/ directory.
-
-📄 The requirements.txt file lists all required packages.
-📄 The settings.json file is configured to run the code from the src directory.
-
-1. Prerequisites
-
-Visual Studio Code
-
-Python 3.x
-
-PostgreSQL
-
-Git
-
-2. Launch VS Code
-
-Open VS Code.
-
-Open Git Bash.
-
-Clone the repository using:
-
-git clone https_link_to_repo (to be adapted)
+- Visual Studio Code  
+- Python 3.x  
+- PostgreSQL  
+- Git  
 
 
-Open the project folder in VS Code:
-File > Open Folder → select the cloned project directory
-(Use this method rather than command-line navigation 🚨)
+## :arrow_forward: Clone the repository
 
-3. Install Dependencies
+- [ ] Open VSCode  
+- [ ] Open **Git Bash**  
+- [ ] Clone the repo  
+  - `git clone https_link_to_repo` *(to be adapted)*
 
-In Git Bash, run:
 
+### Open Folder
+
+- [ ] Open **Visual Studio Code**  
+- [ ] File > Open Folder  
+- [ ] Select the cloned project folder  
+  - The folder you select should be the root of your Explorer  
+  - :warning: If not, the application may not launch properly  
+
+
+## Repository Files Overview
+
+| Item                  | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `README.md`           | Provides useful information to present, install, and use the app     |
+| `requirements.txt`    | Lists required Python packages                                       |
+| `.vscode/settings.json` | Configured to run the code from the `src` directory               |
+| `.env`                | Must be created to configure PostgreSQL connection variables         |
+
+
+### Folders
+
+| Item     | Description                                                        |
+| -------- | ------------------------------------------------------------------ |
+| `data`   | Contains SQL scripts (`init_db.sql`, `pop_db.sql`)                 |
+| `doc`    | UML diagrams, weekly reports                                       |
+| `src`    | Python files using a layered architecture + all tests              |
+
+
+## :arrow_forward: Install required packages
+
+- [ ] In Git Bash, run:
+
+```bash
 pip install -r requirements.txt
 
-4. Environment Configuration
+:arrow_forward: Environment variables
 
-Create a .env file at the project root and add the PostgreSQL connection variables:
+At the root of the project:
+
+ Create a .env file
+
+ Paste in and complete the elements below:
 
 POSTGRES_HOST=your_host
 POSTGRES_PORT=5432
@@ -62,26 +75,31 @@ POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
 POSTGRES_SCHEMA=your_schema
 
-5. Database Initialization
+:arrow_forward: Database Initialization
 
-Run data/init_db.sql to create the database schema.
+Create the database schema:
 
-Run data/pop_db.sql to insert an initial user and sample data.
+psql -h <HOST> -p <PORT> -U <USER> -d <DATABASE> -f data/init_db.sql
 
-▶️ Running the Application
 
-To start the CLI application, run:
+Insert initial data:
+
+psql -h <HOST> -p <PORT> -U <USER> -d <DATABASE> -f data/pop_db.sql
+
+:arrow_forward: Launch the CLI application
+
+To start the CLI application:
 
 python src/main.py
 
-🧩 Main Features
+:arrow_forward: Main Features
 👤 User (ENSAI Student)
 
 Create an account or log in
 
 Browse available events
 
-Register for an event (using its ID)
+Register for an event using its ID
 
 🛠️ Administrator (BDE Member)
 
@@ -91,53 +109,41 @@ Create buses
 
 View the full list of events
 
-🧱 Project Architecture
+:arrow_forward: Project Architecture
 
 The application follows a three-layer architecture for modularity and clarity.
 
 1. Business Objects (Models)
-
-Contains domain classes describing the main entities:
-
-bus.py — represents a bus (linked event, description, direction, etc.)
-
-evenement.py — represents an event (date, time, description, etc.)
-
-inscription.py — represents a registration (alcohol option, payment method, etc.)
-
-utilisateur.py — represents a user (name, email, role, etc.)
-
+File	Description
+bus.py	Represents a bus (linked event, description…)
+evenement.py	Represents an event (date, time, description…)
+inscription.py	Represents a registration
+utilisateur.py	Represents a user
 2. DAO (Data Access Objects)
-
-Handles direct interactions with the PostgreSQL database:
-
-utilisateur_dao.py — user creation, insertion, verification
-
-evenement_dao.py — event management (create, list, delete, etc.)
-
-inscription_dao.py — registration management
-
-bus_dao.py — bus management
-
+File	Purpose
+utilisateur_dao.py	User creation, insertion, verification
+evenement_dao.py	Event management (create, list, delete…)
+inscription_dao.py	Registration management
+bus_dao.py	Bus management
 3. Services
 
-Contains business logic and coordinates DAO calls to execute application actions.
+Contains business logic and coordinates DAO calls.
 
 4. View (Command-Line Interface)
 
-Includes the CLI interfaces interacting with the user:
+CLI modules that interact with the user:
 
-creer_compte_vue.py — creates a user account
+creer_compte_vue.py
 
-page_utilisateur_vue.py — student actions
+page_utilisateur_vue.py
 
-page_admin_vue.py — admin-only actions
+page_admin_vue.py
 
-menu_vue.py — main entry point of the application
+menu_vue.py
 
-🧪 Unit Tests
+:arrow_forward: Unit tests
 
-Tests are organized into the following folders:
+Tests are organized in the following folders:
 
 src/tests/tests_business/
 
@@ -154,25 +160,21 @@ Example:
 
 pytest src/tests/test_service/test_utilisateur_service.py
 
-
-(Adapt according to the test you want to execute.)
-
-🗄️ Database
-
-init_db.sql — initializes the PostgreSQL schema and tables
-
-pop_db.sql — inserts initial data (e.g., a first user)
+:arrow_forward: Database
+File	Description
+init_db.sql	Initializes the PostgreSQL schema and tables
+pop_db.sql	Inserts initial data (e.g., a first user)
 
 Main tables: users, buses, events, registrations.
 
-🧰 Technologies Used
+:arrow_forward: Technologies Used
 
-Language: Python 3.x
+Python 3.x
 
-Database: PostgreSQL
+PostgreSQL
 
-Environment Management: .env
+Environment Management with .env
 
-Testing: Pytest
+Pytest
 
-Interface: Command-Line (CLI)
+Command-Line Interface (CLI)
