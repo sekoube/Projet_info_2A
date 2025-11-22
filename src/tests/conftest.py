@@ -2,6 +2,7 @@
 import sys
 import pytest
 from pathlib import Path
+import uuid
 
 # Ajouter src au PYTHONPATH pour tous les tests
 src_path = Path(__file__).parent.parent
@@ -29,12 +30,10 @@ def setup_database():
 @pytest.fixture(scope="function", autouse=True)
 def clean_tables():
     """
-    Nettoie toutes les tables après chaque test individuel.
-    Cela garantit que chaque test part d'une base vierge.
+    Nettoie AVANT chaque test pour garantir une base vierge.
+    Cela garantit que chaque test part d'une base clean.
     """
-    yield  # Le test s'exécute ici
-    
-    # Après chaque test, on vide les tables dans le bon ordre (CASCADE gère les dépendances)
+    # AVANT le test - nettoyage
     try:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -42,14 +41,83 @@ def clean_tables():
                 cursor.execute("TRUNCATE TABLE projet.inscription RESTART IDENTITY CASCADE;")
                 cursor.execute("TRUNCATE TABLE projet.bus RESTART IDENTITY CASCADE;")
                 cursor.execute("TRUNCATE TABLE projet.evenement RESTART IDENTITY CASCADE;")
-                cursor.execute("TRUNCATE TABLE projet.administrateur RESTART IDENTITY CASCADE;")
                 cursor.execute("TRUNCATE TABLE projet.utilisateur RESTART IDENTITY CASCADE;")
+                connection.commit()
     except Exception as e:
-        print(f"⚠️  Erreur lors du nettoyage des tables : {e}")
+        print(f"⚠️  Erreur lors du nettoyage initial des tables : {e}")
+    
+    yield  # Le test s'exécute ici
+    
+    # APRÈS le test - nettoyage optionnel (par sécurité)
+    try:
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("TRUNCATE TABLE projet.inscription RESTART IDENTITY CASCADE;")
+                cursor.execute("TRUNCATE TABLE projet.bus RESTART IDENTITY CASCADE;")
+                cursor.execute("TRUNCATE TABLE projet.evenement RESTART IDENTITY CASCADE;")
+                cursor.execute("TRUNCATE TABLE projet.utilisateur RESTART IDENTITY CASCADE;")
+                connection.commit()
+    except Exception as e:
+        print(f"⚠️  Erreur lors du nettoyage final des tables : {e}")
 
 
 @pytest.fixture
-def utilisateur_test():
+def unique_email():
+    """Génère un email unique pour éviter les conflits."""
+    return f"test_{uuid.uuid4().hex[:8]}@example.com"
+
+
+@pytest.fixture
+def utilisateur_createur(unique_email):
+    """Crée un utilisateur en base pour créer des événements."""
+    from business_object.utilisateur import Utilisateur
+    from dao.utilisateur_dao import UtilisateurDAO
+    
+    utilisateur = Utilisateur(
+        nom="Martin",
+        prenom="Jean",
+        email=unique_email,  # Email unique
+        mot_de_passe="SecurePass123!"
+    )
+    UtilisateurDAO().creer(utilisateur)
+    return utilisateur
+
+
+@pytest.fixture
+def utilisateur_participant(unique_email):
+    """Crée un utilisateur participant pour les inscriptions."""
+    from business_object.utilisateur import Utilisateur
+    from dao.utilisateur_dao import UtilisateurDAO
+    
+    utilisateur = Utilisateur(
+        nom="Dupont",
+        prenom="Marie",
+        email=unique_email,  # Email unique
+        mot_de_passe="Password123!"
+    )
+    UtilisateurDAO().creer(utilisateur)
+    return utilisateur
+
+
+@pytest.fixture
+def evenement_service():
+    """Initialise le service événement avec toutes ses dépendances."""
+    from service.evenement_service import EvenementService
+    from dao.evenement_dao import EvenementDAO
+    from dao.utilisateur_dao import UtilisateurDAO
+    from dao.inscription_dao import InscriptionDAO
+    from dao.bus_dao import BusDAO
+    
+    return EvenementService(
+        evenement_dao=EvenementDAO(),
+        inscription_dao=InscriptionDAO(),
+        utilisateur_dao=UtilisateurDAO(),
+        bus_dao=BusDAO()
+    )
+
+
+@pytest.fixture
+def utilisateur_test(unique_email):
     """
     Fixture pour créer un utilisateur de test.
     Utile pour les tests qui ont besoin d'un utilisateur existant.
@@ -58,13 +126,13 @@ def utilisateur_test():
     from dao.utilisateur_dao import UtilisateurDAO
     
     utilisateur = Utilisateur(
-        pseudo="testuser",
         nom="Test",
         prenom="User",
-        email="test@example.com",
+        email=unique_email,
         mot_de_passe="Password123!"
     )
-    return UtilisateurDAO().creer(utilisateur)
+    UtilisateurDAO().creer(utilisateur)
+    return utilisateur
 
 
 @pytest.fixture

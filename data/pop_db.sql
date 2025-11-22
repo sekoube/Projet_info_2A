@@ -1,2 +1,2 @@
 INSERT INTO projet.utilisateur (nom, prenom, email, mot_de_passe, role) VALUES
-('ENSAI',   'BDE',   'bde@ensai.fr',  '123',  true);
+('ENSAI',   'BDE',   'bde@ensai.fr',  '$argon2id$v=19$m=65536,t=3,p=4$B5ANsSyjoWPXWpLmrI64XA$RI6vsGYJSfCUSrXBW3YU7PuUajeOOhs0xqJJKeOhmcQ',  true);

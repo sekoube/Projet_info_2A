@@ -59,22 +59,23 @@ class UtilisateurService:
     # ======================================================
     def authentifier(self, email: str, mot_de_passe: str) -> Utilisateur | None:
         """
-        Vérifie les identifiants d'un utilisateur.
-        Compare le mot de passe fourni avec le hash stocké.
-
-        return: Utilisateur si authentification réussie, None sinon
+        Authentifie un utilisateur via son email et son mot de passe.
         """
-        utilisateurs = self.get_utilisateur_by('email', email)
 
-        #if not utilisateur.verify_password(mot_de_passe):
-            #print("Mot de passe incorrect.")
-            #return None
+        utilisateurs = self.get_utilisateur_by("email", email)
 
-        if utilisateurs:
-            utilisateur = utilisateurs[0]
-            print(f"Connexion réussie : {utilisateur.prenom}, {utilisateur.nom}")
-        else:
-            print("Utilisateur introuvable")
+        # Aucun utilisateur trouvé
+        if not utilisateurs:
+            print("Utilisateur introuvable.")
+            return None
+
+        # On récupère le premier utilisateur correspondant
+        utilisateur = utilisateurs[0]
+
+        # Vérification du mot de passe
+        if not utilisateur.verify_password(mot_de_passe):
+            print("Mot de passe incorrect.")
+            return None
 
         print(f"Connexion réussie : {utilisateur.prenom}, {utilisateur.nom}")
         return utilisateur

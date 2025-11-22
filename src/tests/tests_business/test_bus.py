@@ -8,12 +8,16 @@ from business_object.bus import Bus
 @pytest.mark.parametrize(
     'params, erreur, message_erreur',
     [
-        ({'id_event': '', 'sens': 'Aller', 'description': ['Bruz'], 'heure_depart': "10:00", 'capacite_max': 50},
+        ({'id_event': '', 'sens': 'Aller', 'description': 'Bruz', 'heure_depart': "10:00", 'capacite_max': 50},
         ValueError, "L'identifiant de l'évènement doit être renseigné"),
-        ({'id_event': '1234', 'sens': "", 'description': ['direct'], 'heure_depart': "10:00", 'capacite_max': 50},
+        ({'id_event': '1234', 'sens': "", 'description': 'direct', 'heure_depart': "10:00", 'capacite_max': 50},
         ValueError, "Le sens ne peut pas être vide"),
-        ({'id_event': '1234', 'sens': 'vers ENSAI', 'description': ['direct'], 'heure_depart': "10:00", 'capacite_max': 50},
+        ({'id_event': '1234', 'sens': 'vers ENSAI', 'description': 'direct', 'heure_depart': "10:00", 'capacite_max': 50},
         ValueError, "Le sens doit être 'Aller' ou 'Retour' (majuscule/minuscule acceptée)"),
+        ({'id_event': '1234', 'sens': 'Aller', 'description': 'direct', 'heure_depart': "10:00", 'capacite_max': 0},
+        ValueError, "La capacité maximale doit être supérieure à 0"),
+        ({'id_event': '1234', 'sens': 'Aller', 'description': 'direct', 'heure_depart': "10:00", 'capacite_max': -10},
+        ValueError, "La capacité maximale doit être supérieure à 0"),
     ]
 )
 def test_bus_erreurs(params, erreur, message_erreur):
@@ -24,65 +28,63 @@ def test_bus_erreurs(params, erreur, message_erreur):
 
 # ========================== Tests de création valide ==========================
 @pytest.mark.parametrize(
-    'params, sens_attendu',
+    'params, sens_booleen_attendu',
     [
         (
-            {'id_event': '1234', 'sens': "Aller", 'description': ["direct"], 'heure_depart': "10:00", 'capacite_max': 50},
-            True
+            {'id_event': '1234', 'sens': "Aller", 'description': "direct", 'heure_depart': "10:00", 'capacite_max': 50},
+            "ALLER"
         ),
         (
-            {'id_event': '5678', 'sens': "Retour", 'description': ["Bruz"], 'heure_depart': "18:30", 'capacite_max': 40},
-            False
+            {'id_event': '5678', 'sens': "Retour", 'description': "Bruz", 'heure_depart': "18:30", 'capacite_max': 40},
+            "RETOUR"
         ),
     ]
 )
-def test_bus_creation_valide(params, sens_attendu):
+def test_bus_creation_valide(params, sens_booleen_attendu):
     """Vérifie la création correcte des bus et l'assignation des attributs"""
-    bus_cour = Bus(**params)
+    bus = Bus(**params)
     
     # Vérifie que les attributs correspondent aux paramètres
-    assert bus_cour.id_event == params['id_event']
-    assert bus_cour.sens == sens_attendu  # Vérifie le booléen
-    assert bus_cour.description == params['description']
-    assert bus_cour.capacite_max == params['capacite_max']
+    assert bus.id_event == params['id_event']
+    assert bus.sens == sens_booleen_attendu  # Vérifie que le sens est normalisé en majuscules
+    assert bus.description == params['description']
+    assert bus.capacite_max == params['capacite_max']
     
     # Vérifie que l'heure de départ est bien un datetime
-    assert isinstance(bus_cour.heure_depart, datetime)
+    assert isinstance(bus.heure_depart, datetime)
     
     # Vérifie que l'heure correspond à celle entrée
     heure_attendue = datetime.strptime(params['heure_depart'], "%H:%M")
-    assert bus_cour.heure_depart.hour == heure_attendue.hour
-    assert bus_cour.heure_depart.minute == heure_attendue.minute
+    assert bus.heure_depart.hour == heure_attendue.hour
+    assert bus.heure_depart.minute == heure_attendue.minute
     
     # Vérifie que id_bus est None par défaut
-    assert bus_cour.id_bus is None
+    assert bus.id_bus is None
 
 
 # ========================== Tests de validation flexible du sens ==========================
 @pytest.mark.parametrize(
-    'sens_input, sens_booleen_attendu',
+    'sens_input, sens_normalise_attendu',
     [
-        ("Aller", True),
-        ("aller", True),
-        ("ALLER", True),
-        ("Retour", False),
-        ("retour", False),
-        ("RETOUR", False),
+        ("Aller", "ALLER"),
+        ("aller", "ALLER"),
+        ("ALLER", "ALLER"),
+        ("Retour", "RETOUR"),
+        ("retour", "RETOUR"),
+        ("RETOUR", "RETOUR"),
     ]
 )
-def test_bus_sens_case_insensitive(sens_input, sens_booleen_attendu):
-    """Vérifie que le sens accepte différentes casses (majuscule/minuscule)"""
+def test_bus_sens_case_insensitive(sens_input, sens_normalise_attendu):
+    """Vérifie que le sens accepte différentes casses et est normalisé en majuscules"""
     bus = Bus(
         id_event='1234',
         sens=sens_input,
-        description=["direct"],
+        description="direct",
         heure_depart="10:00",
         capacite_max=50
     )
     
-    assert bus.sens == sens_booleen_attendu
-    # Vérifie que get_sens_str() retourne toujours le format standard
-    assert bus.get_sens_str() in ["Aller", "Retour"]
+    assert bus.sens == sens_normalise_attendu
 
 
 # ========================== Tests de capacité maximale ==========================
@@ -96,50 +98,53 @@ def test_bus_sens_case_insensitive(sens_input, sens_booleen_attendu):
         (100, True),     # Grande capacité
     ]
 )
+
+
 def test_bus_capacite_max(capacite_max, valide):
     """Vérifie la validation de la capacité maximale du bus"""
     if valide:
         bus = Bus(
             id_event='1234',
             sens="Aller",
-            description=["direct"],
+            description="direct",
             heure_depart="10:00",
             capacite_max=capacite_max
         )
         assert bus.capacite_max == capacite_max
     else:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="La capacité maximale doit être supérieure à 0"):
             Bus(
                 id_event='1234',
                 sens="Aller",
-                description=["direct"],
+                description="direct",
                 heure_depart="10:00",
                 capacite_max=capacite_max
             )
 
 
-# ========================== Test de la méthode get_sens_str() ==========================
-def test_bus_get_sens_str():
-    """Vérifie que get_sens_str() retourne la bonne représentation textuelle"""
-    bus_aller = Bus(
+# ========================== Test de la méthode to_dict() ==========================
+def test_bus_to_dict():
+    """Vérifie que to_dict() retourne un dictionnaire correct"""
+    bus = Bus(
         id_event='1234',
-        sens="aller",  # minuscule
-        description=["direct"],
+        sens="aller",
+        description="direct",
         heure_depart="10:00",
-        capacite_max=50
+        capacite_max=50,
+        id_bus=42
     )
-    assert bus_aller.get_sens_str() == "Aller"
-    assert bus_aller.sens is True
     
-    bus_retour = Bus(
-        id_event='5678',
-        sens="RETOUR",  # majuscule
-        description=["Bruz"],
-        heure_depart="18:00",
-        capacite_max=40
-    )
-    assert bus_retour.get_sens_str() == "Retour"
-    assert bus_retour.sens is False
+    result = bus.to_dict()
+    
+    assert result['id_bus'] == 42
+    assert result['id_event'] == '1234'
+    assert result['sens'] == 'ALLER'
+    assert result['description'] == 'direct'
+    assert result['heure_depart'] == '10:00'
+    assert result['capacite_max'] == 50
+
+
+
 
 
 # ========================== Test avec id_bus fourni ==========================
@@ -148,7 +153,7 @@ def test_bus_avec_id_fourni():
     bus = Bus(
         id_event='1234',
         sens="Aller",
-        description=["direct"],
+        description="direct",
         heure_depart="10:00",
         capacite_max=50,
         id_bus=42
@@ -156,5 +161,38 @@ def test_bus_avec_id_fourni():
     
     assert bus.id_bus == 42
     assert bus.id_event == '1234'
-    assert bus.sens is True
+    assert bus.sens == 'ALLER'
     assert bus.capacite_max == 50
+
+
+# ========================== Tests avec heure_depart comme datetime ==========================
+def test_bus_heure_depart_datetime():
+    """Vérifie que heure_depart peut être un objet datetime"""
+    dt = datetime.strptime("14:30", "%H:%M")
+    bus = Bus(
+        id_event='1234',
+        sens="Aller",
+        description="direct",
+        heure_depart=dt,
+        capacite_max=50
+    )
+    
+    assert isinstance(bus.heure_depart, datetime)
+    assert bus.heure_depart.hour == 14
+    assert bus.heure_depart.minute == 30
+
+
+# ========================== Tests heure_depart comme string ==========================
+def test_bus_heure_depart_string():
+    """Vérifie que heure_depart peut être une string au format HH:MM"""
+    bus = Bus(
+        id_event='1234',
+        sens="Retour",
+        description="Bruz",
+        heure_depart="18:45",
+        capacite_max=40
+    )
+    
+    assert isinstance(bus.heure_depart, datetime)
+    assert bus.heure_depart.hour == 18
+    assert bus.heure_depart.minute == 45

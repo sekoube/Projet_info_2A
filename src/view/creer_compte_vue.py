@@ -24,8 +24,7 @@ def creer_compte_terminal(service: UtilisateurService):
     while not mot_de_passe:
         mot_de_passe = getpass.getpass("Mot de passe obligatoire, réessayez : ").strip()
 
-    role_input = input("Compte admin ? (oui/non) : ").strip().lower()
-    role = role_input == "oui"
+    role = False
 
     try:
         service.creer_utilisateur(nom, prenom, email, mot_de_passe, role)

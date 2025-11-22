@@ -2,11 +2,12 @@ from business_object.utilisateur import Utilisateur
 from service.utilisateur_service import UtilisateurService
 from service.evenement_service import EvenementService
 from service.inscription_service import InscriptionService
+from service.bus_service import BusService
 import getpass
 from view.page_utilisateur import page_utilisateur
 from view.page_admin import page_admin
 
-def connexion_terminal(service_utilisateur: UtilisateurService, evenement_service: EvenementService, inscription_service: InscriptionService):
+def connexion_terminal(service_utilisateur: UtilisateurService, evenement_service: EvenementService, inscription_service: InscriptionService, bus_service: BusService):
     print("\n=== Connexion ===")
     email = input("Email : ").strip()
     mot_de_passe = getpass.getpass("Mot de passe : ").strip()
@@ -15,7 +16,7 @@ def connexion_terminal(service_utilisateur: UtilisateurService, evenement_servic
     if utilisateur:
         print(f"✅ Bienvenue {utilisateur.prenom}, {utilisateur.nom}!")
         if not utilisateur.role:  # Utilisateur simple
-            page_utilisateur(utilisateur, evenement_service, inscription_service)
+            page_utilisateur(utilisateur, evenement_service, inscription_service, bus_service)
         else:
             page_admin(utilisateur, evenement_service, inscription_service)
     else:

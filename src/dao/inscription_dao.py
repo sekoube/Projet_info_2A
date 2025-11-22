@@ -19,7 +19,7 @@ class InscriptionDAO:
                         """
                         INSERT INTO inscription 
                         (code_reservation, boit, created_by, mode_paiement, 
-                         id_event, id_bus_retour, id_bus_aller, created_at)
+                         id_event, id_bus_aller, id_bus_retour, created_at)
                         VALUES (%(code_reservation)s, %(boit)s, %(created_by)s, 
                                 %(mode_paiement)s, %(id_event)s, 
                                 %(id_bus_aller)s, %(id_bus_retour)s, %(created_at)s)
@@ -32,7 +32,7 @@ class InscriptionDAO:
                             "mode_paiement": inscription.mode_paiement,
                             "id_event": inscription.id_event,
                             "id_bus_aller": inscription.id_bus_aller,
-                            "id_bus_retour": float(inscription.id_bus_retour),
+                            "id_bus_retour": inscription.id_bus_retour,
                             "created_at": inscription.created_at,
                         },
                     )

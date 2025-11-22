@@ -15,6 +15,7 @@ from dao.bus_dao import BusDAO
 from service.utilisateur_service import UtilisateurService
 from service.evenement_service import EvenementService
 from service.inscription_service import InscriptionService
+from service.bus_service import BusService
 
 # Import des vues
 from view.menu_principal import MenuPrincipal
@@ -55,12 +56,14 @@ def main():
         evenement_dao,
         utilisateur_dao
     )
+    service_bus = BusService()
 
     # ==== Lancer le menu principal ====
     menu = MenuPrincipal(
         service_utilisateur,
         service_evenement,
-        service_inscription
+        service_inscription,
+        service_bus
     )
     menu.afficher()
 

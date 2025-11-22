@@ -24,8 +24,8 @@ def test_creation_evenement_valide():
     assert evenement.titre == "Soirée Gala"
     assert evenement.lieu == "Château de Versailles"
     assert evenement.capacite_max == 200
-    assert float(evenement.tarif) == 50.00
-    assert evenement.inscriptions == []
+    assert evenement.tarif == Decimal('50.00')
+    assert evenement.statut == "en_cours"
 
 
 def test_evenement_titre_vide_erreur():
@@ -33,95 +33,29 @@ def test_evenement_titre_vide_erreur():
     Test de validation : un titre vide doit lever une ValueError.
     """
     # Act & Assert
-    try:
-        evenement = Evenement(
+    with pytest.raises(ValueError, match="Le titre ne peut pas être vide"):
+        Evenement(
             titre="",
             lieu="Salle A",
             date_event=date(2025, 11, 15),
             capacite_max=50,
             created_by=1
         )
-        assert False, "Une ValueError aurait dû être levée"
-    except ValueError as e:
-        assert "titre ne peut pas être vide" in str(e)
 
 
-def test_places_disponibles_calcul():
+def test_evenement_titre_espaces_vides():
     """
-    Test du calcul des places disponibles.
-    Vérifie que le nombre de places diminue avec les inscriptions.
+    Test : un titre contenant uniquement des espaces doit lever une ValueError.
     """
-    # Arrange
-    evenement = Evenement(
-        titre="Workshop Python",
-        lieu="Lab Info",
-        date_event=date(2025, 11, 20),
-        capacite_max=30,
-        created_by=1
-    )
-    
-    # Act - Simuler des inscriptions
-    class InscriptionMock:
-        pass
-    
-    evenement.inscriptions = [InscriptionMock() for _ in range(10)]
-    
-    # Assert
-    assert evenement.places_disponibles() == 20
-    assert evenement.est_complet() is False
+    with pytest.raises(ValueError, match="Le titre ne peut pas être vide"):
+        Evenement(
+            titre="   ",
+            lieu="Salle A",
+            date_event=date(2025, 11, 15),
+            capacite_max=50,
+            created_by=1
+        )
 
-
-def test_evenement_complet():
-    """
-    Test de vérification qu'un événement est complet.
-    Vérifie le comportement quand capacité maximale est atteinte.
-    """
-    # Arrange
-    evenement = Evenement(
-        titre="Atelier Photo",
-        lieu="Studio",
-        date_event=date(2025, 12, 1),
-        capacite_max=5,
-        created_by=1
-    )
-    
-    # Act - Remplir complètement l'événement
-    class InscriptionMock:
-        pass
-    
-    evenement.inscriptions = [InscriptionMock() for _ in range(5)]
-    
-    # Assert
-    assert evenement.est_complet() is True
-    assert evenement.places_disponibles() == 0
-    assert evenement.taux_remplissage() == 100.0
-
-
-def test_evenement_passe():
-    """
-    Test de vérification qu'un événement est passé.
-    Compare la date de l'événement avec la date actuelle.
-    """
-    # Arrange
-    evenement_passe = Evenement(
-        titre="Événement Historique",
-        lieu="Musée",
-        date_event=date(2020, 1, 1),
-        capacite_max=100,
-        created_by=1
-    )
-    
-    evenement_futur = Evenement(
-        titre="Événement à Venir",
-        lieu="Centre",
-        date_event=date(2026, 12, 31),
-        capacite_max=100,
-        created_by=1
-    )
-    
-    # Act & Assert
-    assert evenement_passe.est_passe() is True
-    assert evenement_futur.est_passe() is False
 
 def test_evenement_validations_erreurs_multiples():
     """
@@ -184,7 +118,7 @@ def test_evenement_validations_erreurs_multiples():
         Evenement(
             titre="Concert",
             lieu="Salle A",
-            date_event="2025-12-15",  # String au lieu de date
+            date_event="2025-12-15",
             capacite_max=50,
             created_by=1
         )
@@ -205,7 +139,7 @@ def test_evenement_validations_erreurs_multiples():
             titre="Concert",
             lieu="Salle A",
             date_event=date(2025, 12, 15),
-            capacite_max=50.5,  # Float au lieu d'int
+            capacite_max=50.5,
             created_by=1
         )
     
@@ -240,6 +174,17 @@ def test_evenement_validations_erreurs_multiples():
             tarif=-10.0
         )
 
+    # Test 12: Statut invalide
+    with pytest.raises(ValueError, match="le satut doit être en_cours, passe ou complet"):
+        Evenement(
+            titre="Concert",
+            lieu="Salle A",
+            date_event=date(2025, 12, 15),
+            capacite_max=50,
+            created_by=1,
+            statut="invalide"
+        )
+
 
 def test_to_dict_complet():
     """
@@ -247,6 +192,7 @@ def test_to_dict_complet():
     Vérifie que toutes les données sont correctement sérialisées.
     """
     # Arrange
+    now = datetime.now()
     evenement = Evenement(
         id_event=42,
         titre="Festival de Jazz",
@@ -255,11 +201,9 @@ def test_to_dict_complet():
         date_event=date(2025, 7, 14),
         capacite_max=200,
         created_by=5,
-        tarif=25.50
+        tarif=25.50,
+        created_at=now
     )
-    
-    # Simuler quelques inscriptions
-    evenement.inscriptions = [1, 2, 3]  # 3 inscrits fictifs
     
     # Act
     resultat = evenement.to_dict()
@@ -273,72 +217,8 @@ def test_to_dict_complet():
     assert resultat["capacite_max"] == 200
     assert resultat["created_by"] == 5
     assert resultat["tarif"] == "25.50"
-    assert resultat["places_disponibles"] == 197  # 200 - 3
-    assert resultat["est_complet"] is False
-    assert resultat["taux_remplissage"] == 1.5  # (3/200)*100
+    assert resultat["statut"] == "en_cours"
     assert "created_at" in resultat
-
-
-def test_from_dict_avec_dates_invalides():
-    """
-    Test de from_dict avec conversion de dates depuis des strings.
-    Vérifie que les dates ISO sont correctement converties.
-    """
-    # Test 1: Dates en format string ISO
-    data = {
-        "id_event": 10,
-        "titre": "Conférence",
-        "description_event": "Description test",
-        "lieu": "Amphithéâtre",
-        "date_event": "2025-12-01",  # String ISO
-        "capacite_max": 100,
-        "created_by": 2,
-        "created_at": "2024-11-01T10:30:00",  # String ISO avec heure
-        "tarif": 15.00
-    }
-    
-    evenement = Evenement.from_dict(data)
-    
-    assert evenement.id_event == 10
-    assert evenement.titre == "Conférence"
-    assert evenement.date_event == date(2025, 12, 1)
-    assert isinstance(evenement.date_event, date)
-    assert evenement.created_at == datetime(2024, 11, 1, 10, 30, 0)
-    assert isinstance(evenement.created_at, datetime)
-    assert evenement.tarif == Decimal("15.00")
-    
-    # Test 2: Dates déjà en format date/datetime
-    data2 = {
-        "titre": "Atelier",
-        "lieu": "Salle B",
-        "date_event": date(2026, 1, 15),  # Déjà un objet date
-        "capacite_max": 30,
-        "created_by": 3,
-        "created_at": datetime(2024, 12, 1, 14, 0, 0),  # Déjà datetime
-        "tarif": "20.50"  # Tarif en string
-    }
-    
-    evenement2 = Evenement.from_dict(data2)
-    
-    assert evenement2.date_event == date(2026, 1, 15)
-    assert evenement2.created_at == datetime(2024, 12, 1, 14, 0, 0)
-    assert evenement2.tarif == Decimal("20.50")
-    
-    # Test 3: Valeurs par défaut pour champs optionnels
-    data3 = {
-        "titre": "Sortie",
-        "lieu": "Extérieur",
-        "date_event": date(2025, 6, 1),
-        "capacite_max": 50,
-        "created_by": 1
-    }
-    
-    evenement3 = Evenement.from_dict(data3)
-    
-    assert evenement3.description_event == ""
-    assert evenement3.id_event is None
-    assert evenement3.tarif == Decimal("0.00")
-
 
 def test_str_et_repr():
     """
@@ -356,113 +236,125 @@ def test_str_et_repr():
         tarif=35.00
     )
     
-    # Simuler 150 inscrits
-    evenement.inscriptions = list(range(150))
-    
     # Test __repr__ (représentation technique)
     repr_result = repr(evenement)
     assert repr_result == "<Evenement #123 - Marathon 2025 (2025-05-20 à Centre-ville)>"
     
-    # Test __str__ (représentation lisible = resume())
+    # Test __str__ (représentation lisible)
     str_result = str(evenement)
     assert "Marathon 2025" in str_result
     assert "2025-05-20" in str_result
     assert "Centre-ville" in str_result
-    assert "150/500" in str_result
     assert "35.00€" in str_result
+
+
+def test_tarif_quantize():
+    """
+    Test que le tarif est correctement quantifié avec 2 décimales.
+    """
+    # Test avec tarif float
+    evenement1 = Evenement(
+        titre="Concert",
+        lieu="Salle",
+        date_event=date(2025, 12, 1),
+        capacite_max=100,
+        created_by=1,
+        tarif=25.5
+    )
+    assert evenement1.tarif == Decimal('25.50')
     
-    # Vérifier le format exact
-    expected_str = "Marathon 2025 - 2025-05-20 à Centre-ville (150/500 participants) - 35.00€"
-    assert str_result == expected_str
-
-
-def test_taux_remplissage():
-    """
-    Test du calcul du taux de remplissage.
-    Vérifie les pourcentages avec différents scénarios.
-    """
-    # Test 1: Événement vide
-    evenement = Evenement(
+    # Test avec tarif string (depuis from_dict)
+    evenement2 = Evenement(
+        titre="Concert",
+        lieu="Salle",
+        date_event=date(2025, 12, 1),
+        capacite_max=100,
+        created_by=1,
+        tarif="15.9"
+    )
+    assert evenement2.tarif == Decimal('15.90')
+    
+    # Test tarif par défaut
+    evenement3 = Evenement(
         titre="Concert",
         lieu="Salle",
         date_event=date(2025, 12, 1),
         capacite_max=100,
         created_by=1
     )
-    assert evenement.taux_remplissage() == 0.0
-    
-    # Test 2: Événement à moitié plein
-    evenement.inscriptions = list(range(50))
-    assert evenement.taux_remplissage() == 50.0
-    
-    # Test 3: Événement complet
-    evenement.inscriptions = list(range(100))
-    assert evenement.taux_remplissage() == 100.0
-    
-    # Test 4: Capacité 0 (cas limite)
-    evenement_zero = Evenement(
-        titre="Test",
+    assert evenement3.tarif == Decimal('0.00')
+
+
+def test_statut_default():
+    """
+    Test que le statut par défaut est 'en_cours'.
+    """
+    evenement = Evenement(
+        titre="Event",
         lieu="Lieu",
         date_event=date(2025, 12, 1),
-        capacite_max=1,
+        capacite_max=50,
         created_by=1
     )
-    evenement_zero.capacite_max = 0  # Modifier après création pour tester
-    assert evenement_zero.taux_remplissage() == 0.0
+    assert evenement.statut == "en_cours"
 
 
-def test_resume():
+def test_statut_custom():
     """
-    Test de la méthode resume avec formatage du tarif.
+    Test la création avec un statut personnalisé valide.
     """
+    for statut in ["en_cours", "passe", "complet"]:
+        evenement = Evenement(
+            titre="Event",
+            lieu="Lieu",
+            date_event=date(2025, 12, 1),
+            capacite_max=50,
+            created_by=1,
+            statut=statut
+        )
+        assert evenement.statut == statut
+
+
+def test_created_at_auto():
+    """
+    Test que created_at est automatiquement défini à la date/heure actuelle.
+    """
+    before = datetime.now()
     evenement = Evenement(
-        titre="Sortie vélo",
-        lieu="Forêt",
-        date_event=date(2025, 8, 15),
-        capacite_max=25,
-        created_by=1,
-        tarif=12.5  # Devrait être formaté en 12.50
-    )
-    
-    evenement.inscriptions = [1, 2, 3, 4, 5]
-    
-    resume = evenement.resume()
-    
-    assert "Sortie vélo" in resume
-    assert "2025-08-15" in resume
-    assert "Forêt" in resume
-    assert "5/25" in resume
-    assert "12.50€" in resume  # Vérifier le format avec 2 décimales
-
-
-def test_ajouter_bus():
-    """
-    Test de l'ajout de bus (aller/retour).
-    """
-    from unittest.mock import Mock
-    
-    evenement = Evenement(
-        titre="Excursion",
-        lieu="Montagne",
-        date_event=date(2025, 9, 1),
-        capacite_max=40,
+        titre="Event",
+        lieu="Lieu",
+        date_event=date(2025, 12, 1),
+        capacite_max=50,
         created_by=1
     )
+    after = datetime.now()
     
-    # Mock d'un bus aller
-    bus_aller = Mock()
-    bus_aller.sens = True
-    
-    # Mock d'un bus retour
-    bus_retour = Mock()
-    bus_retour.sens = False
-    
-    # Test ajout bus aller
-    evenement.ajouter_bus(bus_aller)
-    assert evenement.bus_aller == bus_aller
-    assert evenement.bus_retour is None
-    
-    # Test ajout bus retour
-    evenement.ajouter_bus(bus_retour)
-    assert evenement.bus_aller == bus_aller
-    assert evenement.bus_retour == bus_retour
+    assert before <= evenement.created_at <= after
+
+
+def test_created_by_zero():
+    """
+    Test que created_by = 0 est rejeté (doit être positif).
+    """
+    with pytest.raises(ValueError, match="L'ID du créateur doit être un entier positif"):
+        Evenement(
+            titre="Event",
+            lieu="Lieu",
+            date_event=date(2025, 12, 1),
+            capacite_max=50,
+            created_by=0
+        )
+
+
+def test_lieu_espaces_vides():
+    """
+    Test : un lieu contenant uniquement des espaces doit lever une ValueError.
+    """
+    with pytest.raises(ValueError, match="Le lieu ne peut pas être vide"):
+        Evenement(
+            titre="Concert",
+            lieu="   ",
+            date_event=date(2025, 12, 15),
+            capacite_max=50,
+            created_by=1
+        )

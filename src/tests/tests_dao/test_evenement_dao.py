@@ -1,387 +1,620 @@
-# src/tests/tests_dao/test_evenement_dao.py
-from datetime import date, timedelta
-from dao.evenement_dao import EvenementDAO
-from business_object.evenement import Evenement
 import pytest
+from unittest.mock import Mock, MagicMock, patch
+from datetime import datetime, date
+from decimal import Decimal
+from business_object.evenement import Evenement
+from dao.evenement_dao import EvenementDAO
 
 
-# ==================== TESTS DE CRÉATION ====================
+@pytest.fixture
+def mock_connection():
+    """Fixture pour simuler une connexion à la base de données."""
+    connection = MagicMock()
+    cursor = MagicMock()
+    connection.cursor.return_value.__enter__.return_value = cursor
+    connection.__enter__.return_value = connection
+    connection.__exit__.return_value = None
+    return connection, cursor
 
-def test_creer_evenement_succes(utilisateur_test):
-    """Test la création d'un événement avec succès"""
-    evenement = Evenement(
-        titre="Concert Test",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description du concert test",
-        tarif=10.0
+
+@pytest.fixture
+def evenement_test():
+    """Fixture pour un événement de test."""
+    return Evenement(
+        id_event=None,
+        titre="Concert de Jazz",
+        description_event="Soirée jazz avec musiciens professionnels",
+        lieu="Salle Pleyel",
+        date_event=date(2025, 6, 15),
+        capacite_max=200,
+        created_by=1,
+        created_at=datetime(2024, 1, 10, 14, 30, 0),
+        tarif=25.50,
+        statut="en_cours"
     )
-    
-    resultat = EvenementDAO().creer(evenement)
+
+
+@pytest.fixture
+def evenement_complet():
+    """Fixture pour un événement complet."""
+    return Evenement(
+        id_event=None,
+        titre="Festival Rock",
+        description_event="Grand festival de rock",
+        lieu="Stade de France",
+        date_event=date(2025, 7, 20),
+        capacite_max=50000,
+        created_by=2,
+        created_at=datetime(2024, 2, 1, 10, 0, 0),
+        tarif=75.00,
+        statut="complet"
+    )
+
+
+# ============================================================
+# TESTS CRÉATION
+# ============================================================
+
+@patch('dao.evenement_dao.DBConnection')
+def test_creer_evenement_success(mock_db, mock_connection, evenement_test):
+    """Test la création réussie d'un événement."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchone.return_value = {"id_event": 1}
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.creer(evenement_test)
+
+    # Assert
     assert resultat is True
-    assert evenement.id_event is not None  # Vérifie que l'ID a été généré
+    assert evenement_test.id_event == 1
+    cursor.execute.assert_called_once()
+    args = cursor.execute.call_args[0]
+    assert "INSERT INTO evenement" in args[0]
+    
+    params = cursor.execute.call_args[0][1]
+    assert params["titre"] == "Concert de Jazz"
+    assert params["lieu"] == "Salle Pleyel"
+    assert params["capacite_max"] == 200
+    assert params["tarif"] == 25.50
+    assert params["statut"] == "en_cours"
 
 
-# ==================== TESTS DE RÉCUPÉRATION ====================
+@patch('dao.evenement_dao.DBConnection')
+def test_creer_evenement_avec_description(mock_db, mock_connection):
+    """Test la création d'un événement avec description complète."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchone.return_value = {"id_event": 5}
 
-def test_get_by_id_existant(utilisateur_test):
-    """Test la récupération d'un événement existant"""
     evenement = Evenement(
-        titre="Concert Test",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description du concert test",
-        tarif=10.0
+        titre="Conférence Tech",
+        description_event="Conférence sur l'IA et le machine learning",
+        lieu="Palais des Congrès",
+        date_event=date(2025, 9, 10),
+        capacite_max=500,
+        created_by=3,
+        tarif=50.00
     )
-    EvenementDAO().creer(evenement)
-    
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere is not None
-    assert evenement_recupere.titre == "Concert Test"
-    assert evenement_recupere.lieu == "Paris"
-    assert evenement_recupere.capacite_max == 100
-    assert float(evenement_recupere.tarif) == 10.0
 
+    dao = EvenementDAO()
 
+    # Act
+    resultat = dao.creer(evenement)
 
-
-# ==================== TESTS DE LISTAGE ====================
-
-def test_lister_tous_avec_plusieurs_evenements(utilisateur_test):
-    """Test le listage de plusieurs événements"""
-    # Créer 3 événements
-    for i in range(3):
-        evenement = Evenement(
-            titre=f"Événement {i+1}",
-            lieu=f"Lieu {i+1}",
-            date_event=date.today() + timedelta(days=10+i*10),
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0 * (i+1)
-        )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_tous()
-    assert len(evenements) == 3
-
-
-def test_lister_futurs_evenements(utilisateur_test):
-    """Test la récupération des événements futurs uniquement"""
-    # Créer un événement futur
-    evenement_futur = Evenement(
-        titre="Concert Futur",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Concert dans le futur",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement_futur)
-    
-    # Créer un événement passé
-    evenement_passe = Evenement(
-        titre="Concert Passé",
-        lieu="Lyon",
-        date_event=date.today() - timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Concert passé",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement_passe)
-    
-    # Lister les événements futurs
-    evenements_futurs = EvenementDAO().lister_futurs()
-    
-    # Vérifier qu'on a bien que les événements futurs
-    assert len(evenements_futurs) >= 1
-    for evt in evenements_futurs:
-        assert evt.date_event >= date.today()
-
-
-def test_lister_par_createur(utilisateur_test):
-    """Test le listage des événements par créateur"""
-    # Créer 2 événements pour l'utilisateur de test
-    for i in range(2):
-        evenement = Evenement(
-            titre=f"Mon Événement {i+1}",
-            lieu=f"Lieu {i+1}",
-            date_event=date.today() + timedelta(days=10+i*10),
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
-        )
-        EvenementDAO().creer(evenement)
-    
-    # Lister les événements de cet utilisateur
-    evenements = EvenementDAO().lister_par_createur(utilisateur_test.id_utilisateur)
-    
-    assert len(evenements) == 2
-    for evt in evenements:
-        assert evt.created_by == utilisateur_test.id_utilisateur
-
-
-# ==================== TESTS DE MODIFICATION ====================
-
-def test_modifier_evenement_succes(utilisateur_test):
-    """Test la modification d'un événement"""
-    # Créer un événement
-    evenement = Evenement(
-        titre="Titre Original",
-        lieu="Lieu Original",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Description originale",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    
-    # Modifier l'événement
-    evenement.titre = "Titre Modifié"
-    evenement.lieu = "Nouveau Lieu"
-    evenement.capacite_max = 200
-    evenement.tarif = 15.0
-    
-    resultat = EvenementDAO().modifier(evenement)
+    # Assert
     assert resultat is True
-    
-    # Vérifier les modifications
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere.titre == "Titre Modifié"
-    assert evenement_recupere.lieu == "Nouveau Lieu"
-    assert evenement_recupere.capacite_max == 200
-    assert float(evenement_recupere.tarif) == 15.0
+    assert evenement.id_event == 5
+    params = cursor.execute.call_args[0][1]
+    assert params["description_event"] == "Conférence sur l'IA et le machine learning"
 
 
-def test_modifier_date_event(utilisateur_test):
-    """Test la modification de la date d'un événement"""
-    evenement = Evenement(
-        titre="Événement Report",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Événement qui sera reporté",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    
-    # Reporter l'événement de 30 jours
-    nouvelle_date = date.today() + timedelta(days=60)
-    evenement.date_event = nouvelle_date
-    
-    resultat = EvenementDAO().modifier(evenement)
+@patch('dao.evenement_dao.DBConnection')
+def test_creer_evenement_statut_complet(mock_db, mock_connection, evenement_complet):
+    """Test la création d'un événement avec statut 'complet'."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchone.return_value = {"id_event": 10}
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.creer(evenement_complet)
+
+    # Assert
     assert resultat is True
+    params = cursor.execute.call_args[0][1]
+    assert params["statut"] == "complet"
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_creer_evenement_echec_pas_de_retour(mock_db, mock_connection, evenement_test):
+    """Test l'échec de création quand la base ne retourne pas d'ID."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchone.return_value = None
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.creer(evenement_test)
+
+    # Assert
+    assert resultat is False
+    assert evenement_test.id_event is None
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_creer_evenement_exception(mock_db, mock_connection, evenement_test):
+    """Test la gestion d'exception lors de la création."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.execute.side_effect = Exception("Erreur de connexion")
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.creer(evenement_test)
+
+    # Assert
+    assert resultat is False
+
+
+# ============================================================
+# TESTS LISTAGE
+# ============================================================
+
+@patch('dao.evenement_dao.DBConnection')
+def test_lister_tous_vide(mock_db, mock_connection):
+    """Test le listage quand aucun événement n'existe."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = []
+    cursor.description = []
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.lister_tous()
+
+    # Assert
+    assert resultat == []
+    cursor.execute.assert_called_once()
+    args = cursor.execute.call_args[0]
+    assert "SELECT" in args[0]
+    assert "FROM evenement" in args[0]
+    assert "ORDER BY date_event DESC" in args[0]
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_lister_tous_un_evenement(mock_db, mock_connection):
+    """Test le listage avec un seul événement."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
     
-    evenement_recupere = EvenementDAO().get_by_id(evenement.id_event)
-    assert evenement_recupere.date_event == nouvelle_date
-
-
-# ==================== TESTS DE SUPPRESSION ====================
-
-def test_supprimer_evenement_succes(utilisateur_test):
-    """Test la suppression d'un événement"""
-    evenement = Evenement(
-        titre="Événement à Supprimer",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Sera supprimé",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement)
-    id_event = evenement.id_event
-    
-    # Supprimer l'événement
-    resultat = EvenementDAO().supprimer(evenement)
-    assert resultat is True
-    
-    # Vérifier que l'événement n'existe plus
-    evenement_recupere = EvenementDAO().get_by_id(id_event)
-    assert evenement_recupere is None
-
-def test_supprimer_puis_recreer(utilisateur_test):
-    """Test la suppression puis recréation d'un événement avec le même titre"""
-    evenement1 = Evenement(
-        titre="Événement Récurrent",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Première édition",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement1)
-    id_premier = evenement1.id_event
-    
-    # Supprimer
-    EvenementDAO().supprimer(evenement1)
-    
-    # Recréer avec le même titre
-    evenement2 = Evenement(
-        titre="Événement Récurrent",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=60),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Deuxième édition",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evenement2)
-    
-    # Vérifier que ce sont deux événements différents
-    assert evenement2.id_event != id_premier
-
-
-# ==================== TESTS D'ORDRE ET DE TRI ====================
-
-def test_lister_tous_ordre_decroissant(utilisateur_test):
-    """Test que lister_tous retourne les événements par date décroissante"""
-    dates = [
-        date.today() + timedelta(days=10),
-        date.today() + timedelta(days=30),
-        date.today() + timedelta(days=20)
+    cursor.description = [
+        ('id_event',), ('titre',), ('description_event',), ('lieu',),
+        ('date_event',), ('capacite_max',), ('created_by',),
+        ('created_at',), ('tarif',), ('statut',)
     ]
     
-    for i, d in enumerate(dates):
-        evenement = Evenement(
-            titre=f"Événement {i+1}",
-            lieu="Paris",
-            date_event=d,
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
-        )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_tous()
-    
-    # Vérifier l'ordre décroissant (le plus récent d'abord)
-    for i in range(len(evenements) - 1):
-        assert evenements[i].date_event >= evenements[i+1].date_event
+    cursor.fetchall.return_value = [
+        (1, "Concert Jazz", "Description", "Salle Pleyel",
+         date(2025, 6, 15), 200, 1,
+         datetime(2024, 1, 10, 14, 30, 0), 25.50, "en_cours")
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.lister_tous()
+
+    # Assert
+    assert len(resultat) == 1
+    assert isinstance(resultat[0], Evenement)
+    assert resultat[0].titre == "Concert Jazz"
+    assert resultat[0].capacite_max == 200
 
 
-def test_lister_futurs_ordre_croissant(utilisateur_test):
-    """Test que lister_futurs retourne les événements par date croissante"""
-    dates = [
-        date.today() + timedelta(days=30),
-        date.today() + timedelta(days=10),
-        date.today() + timedelta(days=20)
+@patch('dao.evenement_dao.DBConnection')
+def test_lister_tous_plusieurs_evenements(mock_db, mock_connection):
+    """Test le listage avec plusieurs événements triés par date décroissante."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    
+    cursor.description = [
+        ('id_event',), ('titre',), ('description_event',), ('lieu',),
+        ('date_event',), ('capacite_max',), ('created_by',),
+        ('created_at',), ('tarif',), ('statut',)
     ]
     
-    for i, d in enumerate(dates):
-        evenement = Evenement(
-            titre=f"Événement Futur {i+1}",
-            lieu="Paris",
-            date_event=d,
-            capacite_max=100,
-            created_by=utilisateur_test.id_utilisateur,
-            description_event=f"Description {i+1}",
-            tarif=10.0
-        )
-        EvenementDAO().creer(evenement)
-    
-    evenements = EvenementDAO().lister_futurs()
-    
-    # Vérifier l'ordre croissant (le plus proche d'abord)
-    for i in range(len(evenements) - 1):
-        assert evenements[i].date_event <= evenements[i+1].date_event
+    cursor.fetchall.return_value = [
+        (3, "Festival Rock", "Grand festival", "Stade",
+         date(2025, 7, 20), 50000, 2,
+         datetime(2024, 2, 1), 75.00, "en_cours"),
+        (1, "Concert Jazz", "Soirée jazz", "Salle",
+         date(2025, 6, 15), 200, 1,
+         datetime(2024, 1, 10), 25.50, "complet"),
+        (2, "Théâtre", "Pièce classique", "Théâtre",
+         date(2025, 5, 10), 150, 1,
+         datetime(2024, 1, 15), 30.00, "passe")
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.lister_tous()
+
+    # Assert
+    assert len(resultat) == 3
+    assert all(isinstance(e, Evenement) for e in resultat)
+    # Vérifier l'ordre (plus récent en premier)
+    assert resultat[0].date_event == date(2025, 7, 20)
+    assert resultat[1].date_event == date(2025, 6, 15)
+    assert resultat[2].date_event == date(2025, 5, 10)
 
 
-# ==================== TESTS DE SCENARIOS COMPLEXES ====================
+@patch('dao.evenement_dao.DBConnection')
+def test_lister_tous_exception(mock_db, mock_connection):
+    """Test la gestion d'exception lors du listage."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.execute.side_effect = Exception("Erreur de connexion")
 
-def test_scenario_complet_cycle_vie_evenement(utilisateur_test):
-    """Test du cycle de vie complet d'un événement"""
-    # 1. Création
-    evenement = Evenement(
-        titre="Événement Complet",
-        lieu="Rennes",
-        date_event=date.today() + timedelta(days=30),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Test cycle de vie",
-        tarif=20.0
-    )
-    
-    assert EvenementDAO().creer(evenement) is True
-    id_event = evenement.id_event
-    
-    # 2. Lecture
-    evt_lu = EvenementDAO().get_by_id(id_event)
-    assert evt_lu is not None
-    assert evt_lu.titre == "Événement Complet"
-    
-    # 3. Modification
-    evt_lu.titre = "Événement Modifié"
-    evt_lu.capacite_max = 150
-    assert EvenementDAO().modifier(evt_lu) is True
-    
-    # 4. Vérification modification
-    evt_modifie = EvenementDAO().get_by_id(id_event)
-    assert evt_modifie.titre == "Événement Modifié"
-    assert evt_modifie.capacite_max == 150
-    
-    # 5. Suppression
-    assert EvenementDAO().supprimer(evt_modifie) is True
-    
-    # 6. Vérification suppression
-    evt_supprime = EvenementDAO().get_by_id(id_event)
-    assert evt_supprime is None
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.lister_tous()
+
+    # Assert
+    assert resultat == []
 
 
-def test_plusieurs_utilisateurs_creent_evenements(utilisateur_test):
-    """Test avec plusieurs utilisateurs créant des événements"""
-    from dao.utilisateur_dao import UtilisateurDAO
-    from business_object.utilisateur import Utilisateur
-    
-    # Créer un deuxième utilisateur
-    utilisateur2 = Utilisateur(
-        pseudo="testuser2",
-        nom="Test2",
-        prenom="User2",
-        email="test2@example.com",
-        mot_de_passe="Password123!"
-    )
-    UtilisateurDAO().creer(utilisateur2)
-    
-    # Chaque utilisateur crée un événement
-    evt1 = Evenement(
-        titre="Événement User1",
-        lieu="Paris",
-        date_event=date.today() + timedelta(days=10),
-        capacite_max=100,
-        created_by=utilisateur_test.id_utilisateur,
-        description_event="Par user 1",
-        tarif=10.0
-    )
-    EvenementDAO().creer(evt1)
-    
-    evt2 = Evenement(
-        titre="Événement User2",
-        lieu="Lyon",
-        date_event=date.today() + timedelta(days=20),
-        capacite_max=100,
-        created_by=utilisateur2.id_utilisateur,
-        description_event="Par user 2",
-        tarif=15.0
-    )
-    EvenementDAO().creer(evt2)
-    
-    # Vérifier que chaque utilisateur voit bien ses événements
-    evts_user1 = EvenementDAO().lister_par_createur(utilisateur_test.id_utilisateur)
-    evts_user2 = EvenementDAO().lister_par_createur(utilisateur2.id_utilisateur)
-    
-    assert len(evts_user1) >= 1
-    assert len(evts_user2) >= 1
-    assert all(e.created_by == utilisateur_test.id_utilisateur for e in evts_user1)
-    assert all(e.created_by == utilisateur2.id_utilisateur for e in evts_user2)
+# ============================================================
+# TESTS GET_BY
+# ============================================================
+
+@patch('dao.evenement_dao.DBConnection')
+def test_get_by_id_event(mock_db, mock_connection):
+    """Test la recherche d'un événement par ID."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = [
+        {
+            "id_event": 1,
+            "titre": "Concert Jazz",
+            "description_event": "Soirée jazz",
+            "lieu": "Salle Pleyel",
+            "date_event": date(2025, 6, 15),
+            "capacite_max": 200,
+            "created_by": 1,
+            "created_at": datetime(2024, 1, 10),
+            "tarif": 25.50,
+            "statut": "en_cours"
+        }
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.get_by("id_event", 1)
+
+    # Assert
+    assert len(resultat) == 1
+    assert resultat[0].id_event == 1
+    assert resultat[0].titre == "Concert Jazz"
+    cursor.execute.assert_called_once()
+    args = cursor.execute.call_args[0]
+    assert "WHERE id_event = %(value)s" in args[0]
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_get_by_titre(mock_db, mock_connection):
+    """Test la recherche d'événements par titre."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = [
+        {
+            "id_event": 5,
+            "titre": "Concert Rock",
+            "description_event": "Soirée rock",
+            "lieu": "Zenith",
+            "date_event": date(2025, 8, 20),
+            "capacite_max": 1000,
+            "created_by": 2,
+            "created_at": datetime(2024, 3, 1),
+            "tarif": 40.00,
+            "statut": "en_cours"
+        }
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.get_by("titre", "Concert Rock")
+
+    # Assert
+    assert len(resultat) == 1
+    assert resultat[0].titre == "Concert Rock"
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_get_by_created_by(mock_db, mock_connection):
+    """Test la recherche d'événements par créateur."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = [
+        {
+            "id_event": 1,
+            "titre": "Event 1",
+            "description_event": "Desc 1",
+            "lieu": "Lieu 1",
+            "date_event": date(2025, 6, 15),
+            "capacite_max": 100,
+            "created_by": 1,
+            "created_at": datetime(2024, 1, 1),
+            "tarif": 10.00,
+            "statut": "en_cours"
+        },
+        {
+            "id_event": 2,
+            "titre": "Event 2",
+            "description_event": "Desc 2",
+            "lieu": "Lieu 2",
+            "date_event": date(2025, 7, 20),
+            "capacite_max": 150,
+            "created_by": 1,
+            "created_at": datetime(2024, 1, 5),
+            "tarif": 15.00,
+            "statut": "en_cours"
+        }
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.get_by("created_by", 1)
+
+    # Assert
+    assert len(resultat) == 2
+    assert all(e.created_by == 1 for e in resultat)
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_get_by_statut(mock_db, mock_connection):
+    """Test la recherche d'événements par statut."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = [
+        {
+            "id_event": 1,
+            "titre": "Event Complet 1",
+            "description_event": "Desc",
+            "lieu": "Lieu",
+            "date_event": date(2025, 6, 15),
+            "capacite_max": 50,
+            "created_by": 1,
+            "created_at": datetime(2024, 1, 1),
+            "tarif": 20.00,
+            "statut": "complet"
+        }
+    ]
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.get_by("statut", "complet")
+
+    # Assert
+    assert len(resultat) == 1
+    assert resultat[0].statut == "complet"
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_get_by_aucun_resultat(mock_db, mock_connection):
+    """Test la recherche qui ne retourne aucun résultat."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.fetchall.return_value = []
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.get_by("titre", "Événement Inexistant")
+
+    # Assert
+    assert resultat == []
+
+
+def test_get_by_colonne_non_autorisee():
+    """Test qu'une ValueError est levée pour une colonne non autorisée."""
+    # Arrange
+    dao = EvenementDAO()
+
+    # Act & Assert
+    with pytest.raises(ValueError, match="Colonne 'invalid_column' non autorisée"):
+        dao.get_by("invalid_column", "valeur")
+
+
+def test_get_by_toutes_colonnes_autorisees():
+    """Test que toutes les colonnes légitimes sont autorisées."""
+    # Arrange
+    dao = EvenementDAO()
+    colonnes_valides = [
+        "id_event", "titre", "description_event", "lieu",
+        "date_event", "capacite_max", "created_by",
+        "created_at", "tarif", "statut"
+    ]
+
+    # Act & Assert
+    with patch('dao.evenement_dao.DBConnection') as mock_db:
+        connection = MagicMock()
+        cursor = MagicMock()
+        connection.cursor.return_value.__enter__.return_value = cursor
+        mock_db.return_value.connection = connection
+        cursor.fetchall.return_value = []
+
+        for colonne in colonnes_valides:
+            try:
+                dao.get_by(colonne, "test_value")
+            except ValueError:
+                pytest.fail(f"La colonne '{colonne}' devrait être autorisée")
+
+
+# ============================================================
+# TESTS SUPPRESSION
+# ============================================================
+
+@patch('dao.evenement_dao.DBConnection')
+def test_supprimer_evenement_success(mock_db, mock_connection, evenement_test):
+    """Test la suppression réussie d'un événement."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.rowcount = 1
+    evenement_test.id_event = 5
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.supprimer(evenement_test)
+
+    # Assert
+    assert resultat is True
+    cursor.execute.assert_called_once()
+    args = cursor.execute.call_args[0]
+    assert "DELETE FROM evenement" in args[0]
+    assert "WHERE id_event = %(id_event)s" in args[0]
+    assert args[1] == {"id_event": 5}
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_supprimer_evenement_inexistant(mock_db, mock_connection, evenement_test):
+    """Test la suppression d'un événement inexistant."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.rowcount = 0
+    evenement_test.id_event = 999
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.supprimer(evenement_test)
+
+    # Assert
+    assert resultat is False
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_supprimer_evenement_exception(mock_db, mock_connection, evenement_test):
+    """Test la gestion d'exception lors de la suppression."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.execute.side_effect = Exception("Erreur de connexion")
+    evenement_test.id_event = 5
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.supprimer(evenement_test)
+
+    # Assert
+    assert resultat is False
+
+
+# ============================================================
+# TESTS MODIFICATION STATUT
+# ============================================================
+
+@patch('dao.evenement_dao.DBConnection')
+def test_modifier_statut_success(mock_db, mock_connection):
+    """Test la modification réussie du statut d'un événement."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.rowcount = 1
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.modifier_statut(5, "complet")
+
+    # Assert
+    assert resultat is True
+    cursor.execute.assert_called_once()
+    args = cursor.execute.call_args[0]
+    assert "UPDATE evenement" in args[0]
+    assert "SET statut = %(statut)s" in args[0]
+    assert "WHERE id_event = %(id_event)s" in args[0]
+    assert args[1] == {"statut": "complet", "id_event": 5}
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_modifier_statut_en_passe(mock_db, mock_connection):
+    """Test le passage d'un événement au statut 'passé'."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.rowcount = 1
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.modifier_statut(10, "passe")
+
+    # Assert
+    assert resultat is True
+    params = cursor.execute.call_args[0][1]
+    assert params["statut"] == "passe"
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_modifier_statut_evenement_inexistant(mock_db, mock_connection):
+    """Test la modification de statut pour un événement inexistant."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.rowcount = 0
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.modifier_statut(999, "complet")
+
+    # Assert
+    assert resultat is False
+
+
+@patch('dao.evenement_dao.DBConnection')
+def test_modifier_statut_exception(mock_db, mock_connection):
+    """Test la gestion d'exception lors de la modification du statut."""
+    # Arrange
+    connection, cursor = mock_connection
+    mock_db.return_value.connection = connection
+    cursor.execute.side_effect = Exception("Erreur de connexion")
+
+    dao = EvenementDAO()
+
+    # Act
+    resultat = dao.modifier_statut(5, "complet")
+
+    # Assert
+    assert resultat is False

@@ -18,10 +18,10 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
         print("\n=== Espace Admin ===")
         print("1. Voir les événements disponibles")
         print("2. Créer un événement")
-        print("3. Déconnexion")
-        print("4. Créer un bus")  
-        print("5. Supprimer un événement")
-        print("6. Voir les inscrits à un événement")
+        print("3. Créer un bus")  
+        print("4. Supprimer un événement")
+        print("5. Voir les inscrits à un événement")
+        print("6. Déconnexion")
         choix = input("Choisissez une option : ").strip()
 
         # ---- OPTION 1 : Liste des événements ----
@@ -75,13 +75,13 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
             else:
                 print("❌ La création de l'événement a échoué.")
 
-        # ---- OPTION 3 : Déconnexion ----
-        elif choix == "3":
+        # ---- OPTION 6 : Déconnexion ----
+        elif choix == "6":
             print("🔒 Déconnexion...")
             break
 
-        # ---- OPTION 4 : Création d’un bus ----
-        elif choix == "4":
+        # ---- OPTION 3 : Création d’un bus ----
+        elif choix == "3":
             print("\n=== Création d’un bus ===")
 
             # Liste les événements pour que l'admin choisisse l’un d’eux
@@ -140,8 +140,8 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
             except Exception as e:
                 print(f"⚠️ Erreur inattendue : {e}")
 
-                # ---- OPTION 5 : Supprimer un événement ----
-        elif choix == "5":
+                # ---- OPTION 4 : Supprimer un événement ----
+        elif choix == "4":
             print("\n=== Suppression d’un événement ===")
 
             # Récupérer les événements disponibles
@@ -181,8 +181,8 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 print("❌ La suppression a échoué.")
             
 
-                # ---- OPTION 6 : Voir les inscrits à un événement ----
-        elif choix == "6":
+                # ---- OPTION 5 : Voir les inscrits à un événement ----
+        elif choix == "5":
             print("\n=== Liste des inscrits à un événement ===")
 
             # Récupération des événements disponibles

@@ -75,7 +75,7 @@ class BusService:
         """
         
         # Vérification que le bus existe
-        bus = self.bus_dao.get_by_id(id_bus)
+        bus = self.bus_dao.get_by("id_bus", id_bus)
         if not bus:
             print(f"Bus {id_bus} introuvable")
             return False
