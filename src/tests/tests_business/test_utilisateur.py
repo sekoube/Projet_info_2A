@@ -8,7 +8,7 @@ from src.business_object.utilisateur import Utilisateur
 @pytest.mark.parametrize(
     'params, erreur, message_erreur',
     [
-        # SUPPRIMÉ: Test sur pseudo vide (n'existe pas dans votre code)
+       
         ({'nom': '', 'prenom': 'Marc', 'email': 'marc@gmail.com', 'mot_de_passe': '1234'},
          ValueError, "Le nom ne peut pas être vide"),
         ({'nom': 'LEROY', 'prenom': '', 'email': 'marc@gmail.com', 'mot_de_passe': '1234'},
@@ -46,8 +46,8 @@ def test_utilisateur_creation_valide(params):
 @pytest.mark.parametrize(
     'nom, prenom, resultat_attendu',
     [
-        ('LEROY', 'Marc', 'Marc LEROY'),  # MODIFIÉ: Sans pseudo
-        ('BERNARD', 'France', 'France BERNARD'),  # MODIFIÉ: Sans pseudo
+        ('LEROY', 'Marc', 'Marc LEROY'),  
+        ('BERNARD', 'France', 'France BERNARD'), 
     ]
 )
 def test_str_format(nom, prenom, resultat_attendu):  # RENOMMÉ: identite -> str_format
@@ -131,7 +131,7 @@ def test_egalite_utilisateurs():
     user2 = Utilisateur(nom='LEROY', prenom='Marc', email='marc@gmail.com', mot_de_passe='1234')
     user3 = Utilisateur(nom='BERNARD', prenom='France', email='france@gmail.com', mot_de_passe='abcd')
 
-    # Comparaison "manuelle" des attributs (MODIFIÉ: enlevé pseudo)
+    # Comparaison "manuelle" des attributs 
     assert all(getattr(user1, attr) == getattr(user2, attr) for attr in ['nom', 'prenom', 'email', 'mot_de_passe', 'role'])
     assert not all(getattr(user1, attr) == getattr(user3, attr) for attr in ['nom', 'prenom', 'email', 'mot_de_passe', 'role'])
 
