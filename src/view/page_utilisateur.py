@@ -51,8 +51,6 @@ def page_utilisateur(utilisateur, evenement_service: EvenementService, inscripti
             if bus_aller_disponibles:
                 for bus in bus_aller_disponibles:
                     inscriptions_bus_aller = inscription_service.get_inscription_by("id_bus_aller", int(bus.id_bus))
-                    print("bus.id_bus =", bus.id_bus, type(bus.id_bus))
-                    print(inscriptions_bus_aller)
                     places_restantes = bus.capacite_max - len(inscriptions_bus_aller)
                     print(f"- ID: {bus.id_bus}, Places restantes: {places_restantes}")
             else:
