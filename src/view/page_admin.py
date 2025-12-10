@@ -220,7 +220,7 @@ def page_admin(utilisateur, evenement_service: EvenementService, inscription_ser
                 user = utilisateur_service.get_utilisateur_by("id_utilisateur", ins.created_by)[0]
 
                 if user:
-                    print(f"- {user.nom} {user.prenom} (ID: {user.id_utilisateur})")
+                    print(f"- {user.nom} {user.prenom} (ID: {user.id_utilisateur}), Aller :{ins.id_bus_aller}, Retour :{ins.id_bus_retour}")
                 else:
                     # Cas improbable mais propre
                     print(f"- Utilisateur inconnu (ID: {ins.created_by})")
